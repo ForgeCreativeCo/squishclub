@@ -563,7 +563,13 @@ window.Squish = {
 };
 </script>
 
-<script>
+<!-- type="module" here (not just a classic script) is deliberate: module scripts
+     are always deferred until after parsing and run in document order relative
+     to each other, so this is guaranteed to start after the Firebase bootstrap
+     module above has run and set window.Squish — a classic script here would
+     instead run immediately while the page is still parsing, racing ahead of
+     Firebase and crashing on a not-yet-defined window.Squish. -->
+<script type="module">
 (function(){
 "use strict";
 
