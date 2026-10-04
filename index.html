@@ -384,11 +384,21 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
 .toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--bg); font-weight:800; font-size:13px; padding:10px 18px; border-radius:999px; z-index:90; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; max-width:84vw; text-align:center}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
 
-.boot-screen,.onboard-screen{min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:32px 24px; text-align:center}
+.boot-screen,.onboard-screen{
+  height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:16px; padding:32px 24px calc(32px + env(safe-area-inset-bottom,0px)); text-align:center;
+}
 .boot-screen .logo{font-size:56px}
-.onboard-screen{gap:18px; align-items:stretch}
-.onboard-screen .hero{text-align:center}
-.onboard-screen .hero .logo{font-size:48px}
+.onboard-screen{gap:14px; align-items:stretch}
+.onboard-screen .hero{text-align:center; flex:none}
+.onboard-screen .hero .logo{font-size:40px}
+.onboard-screen .hero h1{font-size:21px}
+.onboard-screen .hero p{font-size:13px; margin:4px 0 0}
+.onboard-screen .card{flex:none; width:100%; max-width:380px; margin:0 auto}
+
+.avatar-pick{max-width:300px; margin:0 auto; gap:8px}
+.avatar-opt{font-size:22px; border-radius:14px}
 
 @media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms!important; transition-duration:.001ms!important} }
 </style>
