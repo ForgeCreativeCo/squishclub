@@ -1,0 +1,1718 @@
+<title>Squish Trade Club</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: single-page app shell — sticky top status bar, swipeable tabbed
+   content area, sticky bottom nav; built mobile/tablet-first for two kids
+   each on their own tablet. */
+:root{
+  --bg: #FBF7FF;
+  --surface: #FFFFFF;
+  --surface-2: #F3ECFF;
+  --surface-3: #EADFFF;
+  --ink: #2A2142;
+  --ink-dim: #756A8C;
+  --line: #E4D9F7;
+  --accent: #FF5FA2;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #FFE1EE;
+  --mint: #22B07D;
+  --mint-soft: #DAF6EB;
+  --coin: #B8860B;
+  --coin-soft: #FFF2CF;
+  --danger: #E0485C;
+  --rarity-common: #7C8CA3;
+  --rarity-common-soft: #E7EBF1;
+  --rarity-uncommon: #1FA971;
+  --rarity-uncommon-soft: #DCF6E9;
+  --rarity-rare: #3B7DE8;
+  --rarity-rare-soft: #DEEAFD;
+  --rarity-epic: #9B4FE0;
+  --rarity-epic-soft: #EFE0FD;
+  --rarity-legendary: #C9890A;
+  --rarity-legendary-soft: #FBEBC7;
+  --shadow: 0 10px 24px -14px rgba(42,33,66,.35);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --font-display: 'Baloo 2', ui-rounded, 'Segoe UI', sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg: #1B1530;
+    --surface: #251D40;
+    --surface-2: #2F2550;
+    --surface-3: #3A2E63;
+    --ink: #F3EEFF;
+    --ink-dim: #B6ABD2;
+    --line: #3F3566;
+    --accent: #FF7FB4;
+    --accent-ink: #231129;
+    --accent-soft: #452A3C;
+    --mint: #3FD79B;
+    --mint-soft: #1D3F33;
+    --coin: #F4C85A;
+    --coin-soft: #45380F;
+    --danger: #FF6B7E;
+    --rarity-common: #9AA7BD;
+    --rarity-common-soft: #30354A;
+    --rarity-uncommon: #45D79A;
+    --rarity-uncommon-soft: #17392D;
+    --rarity-rare: #6FA0FF;
+    --rarity-rare-soft: #1B2F54;
+    --rarity-epic: #C491FF;
+    --rarity-epic-soft: #332050;
+    --rarity-legendary: #F4C85A;
+    --rarity-legendary-soft: #403210;
+    --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg: #1B1530;
+  --surface: #251D40;
+  --surface-2: #2F2550;
+  --surface-3: #3A2E63;
+  --ink: #F3EEFF;
+  --ink-dim: #B6ABD2;
+  --line: #3F3566;
+  --accent: #FF7FB4;
+  --accent-ink: #231129;
+  --accent-soft: #452A3C;
+  --mint: #3FD79B;
+  --mint-soft: #1D3F33;
+  --coin: #F4C85A;
+  --coin-soft: #45380F;
+  --danger: #FF6B7E;
+  --rarity-common: #9AA7BD;
+  --rarity-common-soft: #30354A;
+  --rarity-uncommon: #45D79A;
+  --rarity-uncommon-soft: #17392D;
+  --rarity-rare: #6FA0FF;
+  --rarity-rare-soft: #1B2F54;
+  --rarity-epic: #C491FF;
+  --rarity-epic-soft: #332050;
+  --rarity-legendary: #F4C85A;
+  --rarity-legendary-soft: #403210;
+  --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--font-body); font-size:15px; line-height:1.45;
+  padding-inline:0; overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:var(--font-display); font-weight:700; text-wrap:balance; margin:0}
+button{font-family:inherit}
+img{max-width:100%}
+.hidden{display:none!important}
+::selection{background:var(--accent-soft)}
+
+#app{height:100%; display:flex; flex-direction:column; max-width:640px; margin:0 auto; position:relative}
+.bg-deco{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none}
+.bg-deco span{position:absolute; border-radius:50%; filter:blur(46px); opacity:.55}
+.bg-deco span:nth-child(1){width:260px; height:260px; background:var(--accent-soft); top:-90px; left:-70px}
+.bg-deco span:nth-child(2){width:220px; height:220px; background:var(--mint-soft); bottom:-70px; right:-60px}
+.bg-deco span:nth-child(3){width:190px; height:190px; background:var(--coin-soft); top:38%; right:-80px}
+
+@keyframes viewIn{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)}}
+
+/* ---------- top bar ---------- */
+.topbar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:30;
+  display:flex; align-items:center; gap:10px;
+  padding:10px 16px; background:var(--surface);
+  border-bottom:1px solid var(--line);
+}
+.topbar .brand{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:700; font-size:17px; color:var(--accent)}
+.topbar .brand .logo{font-size:22px}
+.topbar .spacer{flex:1}
+.player-chip{display:flex; align-items:center; gap:8px; background:var(--surface-2); border-radius:999px; padding:4px 10px 4px 4px}
+.player-chip .avatar{width:28px; height:28px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:16px}
+.player-chip .name{font-weight:800; font-size:13px; max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.coin-pill{display:flex; align-items:center; gap:5px; background:var(--coin-soft); color:var(--coin); border-radius:999px; padding:6px 12px; font-weight:800; font-size:13px; font-variant-numeric:tabular-nums}
+.coin-pill .ic{font-size:14px}
+
+/* ---------- content ---------- */
+.view{flex:1; overflow-y:auto; padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:18px; animation:viewIn .35s ease}
+.view.hidden{display:none}
+.section-title{display:flex; align-items:baseline; justify-content:space-between; gap:8px}
+.section-title h2{font-size:19px}
+.section-title .hint{font-size:12px; color:var(--ink-dim); font-weight:700}
+
+/* ---------- bottom nav ---------- */
+.bottomnav{
+  position:fixed; left:0; right:0; bottom:0; z-index:40;
+  max-width:640px; margin:0 auto;
+  display:flex; background:var(--surface); border-top:1px solid var(--line);
+  padding:6px 8px calc(8px + env(safe-area-inset-bottom,0px));
+  box-shadow:0 -8px 20px -16px rgba(0,0,0,.3);
+}
+.navbtn{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:none; border:none; color:var(--ink-dim); padding:8px 4px; border-radius:14px;
+  font-family:var(--font-body); font-weight:800; font-size:11px; cursor:pointer;
+  transition:background .2s, color .2s, transform .15s;
+}
+.navbtn .ic{font-size:21px; transition:transform .25s cubic-bezier(.3,1.6,.4,1)}
+.navbtn.active{color:var(--accent); background:var(--accent-soft)}
+.navbtn.active .ic{transform:scale(1.15) translateY(-1px)}
+.navbtn:active{transform:scale(.94)}
+
+/* ---------- cards & misc ---------- */
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow)}
+.btn{
+  appearance:none; border:none; cursor:pointer; font-family:var(--font-body); font-weight:800;
+  border-radius:999px; padding:12px 20px; font-size:14px; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--accent); color:var(--accent-ink); box-shadow:var(--shadow);
+}
+.btn:active{transform:translateY(1px)}
+@media (hover:hover){ .btn:hover{filter:brightness(1.05)} }
+.btn.secondary{background:var(--surface-2); color:var(--ink); box-shadow:none; border:1px solid var(--line)}
+.btn.ghost{background:transparent; color:var(--accent); box-shadow:none; padding:10px 14px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn.small{padding:8px 14px; font-size:12.5px}
+
+.stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.stat-tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-sm); padding:12px; text-align:center; transition:box-shadow .3s, border-color .3s}
+.stat-tile .num{font-family:var(--font-display); font-size:22px; font-variant-numeric:tabular-nums}
+.stat-tile .lbl{font-size:11px; color:var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:.04em}
+.stat-tile.glow{border-color:var(--rarity-legendary); box-shadow:0 0 0 3px var(--rarity-legendary-soft), var(--shadow)}
+.stat-tile.glow .num{color:var(--rarity-legendary)}
+
+.progress-track{height:10px; border-radius:999px; background:var(--surface-3); overflow:hidden}
+.progress-fill{height:100%; background:var(--accent); border-radius:999px; transition:width .4s ease}
+
+/* item grid / item card */
+.item-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:10px}
+.item-card{
+  position:relative; border-radius:var(--radius-sm); padding:10px 6px 8px; text-align:center;
+  border:2px solid var(--rc,var(--line)); background:var(--rc-soft,var(--surface));
+  display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0;
+}
+.item-card .emoji{font-size:30px; line-height:1}
+.item-card .nm{font-size:10.5px; font-weight:800; color:var(--ink); line-height:1.15; min-height:24px; display:flex; align-items:center; justify-content:center}
+.item-card .ct{position:absolute; top:4px; right:5px; background:var(--surface); border:1px solid var(--line); border-radius:999px; font-size:9.5px; font-weight:800; padding:1px 6px; color:var(--ink-dim)}
+.item-card.locked{filter:grayscale(1); opacity:.42}
+.item-card.locked .nm{color:var(--ink-dim)}
+.item-card.pickable{cursor:pointer}
+.item-card.selected{outline:3px solid var(--accent); outline-offset:1px}
+.rarity-tag{font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--rc,var(--ink-dim))}
+
+/* tabs within a view */
+.pillbar{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px}
+.pillbtn{flex:none; border:1px solid var(--line); background:var(--surface); color:var(--ink-dim); font-weight:800; font-size:12.5px; padding:8px 14px; border-radius:999px; cursor:pointer}
+.pillbtn.active{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+
+/* games */
+.game-card{display:flex; gap:12px; align-items:center; padding:14px; cursor:pointer; border-left:5px solid var(--gc,var(--accent)); transition:transform .15s}
+.game-card .ic{font-size:34px; width:52px; text-align:center}
+.game-card .meta{flex:1; min-width:0}
+.game-card .meta h3{font-size:15px}
+.game-card .meta p{margin:2px 0 0; font-size:12px; color:var(--ink-dim)}
+@media (hover:hover){ .game-card:hover{transform:translateY(-2px)} .card:hover{transform:translateY(-1px)} }
+
+.game-stage{display:flex; flex-direction:column; gap:12px}
+.game-hud{display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:13px}
+.game-hud .hud-item{display:flex; flex-direction:column; align-items:center}
+.game-hud .hud-item .v{font-family:var(--font-display); font-size:18px; font-variant-numeric:tabular-nums}
+.game-hud .hud-item .k{font-size:9.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.04em}
+
+/* shared arena frame — each mini-game gets its own look */
+.arena{border-radius:var(--radius); padding:16px; position:relative; overflow:hidden}
+
+@keyframes popPulse{0%{transform:scale(1)}45%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes blobFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-1.5deg)}}
+@keyframes conveyorMove{from{background-position:0 0}to{background-position:40px 0}}
+@keyframes cloudDrift{from{transform:translateX(-30%)}to{transform:translateX(420%)}}
+@keyframes ringPulse{0%{box-shadow:0 0 0 0 var(--rc,var(--accent))}100%{box-shadow:0 0 0 12px transparent}}
+@keyframes shimmerSweep{from{background-position:-220% 0}to{background-position:220% 0}}
+@keyframes confettiFall{0%{transform:translateY(-12px) rotate(0deg); opacity:1}100%{transform:translateY(160px) rotate(360deg); opacity:0}}
+
+/* arena 1 — Squish Match: "memory lab", glossy blob cards */
+.arena-match{background:radial-gradient(circle at 18% 12%, var(--accent-soft), transparent 55%), radial-gradient(circle at 88% 90%, var(--mint-soft), transparent 50%), var(--surface-2)}
+.arena-match .match-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.arena-match .match-card{
+  aspect-ratio:1; border:none; cursor:pointer; font-size:24px; color:#fff; display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden; user-select:none; box-shadow:0 8px 16px -8px rgba(42,33,66,.45);
+  background:radial-gradient(circle at 32% 26%, #ffc2de, var(--accent) 72%);
+  border-radius:52% 48% 55% 45%/55% 45% 58% 42%;
+  animation:blobFloat 4.5s ease-in-out infinite;
+  transition:transform .2s;
+}
+.arena-match .match-card:nth-child(4n+2){border-radius:45% 55% 48% 52%/48% 52% 42% 58%; animation-delay:-1.1s}
+.arena-match .match-card:nth-child(4n+3){border-radius:58% 42% 40% 60%/60% 40% 55% 45%; animation-delay:-2.3s}
+.arena-match .match-card:nth-child(4n+4){border-radius:42% 58% 60% 40%/44% 56% 48% 52%; animation-delay:-3.4s}
+.arena-match .match-card::before{content:""; position:absolute; top:12%; left:20%; width:32%; height:20%; background:rgba(255,255,255,.6); border-radius:50%; filter:blur(.5px)}
+.arena-match .match-card.flipped,.arena-match .match-card.matched{background:var(--surface); color:var(--ink); border:2px solid var(--line); border-radius:16px; box-shadow:none; animation:none}
+.arena-match .match-card.flipped::before,.arena-match .match-card.matched::before{display:none}
+.arena-match .match-card.matched{opacity:.5}
+
+/* arena 2 — Pop Rush: raised bubble-wrap sheet */
+.arena-pop{background:radial-gradient(circle at 12px 12px, rgba(0,0,0,.05) 0 7px, transparent 8px) 0 0/26px 26px, var(--surface-2)}
+:root[data-theme="dark"] .arena-pop{background:radial-gradient(circle at 12px 12px, rgba(0,0,0,.25) 0 7px, transparent 8px) 0 0/26px 26px, var(--surface-2)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .arena-pop{background:radial-gradient(circle at 12px 12px, rgba(0,0,0,.25) 0 7px, transparent 8px) 0 0/26px 26px, var(--surface-2)} }
+.arena-pop .pop-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.arena-pop .pop-cell{
+  aspect-ratio:1; border-radius:50%; border:none; cursor:pointer;
+  background:radial-gradient(circle at 34% 26%, #fff 0%, var(--surface) 30%, var(--surface-3) 74%, #cfc2ea 100%);
+  box-shadow:0 3px 0 rgba(0,0,0,.08), inset 0 -3px 4px rgba(0,0,0,.08), inset 0 3px 3px rgba(255,255,255,.65);
+}
+.arena-pop .pop-cell.lit{
+  background:radial-gradient(circle at 34% 26%, #fff, var(--accent) 62%);
+  box-shadow:0 0 0 8px var(--accent-soft), 0 3px 0 rgba(0,0,0,.08);
+  animation:popPulse .32s ease;
+}
+
+/* arena 3 — Squishy Catch: outdoor scene */
+.arena-catch{padding:0; background:linear-gradient(180deg,#BEE7FF 0%, #E9F7FF 55%, var(--surface-2) 100%)}
+:root[data-theme="dark"] .arena-catch{background:linear-gradient(180deg,#152038 0%, #1C2740 55%, var(--surface-2) 100%)}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .arena-catch{background:linear-gradient(180deg,#152038 0%, #1C2740 55%, var(--surface-2) 100%)} }
+.catch-field{position:relative; height:360px; max-height:52vh; overflow:hidden; touch-action:none}
+.catch-ground{position:absolute; left:0; right:0; bottom:0; height:30px; background:linear-gradient(180deg,#8FDD8F,#5FB95F)}
+.cloud{position:absolute; top:12%; width:58px; height:18px; background:rgba(255,255,255,.85); border-radius:999px; animation:cloudDrift 16s linear infinite}
+.cloud::before,.cloud::after{content:""; position:absolute; background:rgba(255,255,255,.85); border-radius:50%}
+.cloud::before{width:24px; height:24px; top:-11px; left:6px}
+.cloud::after{width:18px; height:18px; top:-7px; left:28px}
+.falling{position:absolute; font-size:26px; transform:translate(-50%,-50%); user-select:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.18))}
+.basket{position:absolute; bottom:28px; width:64px; height:40px; transform:translateX(-50%); font-size:34px; display:flex; align-items:flex-end; justify-content:center; filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
+
+/* arena 4 — Stretch Zone: taffy pull */
+.arena-stretch{background:repeating-linear-gradient(135deg, var(--accent-soft) 0 14px, var(--surface-2) 14px 28px)}
+.stretch-wrap{display:flex; flex-direction:column; gap:16px; align-items:center}
+.stretch-track{position:relative; width:100%; max-width:340px; height:34px; background:var(--surface); border:2px solid var(--line); border-radius:999px; overflow:visible; box-shadow:inset 0 2px 5px rgba(0,0,0,.1)}
+.stretch-zone{position:absolute; top:-2px; bottom:-2px; background:var(--mint-soft); border:2px solid var(--mint); border-radius:999px; animation:ringPulse 1.5s ease-out infinite}
+.stretch-marker{position:absolute; top:50%; width:26px; height:26px; margin-top:-13px; border-radius:50% 50% 50% 4px; transform:translateX(-50%) rotate(45deg); background:radial-gradient(circle at 35% 30%, #fff, var(--accent) 68%); box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.stretch-feedback{font-family:var(--font-display); font-size:22px; min-height:30px}
+.squish-btn{box-shadow:0 6px 0 rgba(0,0,0,.22), var(--shadow); transition:transform .08s, box-shadow .08s}
+.squish-btn:active{transform:translateY(5px); box-shadow:0 1px 0 rgba(0,0,0,.22)}
+
+/* arena 5 — Sort Rush: conveyor belt */
+.arena-sort{background:var(--surface-2)}
+.sort-stage{display:flex; flex-direction:column; align-items:center; gap:16px}
+.sort-timerbar{width:100%; max-width:300px; height:14px; border-radius:7px; background:repeating-linear-gradient(90deg, var(--surface-3) 0 10px, var(--surface) 10px 20px); background-size:40px 100%; animation:conveyorMove .55s linear infinite}
+.sort-timerbar .progress-fill{background:var(--accent); border-radius:7px}
+.sort-display{font-size:54px; min-height:92px; background:var(--surface); border-radius:16px; padding:10px 24px; box-shadow:var(--shadow)}
+.sort-display .nm{font-family:var(--font-display); font-size:16px; margin-top:4px; color:var(--ink-dim)}
+.sort-bins{display:flex; gap:12px; width:100%; max-width:360px}
+.sort-bin{flex:1; padding:20px 8px 16px; border-radius:8px 8px 18px 18px; border:2px solid var(--line); background:linear-gradient(180deg,var(--surface),var(--surface-2)); font-weight:800; text-align:center; cursor:pointer; font-size:14px; display:flex; flex-direction:column; gap:4px; align-items:center; position:relative}
+.sort-bin::before{content:""; position:absolute; top:-8px; left:8%; right:8%; height:9px; background:var(--line); border-radius:4px}
+.sort-bin:active{transform:translateY(1px)}
+.sort-bin .ic{font-size:26px}
+
+/* arena 6 — Pattern Pop: silicone pad */
+.arena-pattern{background:radial-gradient(circle at 10px 10px, rgba(0,0,0,.05) 0 2px, transparent 3px) 0 0/20px 20px, var(--surface-2)}
+.arena-pattern .pop-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.arena-pattern .pop-cell{aspect-ratio:1; border-radius:16px; border:none; cursor:pointer; background:var(--surface); box-shadow:inset 0 3px 6px rgba(0,0,0,.12), inset 0 -2px 3px rgba(255,255,255,.4)}
+.arena-pattern .pop-cell.lit{background:var(--rc,var(--accent)); box-shadow:0 0 0 8px var(--rc-soft,var(--accent-soft)), inset 0 2px 4px rgba(0,0,0,.15); animation:popPulse .3s ease}
+
+.results-card{text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px}
+.results-card .big{font-size:40px}
+.results-card .coins-earned{font-family:var(--font-display); font-size:30px; color:var(--coin)}
+
+/* shop */
+.pack-card{display:flex; align-items:center; gap:14px; padding:16px; position:relative; overflow:hidden}
+.pack-card .ic{font-size:40px; width:56px; text-align:center}
+.pack-card .meta{flex:1; min-width:0}
+.pack-card .meta h3{font-size:16px}
+.pack-card .odds{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px}
+.odds-chip{font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:999px; background:var(--rc-soft); color:var(--rc)}
+.pack-card.foil{border-color:var(--rarity-legendary)}
+.pack-card.foil::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(115deg, transparent 35%, rgba(255,222,120,.35) 50%, transparent 65%);
+  background-size:260% 100%; animation:shimmerSweep 3.2s ease-in-out infinite;
+}
+
+.reveal-overlay{position:fixed; inset:0; background:rgba(20,14,36,.6); backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; z-index:80; padding:24px; overflow:hidden}
+.reveal-card{width:min(280px,80vw); background:var(--surface); border-radius:24px; padding:28px 20px; text-align:center; box-shadow:0 30px 60px -20px rgba(0,0,0,.5); border:3px solid var(--rc,var(--line)); animation:revealPop .45s cubic-bezier(.2,1.4,.4,1); position:relative; overflow:hidden}
+@keyframes revealPop{from{transform:scale(.55) rotate(-6deg); opacity:0} to{transform:scale(1) rotate(0); opacity:1}}
+.reveal-card .emoji{font-size:70px; position:relative; z-index:1}
+.reveal-card .rn{font-family:var(--font-display); font-size:19px; margin-top:6px; position:relative; z-index:1}
+.reveal-card .rr{margin-top:4px; position:relative; z-index:1}
+.reveal-card.shiny::before{
+  content:""; position:absolute; inset:-40%; z-index:0;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.75) 48%, transparent 62%);
+  background-size:220% 100%;
+  animation:shimmerSweep 1.6s ease-in-out .15s 2;
+}
+.confetti-piece{position:absolute; top:28%; width:8px; height:8px; border-radius:2px; animation:confettiFall 1.1s ease-in forwards; z-index:2}
+
+/* trade */
+.code-display{font-family:var(--font-display); font-size:38px; letter-spacing:.12em; text-align:center; color:var(--accent)}
+.trade-cols{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.trade-panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:12px; display:flex; flex-direction:column; gap:8px; min-width:0}
+.trade-panel h3{font-size:13px; display:flex; align-items:center; gap:6px}
+.trade-panel .ready-dot{width:9px; height:9px; border-radius:50%; background:var(--line)}
+.trade-panel .ready-dot.on{background:var(--mint)}
+.offer-slots{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; min-height:64px}
+.offer-slot{aspect-ratio:1; border:1.5px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--surface-2)}
+.offer-slot.filled{border-style:solid; background:var(--surface)}
+
+input[type=text],input[type=tel]{
+  font-family:var(--font-body); font-size:16px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line);
+  background:var(--surface); color:var(--ink); width:100%;
+}
+input:focus{outline:2px solid var(--accent); outline-offset:1px}
+label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.03em}
+
+.empty-state{display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px; padding:30px 16px; color:var(--ink-dim)}
+.empty-state .ic{font-size:40px}
+
+.avatar-pick{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+.avatar-opt{aspect-ratio:1; border-radius:16px; border:2px solid var(--line); background:var(--surface); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer}
+.avatar-opt.selected{border-color:var(--accent); background:var(--accent-soft)}
+
+.toast{position:fixed; left:50%; bottom:calc(96px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--bg); font-weight:800; font-size:13px; padding:10px 18px; border-radius:999px; z-index:90; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; max-width:84vw; text-align:center}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+.boot-screen,.onboard-screen{min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:32px 24px; text-align:center}
+.boot-screen .logo{font-size:56px}
+.onboard-screen{gap:18px; align-items:stretch}
+.onboard-screen .hero{text-align:center}
+.onboard-screen .hero .logo{font-size:48px}
+
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms!important; transition-duration:.001ms!important} }
+</style>
+
+<div id="app">
+  <div class="bg-deco" aria-hidden="true"><span></span><span></span><span></span></div>
+  <!-- boot -->
+  <div id="bootScreen" class="boot-screen">
+    <div class="logo">🫧</div>
+    <h1>Squish Trade Club</h1>
+    <p style="color:var(--ink-dim)">Loading your squad's squishies…</p>
+  </div>
+
+  <!-- onboarding -->
+  <div id="onboardScreen" class="onboard-screen hidden">
+    <div class="hero">
+      <div class="logo">🫧🧸</div>
+      <h1>Welcome to the Club!</h1>
+      <p style="color:var(--ink-dim)">Pick a name and a buddy, then start earning squishies &amp; fidgets.</p>
+    </div>
+    <div class="card" style="display:flex; flex-direction:column; gap:14px">
+      <div>
+        <label for="nameInput">Your name</label>
+        <input id="nameInput" type="text" maxlength="14" placeholder="e.g. Max" autocomplete="off">
+      </div>
+      <div>
+        <label>Your buddy</label>
+        <div class="avatar-pick" id="avatarPick"></div>
+      </div>
+      <button class="btn block" id="startBtn">Let's go!</button>
+      <p id="onboardMsg" style="font-size:12px;color:var(--ink-dim);text-align:center;min-height:16px"></p>
+    </div>
+  </div>
+
+  <!-- main shell -->
+  <div id="shell" class="hidden" style="display:flex; flex-direction:column; height:100%">
+    <div class="topbar">
+      <div class="brand"><span class="logo">🫧</span>Squish Trade</div>
+      <div class="spacer"></div>
+      <div class="coin-pill"><span class="ic">🪙</span><span id="coinCount">0</span></div>
+      <div class="player-chip"><span class="avatar" id="chipAvatar">🦊</span><span class="name" id="chipName">You</span></div>
+    </div>
+
+    <!-- COLLECTION -->
+    <section class="view" id="view-collection">
+      <div class="stat-row">
+        <div class="stat-tile"><div class="num" id="statOwned">0/28</div><div class="lbl">Collected</div></div>
+        <div class="stat-tile"><div class="num" id="statCoins">0</div><div class="lbl">Squish Coins</div></div>
+        <div class="stat-tile"><div class="num" id="statLegend">0</div><div class="lbl">Legendary</div></div>
+      </div>
+      <div>
+        <div class="progress-track"><div class="progress-fill" id="collectProgress" style="width:0%"></div></div>
+      </div>
+      <div class="section-title"><h2>Your Collection</h2><span class="hint" id="collectHint">28 items total</span></div>
+      <div class="pillbar" id="collectionFilters"></div>
+      <div class="item-grid" id="collectionGrid"></div>
+    </section>
+
+    <!-- GAMES -->
+    <section class="view hidden" id="view-games">
+      <div class="section-title"><h2>Mini-Games</h2><span class="hint">Earn Squish Coins</span></div>
+      <div id="gamePicker" style="display:flex; flex-direction:column; gap:10px"></div>
+      <div id="gameStage" class="game-stage hidden"></div>
+    </section>
+
+    <!-- SHOP -->
+    <section class="view hidden" id="view-shop">
+      <div class="section-title"><h2>Mystery Packs</h2><span class="hint">Spend Squish Coins</span></div>
+      <div id="packList" style="display:flex; flex-direction:column; gap:12px"></div>
+    </section>
+
+    <!-- TRADE -->
+    <section class="view hidden" id="view-trade">
+      <div class="section-title"><h2>Trading Table</h2><span class="hint" id="tradeHint">Meet up &amp; swap</span></div>
+      <div id="tradeArea"></div>
+    </section>
+
+    <div class="bottomnav">
+      <button class="navbtn active" data-tab="collection"><span class="ic">🧸</span>Collection</button>
+      <button class="navbtn" data-tab="games"><span class="ic">🎮</span>Games</button>
+      <button class="navbtn" data-tab="shop"><span class="ic">🎁</span>Packs</button>
+      <button class="navbtn" data-tab="trade"><span class="ic">🤝</span>Trade</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================= CATALOG ============================= */
+const ITEMS = [
+  // common
+  {id:"needoh_cube", name:"NeeDoh Nice Cube", emoji:"🧊", category:"squishy", rarity:"common"},
+  {id:"dream_drop", name:"Dream Drop", emoji:"💧", category:"squishy", rarity:"common"},
+  {id:"jelly_squish", name:"Jelly Squish", emoji:"🍮", category:"squishy", rarity:"common"},
+  {id:"gummy_bear_sq", name:"Gummy Bear Squishy", emoji:"🐻", category:"squishy", rarity:"common"},
+  {id:"donut_sq", name:"Dohnut Squishy", emoji:"🍩", category:"squishy", rarity:"common"},
+  {id:"cheese_sq", name:"Cheese Squishy", emoji:"🧀", category:"squishy", rarity:"common"},
+  {id:"pocket_fruit", name:"Pocket Fruit Mini", emoji:"🍓", category:"squishy", rarity:"common"},
+  {id:"pop_it", name:"Pop-It", emoji:"🫧", category:"fidget", rarity:"common"},
+  {id:"simple_dimple", name:"Simple Dimple", emoji:"🔘", category:"fidget", rarity:"common"},
+  {id:"sensory_putty", name:"Sensory Putty", emoji:"🟣", category:"fidget", rarity:"common"},
+  // uncommon
+  {id:"fuzz_ball", name:"Fuzz Ball", emoji:"🧶", category:"squishy", rarity:"uncommon"},
+  {id:"knitten", name:"Knitten", emoji:"🐱", category:"squishy", rarity:"uncommon"},
+  {id:"funky_pup", name:"Funky Pup", emoji:"🐶", category:"squishy", rarity:"uncommon"},
+  {id:"nice_cream", name:"Nice Cream Cone", emoji:"🍦", category:"squishy", rarity:"uncommon"},
+  {id:"taba_sq", name:"Taba Squishy", emoji:"🧸", category:"squishy", rarity:"uncommon"},
+  {id:"dumpling_sq", name:"Dumpling Squishy", emoji:"🥟", category:"squishy", rarity:"uncommon"},
+  {id:"infinity_cube", name:"Infinity Cube", emoji:"🔲", category:"fidget", rarity:"uncommon"},
+  {id:"fidget_ring", name:"Fidget Ring", emoji:"💍", category:"fidget", rarity:"uncommon"},
+  // rare
+  {id:"mochi_panda", name:"Mochi Panda", emoji:"🐼", category:"squishy", rarity:"rare"},
+  {id:"butter_stick", name:"Butter Stick Squishy", emoji:"🧈", category:"squishy", rarity:"rare"},
+  {id:"cake_sq", name:"Cake Squishy", emoji:"🎂", category:"squishy", rarity:"rare"},
+  {id:"speks_magnets", name:"Speks Magnetic Balls", emoji:"🧲", category:"fidget", rarity:"rare"},
+  {id:"water_vortex", name:"Water Vortex Bottle", emoji:"🌊", category:"fidget", rarity:"rare"},
+  {id:"marble_mesh", name:"Marble Mesh", emoji:"🔮", category:"fidget", rarity:"rare"},
+  // epic
+  {id:"fidget_dodeca", name:"Fidget Dodecagon", emoji:"🔷", category:"fidget", rarity:"epic"},
+  {id:"nice_berg", name:"Giant Nice Berg", emoji:"🏔️", category:"squishy", rarity:"epic"},
+  // legendary
+  {id:"golden_squish", name:"Golden Mini Plush", emoji:"🌟", category:"squishy", rarity:"legendary"},
+  {id:"golden_spinner", name:"Golden Fidget Spinner", emoji:"✨", category:"fidget", rarity:"legendary"},
+];
+const ITEM_MAP = Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+const RARITY_ORDER = ["common","uncommon","rare","epic","legendary"];
+const RARITY_LABEL = {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"};
+
+const PACKS = [
+  {id:"starter", name:"Starter Pack", emoji:"🎁", cost:40, odds:{common:.65,uncommon:.30,rare:.05,epic:0,legendary:0}},
+  {id:"rare", name:"Rare Pack", emoji:"🎀", cost:120, odds:{common:.30,uncommon:.40,rare:.25,epic:.05,legendary:0}},
+  {id:"legend", name:"Legendary Pack", emoji:"👑", cost:300, odds:{common:0,uncommon:.20,rare:.45,epic:.25,legendary:.10}},
+];
+
+const AVATARS = ["🦊","🐼","🐸","🦄","🐙","🐨","🦋","🐲","🐯","🐰","🦁","🐵"];
+
+function rarityColorVar(r){ return {c:"--rarity-"+r, s:"--rarity-"+r+"-soft"}; }
+function styleRarity(el,r){
+  el.style.setProperty("--rc", "var(--rarity-"+r+")");
+  el.style.setProperty("--rc-soft", "var(--rarity-"+r+"-soft)");
+}
+function rollWeighted(odds){
+  const entries = Object.entries(odds).filter(([,w])=>w>0);
+  const total = entries.reduce((s,[,w])=>s+w,0) || 1;
+  let r = Math.random()*total;
+  for(const [rarity,w] of entries){ if(r<w) return rarity; r-=w; }
+  return entries[entries.length-1][0];
+}
+function rollItem(odds){
+  const rarity = rollWeighted(odds);
+  const pool = ITEMS.filter(i=>i.rarity===rarity);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+/* ============================= UTIL ============================= */
+function $(sel,root){ return (root||document).querySelector(sel); }
+function $all(sel,root){ return Array.from((root||document).querySelectorAll(sel)); }
+function el(tag,attrs,children){
+  const e = document.createElement(tag);
+  if(attrs) for(const k in attrs){
+    if(k==="class") e.className = attrs[k];
+    else if(k==="text") e.textContent = attrs[k];
+    else if(k.startsWith("on") && typeof attrs[k]==="function") e.addEventListener(k.slice(2), attrs[k]);
+    else e.setAttribute(k, attrs[k]);
+  }
+  (children||[]).forEach(c=>{ if(c) e.appendChild(typeof c==="string"?document.createTextNode(c):c); });
+  return e;
+}
+let toastTimer;
+function showToast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function safeLocalGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function safeLocalSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function safeLocalRemove(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+/* ============================= IDENTITY ============================= */
+function getLocalPlayerId(){
+  let id = safeLocalGet("squishtrade_pid");
+  if(!id){
+    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("p"+Math.random().toString(36).slice(2)+Date.now().toString(36));
+    safeLocalSet("squishtrade_pid", id);
+  }
+  return id;
+}
+const PLAYER_ID = getLocalPlayerId();
+
+/* ============================= STORAGE ABSTRACTION =============================
+   Uses the db capability when available (live sync + trading). Falls back to
+   localStorage-only solo mode when db can't be reached, so the games still work. */
+let db = null, userCap = null, dbReady = false, canWrite = true;
+let player = null; // current merged player data
+let playerUnsub = null;
+
+function localPlayerKey(){ return "squishtrade_player_"+PLAYER_ID; }
+function loadLocalPlayer(){
+  try{
+    const raw = safeLocalGet(localPlayerKey());
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveLocalPlayer(p){ safeLocalSet(localPlayerKey(), JSON.stringify(p)); }
+
+function onPlayerChange(data){
+  player = data;
+  renderAll();
+}
+
+async function initIdentity(){
+  try{
+    db = await claude.use("db");
+  }catch(e){ db = null; }
+  try{
+    userCap = await claude.use("user");
+  }catch(e){ userCap = null; }
+
+  if(db){
+    dbReady = true;
+    playerUnsub = db.doc("players/"+PLAYER_ID).onSnapshot((snap)=>{
+      if(snap.exists){
+        onPlayerChange(snap.data());
+        hideBoot();
+      } else {
+        player = null;
+        hideBoot();
+        showOnboard();
+      }
+    }, (err)=>{
+      console.warn("player snapshot error", err);
+      if(err && (err.code==="revoked")) showToast("Lost the connection to saved data. Reopen the link to reconnect.");
+    });
+    if(userCap){
+      try{
+        const can = await userCap.can("data.write");
+        canWrite = (can === false) ? false : true;
+      }catch(e){ canWrite = true; }
+    }
+  } else {
+    dbReady = false;
+    const local = loadLocalPlayer();
+    if(local){ onPlayerChange(local); hideBoot(); }
+    else { hideBoot(); showOnboard(); }
+  }
+}
+
+async function createPlayer(name, avatar){
+  const newPlayer = { name: name, avatar: avatar, coins: 60, inventory: {}, createdAt: Date.now() };
+  if(dbReady){
+    try{
+      await db.doc("players/"+PLAYER_ID).set(newPlayer);
+      return true;
+    }catch(e){
+      console.warn("create player failed", e);
+      return false;
+    }
+  } else {
+    saveLocalPlayer(newPlayer);
+    onPlayerChange(newPlayer);
+    return true;
+  }
+}
+
+async function savePlayerPatch(patch){
+  // patch: {coins?, inventory?: {id:count,...}}
+  if(dbReady){
+    try{
+      await db.doc("players/"+PLAYER_ID).update(patch);
+      return true;
+    }catch(e){
+      console.warn("save failed", e);
+      showToast(canWrite ? "Couldn't save — try again." : "Ask a grown-up for edit access so your squishies get saved!");
+      return false;
+    }
+  } else {
+    const p = Object.assign({}, player);
+    if(patch.coins!==undefined) p.coins = patch.coins;
+    if(patch.inventory){ p.inventory = Object.assign({}, p.inventory||{}, patch.inventory); }
+    saveLocalPlayer(p);
+    onPlayerChange(p);
+    return true;
+  }
+}
+
+function getInventoryCount(itemId){
+  return (player && player.inventory && player.inventory[itemId]) || 0;
+}
+function getOwnedCount(){
+  if(!player || !player.inventory) return 0;
+  return Object.values(player.inventory).filter(c=>c>0).length;
+}
+
+async function addItemsAndCoins(itemCounts, coinDelta){
+  // itemCounts: {itemId: deltaQty}
+  const newInv = Object.assign({}, player.inventory||{});
+  for(const id in itemCounts){
+    newInv[id] = Math.max(0, (newInv[id]||0) + itemCounts[id]);
+  }
+  const newCoins = Math.max(0, (player.coins||0) + coinDelta);
+  const ok = await savePlayerPatch({ coins: newCoins, inventory: newInv });
+  return ok;
+}
+
+/* ============================= BOOT / ONBOARD ============================= */
+function hideBoot(){ $("#bootScreen").classList.add("hidden"); }
+function showOnboard(){
+  $("#onboardScreen").classList.remove("hidden");
+  $("#shell").classList.add("hidden");
+}
+function showShell(){
+  $("#onboardScreen").classList.add("hidden");
+  $("#shell").classList.remove("hidden");
+}
+
+let chosenAvatar = AVATARS[0];
+function buildAvatarPicker(){
+  const wrap = $("#avatarPick");
+  wrap.innerHTML = "";
+  AVATARS.forEach((a,idx)=>{
+    const opt = el("button",{class:"avatar-opt"+(idx===0?" selected":""), type:"button", text:a, onclick:()=>{
+      chosenAvatar = a;
+      $all(".avatar-opt",wrap).forEach(o=>o.classList.remove("selected"));
+      opt.classList.add("selected");
+    }});
+    wrap.appendChild(opt);
+  });
+}
+buildAvatarPicker();
+
+$("#startBtn").addEventListener("click", async ()=>{
+  const name = $("#nameInput").value.trim();
+  if(!name){ $("#onboardMsg").textContent = "Type your name first!"; return; }
+  $("#startBtn").disabled = true;
+  $("#onboardMsg").textContent = "Setting up your club card…";
+  const ok = await createPlayer(name.slice(0,14), chosenAvatar);
+  $("#startBtn").disabled = false;
+  if(ok){
+    if(!dbReady) showShell();
+    $("#onboardMsg").textContent = "";
+  } else {
+    $("#onboardMsg").textContent = "Couldn't save. Ask a grown-up to check sharing is set to Contributor or Editor, then try again.";
+  }
+});
+
+/* ============================= NAV ============================= */
+let currentTab = "collection";
+function setTab(tab){
+  currentTab = tab;
+  $all(".navbtn").forEach(b=>b.classList.toggle("active", b.dataset.tab===tab));
+  $all(".view").forEach(v=>v.classList.add("hidden"));
+  $("#view-"+tab).classList.remove("hidden");
+  if(tab==="trade") renderTrade();
+}
+$all(".navbtn").forEach(b=>b.addEventListener("click", ()=>setTab(b.dataset.tab)));
+
+/* ============================= RENDER: TOPBAR / COLLECTION ============================= */
+function renderTopbar(){
+  if(!player) return;
+  $("#coinCount").textContent = player.coins||0;
+  $("#chipAvatar").textContent = player.avatar||"🦊";
+  $("#chipName").textContent = player.name||"You";
+}
+
+let collectionFilter = "all";
+function buildCollectionFilters(){
+  const wrap = $("#collectionFilters");
+  wrap.innerHTML = "";
+  const opts = [["all","All"],["squishy","Squishies"],["fidget","Fidgets"],["owned","Owned"]];
+  opts.forEach(([val,label])=>{
+    const b = el("button",{class:"pillbtn"+(collectionFilter===val?" active":""), type:"button", text:label, onclick:()=>{
+      collectionFilter = val;
+      buildCollectionFilters();
+      renderCollection();
+    }});
+    wrap.appendChild(b);
+  });
+}
+function renderCollection(){
+  if(!player) return;
+  const owned = getOwnedCount();
+  $("#statOwned").textContent = owned+"/"+ITEMS.length;
+  $("#statCoins").textContent = player.coins||0;
+  const legendCount = ITEMS.filter(i=>i.rarity==="legendary" && getInventoryCount(i.id)>0).length;
+  $("#statLegend").textContent = legendCount;
+  $("#statLegend").closest(".stat-tile").classList.toggle("glow", legendCount>0);
+  $("#collectProgress").style.width = Math.round(owned/ITEMS.length*100)+"%";
+
+  const grid = $("#collectionGrid");
+  grid.innerHTML = "";
+  let items = ITEMS;
+  if(collectionFilter==="squishy") items = items.filter(i=>i.category==="squishy");
+  if(collectionFilter==="fidget") items = items.filter(i=>i.category==="fidget");
+  if(collectionFilter==="owned") items = items.filter(i=>getInventoryCount(i.id)>0);
+
+  items.forEach(item=>{
+    const count = getInventoryCount(item.id);
+    const card = el("div",{class:"item-card"+(count<=0?" locked":"")});
+    styleRarity(card, item.rarity);
+    card.appendChild(el("div",{class:"emoji", text: count>0? item.emoji : "❔"}));
+    card.appendChild(el("div",{class:"nm", text: count>0? item.name : "???"}));
+    card.appendChild(el("div",{class:"rarity-tag", text: RARITY_LABEL[item.rarity]}));
+    if(count>0) card.appendChild(el("div",{class:"ct", text:"×"+count}));
+    grid.appendChild(card);
+  });
+}
+
+/* ============================= GAMES ============================= */
+const GAME_DEFS = [
+  {id:"match", name:"Squish Match", emoji:"🧠", desc:"Flip cards, find every pair."},
+  {id:"pop", name:"Pop Rush", emoji:"🫧", desc:"Tap the glowing bubble before it's gone."},
+  {id:"catch", name:"Squishy Catch", emoji:"🧺", desc:"Catch squishies, dodge the bombs."},
+  {id:"stretch", name:"Stretch Zone", emoji:"📏", desc:"Time your tap inside the glowing zone."},
+  {id:"sort", name:"Sort Rush", emoji:"🗂️", desc:"Squishy or fidget? Sort it before time's up."},
+  {id:"pattern", name:"Pattern Pop", emoji:"🔁", desc:"Watch the pattern, then repeat it back."},
+];
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", pattern:"--danger"};
+function buildGamePicker(){
+  const wrap = $("#gamePicker");
+  wrap.innerHTML = "";
+  GAME_DEFS.forEach(g=>{
+    const card = el("div",{class:"card game-card", onclick:()=>startGame(g.id)});
+    card.style.setProperty("--gc", "var("+(GAME_ACCENT[g.id]||"--accent")+")");
+    card.appendChild(el("div",{class:"ic", text:g.emoji}));
+    const meta = el("div",{class:"meta"});
+    meta.appendChild(el("h3",{text:g.name}));
+    meta.appendChild(el("p",{text:g.desc}));
+    card.appendChild(meta);
+    card.appendChild(el("div",{class:"btn small secondary", text:"Play"}));
+    wrap.appendChild(card);
+  });
+}
+function showGameStage(show){
+  $("#gamePicker").classList.toggle("hidden", show);
+  $("#gameStage").classList.toggle("hidden", !show);
+}
+function exitGame(){ showGameStage(false); $("#gameStage").innerHTML=""; }
+
+function startGame(id){
+  showGameStage(true);
+  const stage = $("#gameStage");
+  stage.innerHTML = "";
+  if(id==="match") initMatchGame(stage);
+  else if(id==="pop") initPopGame(stage);
+  else if(id==="catch") initCatchGame(stage);
+  else if(id==="stretch") initStretchGame(stage);
+  else if(id==="sort") initSortGame(stage);
+  else if(id==="pattern") initPatternGame(stage);
+}
+
+function gameResultsScreen(stage, coinsEarned, lines){
+  stage.innerHTML = "";
+  const card = el("div",{class:"card results-card"});
+  card.appendChild(el("div",{class:"big", text:"🎉"}));
+  card.appendChild(el("h2",{text:"Nice round!"}));
+  lines.forEach(l=> card.appendChild(el("p",{text:l, style:"margin:0;color:var(--ink-dim);font-size:13px"})) );
+  card.appendChild(el("div",{class:"coins-earned", text:"+"+coinsEarned+" 🪙"}));
+  const row = el("div",{style:"display:flex;gap:10px;margin-top:6px"});
+  row.appendChild(el("button",{class:"btn", text:"Claim & Play Again", onclick: async ()=>{
+    await addItemsAndCoins({}, coinsEarned);
+    exitGame();
+    startGame(id_cache);
+  }}));
+  row.appendChild(el("button",{class:"btn secondary", text:"Done", onclick: async ()=>{
+    await addItemsAndCoins({}, coinsEarned);
+    exitGame();
+  }}));
+  card.appendChild(row);
+  stage.appendChild(card);
+}
+let id_cache = "match";
+
+/* ---- Squish Match (memory pairs) ---- */
+function initMatchGame(stage){
+  id_cache = "match";
+  const pool = ITEMS.slice().sort(()=>Math.random()-.5).slice(0,8);
+  let deck = pool.concat(pool).map(i=>({id:i.id, emoji:i.emoji}))
+    .sort(()=>Math.random()-.5)
+    .map((c,idx)=>Object.assign({key:idx}, c));
+
+  let flipped = [], matched = new Set(), moves = 0, lock = false;
+
+  const hud = el("div",{class:"game-hud"});
+  const hMoves = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Moves"})]);
+  const hPairs = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0/8"}),el("div",{class:"k",text:"Pairs"})]);
+  hud.appendChild(hMoves); hud.appendChild(hPairs);
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:exitGame}));
+  stage.appendChild(hud);
+
+  const arena = el("div",{class:"arena arena-match"});
+  const grid = el("div",{class:"match-grid"});
+  arena.appendChild(grid);
+  stage.appendChild(arena);
+
+  function render(){
+    grid.innerHTML = "";
+    deck.forEach(c=>{
+      const isUp = flipped.includes(c.key) || matched.has(c.key);
+      const btn = el("button",{class:"match-card"+(matched.has(c.key)?" matched":isUp?" flipped":""), type:"button", text: isUp? c.emoji : "🫧"});
+      btn.addEventListener("click", ()=>onFlip(c.key));
+      grid.appendChild(btn);
+    });
+  }
+  function onFlip(key){
+    if(lock || matched.has(key) || flipped.includes(key)) return;
+    flipped.push(key);
+    render();
+    if(flipped.length===2){
+      moves++; hMoves.querySelector(".v").textContent = moves;
+      lock = true;
+      const [a,b] = flipped.map(k=>deck.find(d=>d.key===k));
+      if(a.id===b.id){
+        flipped.forEach(k=>matched.add(k));
+        flipped = []; lock = false;
+        hPairs.querySelector(".v").textContent = matched.size/2+"/8";
+        render();
+        if(matched.size===deck.length) finish();
+      } else {
+        setTimeout(()=>{ flipped=[]; lock=false; render(); }, 700);
+      }
+    }
+  }
+  function finish(){
+    const coins = Math.max(12, Math.min(55, 64 - moves*2));
+    gameResultsScreen(stage, coins, ["You matched all 8 pairs in "+moves+" moves."]);
+  }
+  render();
+}
+
+/* ---- Pop Rush ---- */
+function initPopGame(stage){
+  id_cache = "pop";
+  const hud = el("div",{class:"game-hud"});
+  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Score"})]);
+  const hTime = el("div",{class:"hud-item"},[el("div",{class:"v",text:"20"}),el("div",{class:"k",text:"Seconds"})]);
+  hud.appendChild(hScore); hud.appendChild(hTime);
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{cleanup(); exitGame();}}));
+  stage.appendChild(hud);
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Tap the glowing bubble fast!"}));
+
+  const arena = el("div",{class:"arena arena-pop"});
+  const grid = el("div",{class:"pop-grid"});
+  const cells = [];
+  for(let i=0;i<16;i++){
+    const c = el("button",{class:"pop-cell", type:"button"});
+    c.addEventListener("click", ()=>tapCell(i));
+    grid.appendChild(c);
+    cells.push(c);
+  }
+  arena.appendChild(grid);
+  stage.appendChild(arena);
+
+  let score=0, timeLeft=20, litIndex=-1, litTimeout=null, gameTimer=null, speed=950, running=true;
+
+  function lightRandom(){
+    if(!running) return;
+    if(litIndex>=0) cells[litIndex].classList.remove("lit");
+    litIndex = Math.floor(Math.random()*16);
+    cells[litIndex].classList.add("lit");
+    clearTimeout(litTimeout);
+    litTimeout = setTimeout(()=>{ cells[litIndex].classList.remove("lit"); litIndex=-1; lightRandom(); }, speed);
+  }
+  function tapCell(i){
+    if(!running) return;
+    if(i===litIndex){
+      score++; hScore.querySelector(".v").textContent = score;
+      speed = Math.max(420, speed-18);
+      cells[i].classList.remove("lit");
+      litIndex=-1; clearTimeout(litTimeout);
+      lightRandom();
+    }
+  }
+  gameTimer = setInterval(()=>{
+    timeLeft--; hTime.querySelector(".v").textContent = timeLeft;
+    if(timeLeft<=0) finish();
+  },1000);
+  function cleanup(){ running=false; clearTimeout(litTimeout); clearInterval(gameTimer); }
+  function finish(){
+    cleanup();
+    const coins = Math.max(8, Math.min(85, score*3));
+    gameResultsScreen(stage, coins, ["You popped "+score+" bubbles."]);
+  }
+  lightRandom();
+}
+
+/* ---- Squishy Catch ---- */
+function initCatchGame(stage){
+  id_cache = "catch";
+  const hud = el("div",{class:"game-hud"});
+  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Caught"})]);
+  const hLives = el("div",{class:"hud-item"},[el("div",{class:"v",text:"❤️❤️❤️"}),el("div",{class:"k",text:"Lives"})]);
+  const hTime = el("div",{class:"hud-item"},[el("div",{class:"v",text:"30"}),el("div",{class:"k",text:"Seconds"})]);
+  hud.appendChild(hScore); hud.appendChild(hLives); hud.appendChild(hTime);
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; exitGame();}}));
+  stage.appendChild(hud);
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Drag the basket — catch squishies, dodge bombs!"}));
+
+  const field = el("div",{class:"catch-field arena arena-catch"});
+  for(let c=0;c<3;c++){
+    const cloud = el("div",{class:"cloud", style:"left:"+(c*35-10)+"%; animation-delay:-"+(c*5)+"s"});
+    field.appendChild(cloud);
+  }
+  field.appendChild(el("div",{class:"catch-ground"}));
+  const basket = el("div",{class:"basket", text:"🧺"});
+  field.appendChild(basket);
+  stage.appendChild(field);
+
+  let fieldW = 300, fieldH = 360;
+  let basketX = 150;
+  let score=0, lives=3, timeLeft=30, running=true, lastSpawn=0, items=[];
+  const goodEmoji = ["🧸","🍩","🐻","🧁","🧊","🍦"];
+  const bad = "💣";
+
+  function layout(){
+    const r = field.getBoundingClientRect();
+    fieldW = r.width; fieldH = r.height;
+    basketX = fieldW/2;
+    positionBasket();
+  }
+  function positionBasket(){ basket.style.left = basketX+"px"; }
+  function clampBasket(){ basketX = Math.max(30, Math.min(fieldW-30, basketX)); }
+
+  function pointerMove(clientX){
+    const r = field.getBoundingClientRect();
+    basketX = clientX - r.left;
+    clampBasket();
+    positionBasket();
+  }
+  let dragging=false;
+  field.addEventListener("pointerdown",(e)=>{ dragging=true; pointerMove(e.clientX); });
+  window.addEventListener("pointermove",(e)=>{ if(dragging) pointerMove(e.clientX); });
+  window.addEventListener("pointerup",()=>{ dragging=false; });
+
+  function spawn(){
+    const isBad = Math.random()<0.22;
+    const node = el("div",{class:"falling", text: isBad? bad : goodEmoji[Math.floor(Math.random()*goodEmoji.length)]});
+    const x = 20+Math.random()*(fieldW-40);
+    node.style.left = x+"px";
+    node.style.top = "-20px";
+    field.appendChild(node);
+    items.push({node, x, y:-20, bad:isBad, speed: 1.6+Math.random()*1.6+ (30-timeLeft)*0.03});
+  }
+
+  let rafId;
+  function tick(ts){
+    if(!running) return;
+    if(!lastSpawn) lastSpawn = ts;
+    if(ts-lastSpawn > 650){ spawn(); lastSpawn = ts; }
+    for(let k=items.length-1;k>=0;k--){
+      const it = items[k];
+      it.y += it.speed;
+      it.node.style.top = it.y+"px";
+      if(it.y > fieldH-72 && it.y < fieldH-24 && Math.abs(it.x-basketX) < 34){
+        if(it.bad){
+          lives--; hLives.querySelector(".v").textContent = "❤️".repeat(Math.max(lives,0))+"🖤".repeat(3-Math.max(lives,0));
+        } else {
+          score++; hScore.querySelector(".v").textContent = score;
+        }
+        it.node.remove(); items.splice(k,1);
+        if(lives<=0){ finish(); return; }
+        continue;
+      }
+      if(it.y > fieldH+20){ it.node.remove(); items.splice(k,1); }
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  const timer = setInterval(()=>{
+    timeLeft--; hTime.querySelector(".v").textContent = Math.max(timeLeft,0);
+    if(timeLeft<=0) finish();
+  },1000);
+
+  function finish(){
+    if(!running) return;
+    running=false;
+    cancelAnimationFrame(rafId);
+    clearInterval(timer);
+    items.forEach(it=>it.node.remove());
+    const coins = Math.max(8, Math.min(90, score*4));
+    gameResultsScreen(stage, coins, ["You caught "+score+" squishies."]);
+  }
+
+  requestAnimationFrame(()=>{ layout(); rafId = requestAnimationFrame(tick); });
+  window.addEventListener("resize", layout);
+}
+
+/* ---- Stretch Zone (timing/precision) ---- */
+function initStretchGame(stage){
+  id_cache = "stretch";
+  const hud = el("div",{class:"game-hud"});
+  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Points"})]);
+  const hTaps = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0/10"}),el("div",{class:"k",text:"Squishes"})]);
+  hud.appendChild(hScore); hud.appendChild(hTaps);
+  let running = true;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; exitGame();}}));
+  stage.appendChild(hud);
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Tap SQUISH! when the marker is inside the glowing zone."}));
+
+  const wrap = el("div",{class:"stretch-wrap arena arena-stretch"});
+  const track = el("div",{class:"stretch-track"});
+  const zone = el("div",{class:"stretch-zone"});
+  const marker = el("div",{class:"stretch-marker"});
+  track.appendChild(zone); track.appendChild(marker);
+  wrap.appendChild(track);
+  const feedback = el("div",{class:"stretch-feedback", text:" "});
+  wrap.appendChild(feedback);
+  const tapBtn = el("button",{class:"btn block squish-btn", text:"SQUISH! 🫳"});
+  wrap.appendChild(tapBtn);
+  stage.appendChild(wrap);
+
+  let taps=0, score=0, speed=1.8, zoneWidthPct=22, zoneLeftPct=40, start=performance.now(), markerPct=0;
+
+  function randomizeZone(){
+    zoneWidthPct = Math.max(12, 22 - taps);
+    zoneLeftPct = Math.random()*(100-zoneWidthPct);
+    zone.style.left = zoneLeftPct+"%";
+    zone.style.width = zoneWidthPct+"%";
+  }
+  randomizeZone();
+
+  let rafId;
+  function tick(ts){
+    if(!running) return;
+    const t = (ts-start)/1000;
+    markerPct = (Math.sin(t*speed)+1)/2*100;
+    marker.style.left = markerPct+"%";
+    rafId = requestAnimationFrame(tick);
+  }
+  rafId = requestAnimationFrame(tick);
+
+  tapBtn.addEventListener("click", ()=>{
+    if(!running) return;
+    const zoneCenter = zoneLeftPct+zoneWidthPct/2;
+    const dist = Math.abs(markerPct-zoneCenter);
+    let pts=0, label="Miss";
+    if(dist < zoneWidthPct*0.2){ pts=10; label="Perfect!"; }
+    else if(dist < zoneWidthPct*0.45){ pts=6; label="Great!"; }
+    else if(dist < zoneWidthPct/2){ pts=3; label="Good"; }
+    score += pts;
+    taps++;
+    hScore.querySelector(".v").textContent = score;
+    hTaps.querySelector(".v").textContent = taps+"/10";
+    feedback.textContent = pts? label+" +"+pts : label;
+    speed = Math.min(4.2, speed+0.25);
+    if(taps>=10){ finish(); return; }
+    randomizeZone();
+  });
+
+  function finish(){
+    if(!running) return;
+    running=false;
+    cancelAnimationFrame(rafId);
+    const coins = Math.max(10, Math.min(85, Math.round(score*1.2)));
+    gameResultsScreen(stage, coins, ["You scored "+score+" points across 10 squishes."]);
+  }
+}
+
+/* ---- Sort Rush (squishy vs fidget) ---- */
+function initSortGame(stage){
+  id_cache = "sort";
+  const hud = el("div",{class:"game-hud"});
+  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Correct"})]);
+  const hStreak = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Streak"})]);
+  hud.appendChild(hScore); hud.appendChild(hStreak);
+  let running = true, roundTimer=null, rafId=null;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; clearTimeout(roundTimer); cancelAnimationFrame(rafId); exitGame();}}));
+  stage.appendChild(hud);
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Sort each toy into the right bin before time's up!"}));
+
+  const stageWrap = el("div",{class:"sort-stage arena arena-sort"});
+  const timerTrack = el("div",{class:"progress-track sort-timerbar"});
+  const timerFill = el("div",{class:"progress-fill"});
+  timerTrack.appendChild(timerFill);
+  stageWrap.appendChild(timerTrack);
+  const display = el("div",{class:"sort-display"});
+  stageWrap.appendChild(display);
+  const bins = el("div",{class:"sort-bins"});
+  const squishyBin = el("div",{class:"sort-bin"},[el("div",{class:"ic",text:"🧸"}),el("div",{text:"Squishy"})]);
+  const fidgetBin = el("div",{class:"sort-bin"},[el("div",{class:"ic",text:"🔧"}),el("div",{text:"Fidget"})]);
+  bins.appendChild(squishyBin); bins.appendChild(fidgetBin);
+  stageWrap.appendChild(bins);
+  stage.appendChild(stageWrap);
+
+  let score=0, streak=0, round=0, totalRounds=16, roundMs=1700, current=null, roundStart=0;
+  const pool = ITEMS.slice();
+
+  function nextRound(){
+    if(!running) return;
+    if(round>=totalRounds){ finish(); return; }
+    round++;
+    current = pool[Math.floor(Math.random()*pool.length)];
+    display.innerHTML = "";
+    display.appendChild(el("div",{text:current.emoji}));
+    display.appendChild(el("div",{class:"nm", text:current.name}));
+    roundMs = Math.max(900, 1700 - round*40);
+    roundStart = performance.now();
+    clearTimeout(roundTimer);
+    roundTimer = setTimeout(()=>answer(null), roundMs);
+    animateTimer();
+  }
+  function animateTimer(){
+    if(!running || !current) return;
+    const elapsed = performance.now()-roundStart;
+    const pct = Math.max(0, 1-elapsed/roundMs);
+    timerFill.style.width = (pct*100)+"%";
+    if(elapsed < roundMs) rafId = requestAnimationFrame(animateTimer);
+  }
+  function answer(pick){
+    if(!running || !current) return;
+    clearTimeout(roundTimer);
+    cancelAnimationFrame(rafId);
+    if(pick===current.category){ score++; streak++; } else { streak=0; }
+    hScore.querySelector(".v").textContent = score;
+    hStreak.querySelector(".v").textContent = streak;
+    current = null;
+    setTimeout(nextRound, 120);
+  }
+  squishyBin.addEventListener("click", ()=>answer("squishy"));
+  fidgetBin.addEventListener("click", ()=>answer("fidget"));
+
+  function finish(){
+    if(!running) return;
+    running=false;
+    const coins = Math.max(10, Math.min(90, score*5));
+    gameResultsScreen(stage, coins, ["You sorted "+score+"/"+totalRounds+" correctly."]);
+  }
+  nextRound();
+}
+
+/* ---- Pattern Pop (Simon-says sequence memory) ---- */
+function initPatternGame(stage){
+  id_cache = "pattern";
+  const hud = el("div",{class:"game-hud"});
+  const hLevel = el("div",{class:"hud-item"},[el("div",{class:"v",text:"1"}),el("div",{class:"k",text:"Level"})]);
+  hud.appendChild(hLevel);
+  let running = true;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; exitGame();}}));
+  stage.appendChild(hud);
+  const status = el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Watch the pattern, then repeat it!"});
+  stage.appendChild(status);
+
+  const arena = el("div",{class:"arena arena-pattern"});
+  const grid = el("div",{class:"pop-grid"});
+  const cells=[];
+  for(let i=0;i<16;i++){
+    const c = el("button",{class:"pop-cell", type:"button"});
+    styleRarity(c, RARITY_ORDER[i%RARITY_ORDER.length]);
+    c.addEventListener("click", ()=>onCellTap(i));
+    grid.appendChild(c); cells.push(c);
+  }
+  arena.appendChild(grid);
+  stage.appendChild(arena);
+
+  let sequence=[], inputIndex=0, accepting=false, level=1;
+
+  function addStep(){ sequence.push(Math.floor(Math.random()*16)); }
+  function playback(){
+    if(!running) return;
+    accepting=false; inputIndex=0;
+    status.textContent = "Watch closely…";
+    let i=0;
+    function step(){
+      if(!running) return;
+      if(i>0) cells[sequence[i-1]].classList.remove("lit");
+      if(i>=sequence.length){ accepting=true; status.textContent="Your turn! Tap the pattern."; return; }
+      cells[sequence[i]].classList.add("lit");
+      i++;
+      setTimeout(step, Math.max(320, 650-level*20));
+    }
+    setTimeout(step, 500);
+  }
+  function onCellTap(i){
+    if(!running || !accepting) return;
+    if(i===sequence[inputIndex]){
+      inputIndex++;
+      cells[i].classList.add("lit");
+      setTimeout(()=>cells[i].classList.remove("lit"), 180);
+      if(inputIndex>=sequence.length){
+        level++;
+        hLevel.querySelector(".v").textContent = level;
+        addStep();
+        setTimeout(playback, 500);
+      }
+    } else {
+      finish();
+    }
+  }
+  function finish(){
+    if(!running) return;
+    running=false; accepting=false;
+    const coins = Math.max(10, Math.min(95, level*9));
+    gameResultsScreen(stage, coins, ["You reached level "+level+"."]);
+  }
+  addStep();
+  playback();
+}
+
+/* ============================= SHOP ============================= */
+function buildShop(){
+  const wrap = $("#packList");
+  wrap.innerHTML = "";
+  PACKS.forEach(p=>{
+    const card = el("div",{class:"card pack-card"});
+    card.appendChild(el("div",{class:"ic", text:p.emoji}));
+    const meta = el("div",{class:"meta"});
+    meta.appendChild(el("h3",{text:p.name}));
+    const odds = el("div",{class:"odds"});
+    RARITY_ORDER.forEach(r=>{
+      if(p.odds[r]>0){
+        const chip = el("span",{class:"odds-chip", text:RARITY_LABEL[r]+" "+Math.round(p.odds[r]*100)+"%"});
+        chip.style.setProperty("--rc", "var(--rarity-"+r+")");
+        chip.style.setProperty("--rc-soft", "var(--rarity-"+r+"-soft)");
+        odds.appendChild(chip);
+      }
+    });
+    meta.appendChild(odds);
+    card.appendChild(meta);
+    if(p.id==="legend") card.classList.add("foil");
+    const btn = el("button",{class:"btn small", text:p.cost+" 🪙"});
+    btn.addEventListener("click", ()=>openPack(p));
+    card.appendChild(btn);
+    wrap.appendChild(card);
+  });
+}
+async function openPack(pack){
+  if(!player) return;
+  if((player.coins||0) < pack.cost){ showToast("Not enough Squish Coins yet — play a mini-game!"); return; }
+  const item = rollItem(pack.odds);
+  const ok = await addItemsAndCoins({[item.id]:1}, -pack.cost);
+  if(ok) revealItem(item);
+}
+const CONFETTI_COLORS = ["var(--accent)","var(--mint)","var(--coin)","var(--rarity-rare)","var(--rarity-epic)"];
+function spawnConfetti(container, count){
+  for(let i=0;i<count;i++){
+    const piece = el("div",{class:"confetti-piece"});
+    piece.style.left = (5+Math.random()*90)+"%";
+    piece.style.background = CONFETTI_COLORS[i%CONFETTI_COLORS.length];
+    piece.style.animationDelay = (Math.random()*0.3)+"s";
+    piece.style.transform = "rotate("+Math.floor(Math.random()*360)+"deg)";
+    container.appendChild(piece);
+    setTimeout(()=>piece.remove(), 1600);
+  }
+}
+function revealItem(item){
+  const big = item.rarity==="epic" || item.rarity==="legendary";
+  const overlay = el("div",{class:"reveal-overlay"});
+  const card = el("div",{class:"reveal-card"+(big?" shiny":"")});
+  styleRarity(card, item.rarity);
+  card.appendChild(el("div",{class:"emoji", text:item.emoji}));
+  card.appendChild(el("div",{class:"rn", text:item.name}));
+  const tag = el("div",{class:"rr rarity-tag", text:RARITY_LABEL[item.rarity]});
+  tag.style.setProperty("--rc", "var(--rarity-"+item.rarity+")");
+  card.appendChild(tag);
+  card.appendChild(el("button",{class:"btn block", text:"Awesome!", style:"margin-top:16px", onclick:()=>overlay.remove()}));
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  if(big) spawnConfetti(card, item.rarity==="legendary"?18:12);
+}
+
+/* ============================= TRADE ============================= */
+let tradeCode = null, tradeUnsub = null, tradeData = null;
+let myOffer = []; // local working offer before it's written, mirrors sideX.items once joined
+
+function tradeStorageKey(){ return "squishtrade_code"; }
+
+function renderTrade(){
+  const area = $("#tradeArea");
+  area.innerHTML = "";
+
+  if(!dbReady){
+    area.appendChild(emptyState("🔌","Trading needs saving turned on","This device can play solo, but trading needs the page opened with saving on. Ask a grown-up to check this artifact is shared with edit access, then reopen it."));
+    return;
+  }
+  if(!canWrite){
+    area.appendChild(emptyState("🔒","You need edit access to trade","Ask whoever shared this with you to set your access to Contributor or Editor so trades can be saved."));
+    return;
+  }
+
+  if(!tradeCode){
+    area.appendChild(buildTradeLobby());
+    return;
+  }
+  if(!tradeData){
+    area.appendChild(el("div",{class:"card", style:"text-align:center;color:var(--ink-dim)", text:"Opening table…"}));
+    return;
+  }
+  area.appendChild(buildTradeTable());
+}
+
+function emptyState(ic,title,body){
+  const w = el("div",{class:"card empty-state"});
+  w.appendChild(el("div",{class:"ic", text:ic}));
+  w.appendChild(el("h3",{text:title}));
+  w.appendChild(el("p",{style:"margin:0;font-size:13px", text:body}));
+  return w;
+}
+
+function buildTradeLobby(){
+  const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
+  const createCard = el("div",{class:"card", style:"display:flex;flex-direction:column;gap:10px"});
+  createCard.appendChild(el("h3",{text:"Start a new table"}));
+  createCard.appendChild(el("p",{style:"margin:0;font-size:13px;color:var(--ink-dim)", text:"Create a table, then tell your trade buddy the code to join."}));
+  createCard.appendChild(el("button",{class:"btn block", text:"Create Trading Table", onclick:createTable}));
+  wrap.appendChild(createCard);
+
+  const joinCard = el("div",{class:"card", style:"display:flex;flex-direction:column;gap:10px"});
+  joinCard.appendChild(el("h3",{text:"Join a table"}));
+  const input = el("input",{type:"tel", id:"joinCodeInput", placeholder:"4-digit code", maxlength:"4", inputmode:"numeric"});
+  joinCard.appendChild(input);
+  const joinBtn = el("button",{class:"btn secondary block", text:"Join Trading Table"});
+  joinBtn.addEventListener("click", ()=>joinTable(input.value.trim()));
+  joinCard.appendChild(joinBtn);
+  const msg = el("p",{id:"joinMsg", style:"margin:0;font-size:12.5px;color:var(--danger);min-height:16px"});
+  joinCard.appendChild(msg);
+  wrap.appendChild(joinCard);
+  return wrap;
+}
+
+function randomCode(){ return String(Math.floor(1000+Math.random()*9000)); }
+
+async function createTable(){
+  let code, attempts=0, exists=true;
+  do{
+    code = randomCode();
+    const snap = await db.doc("trades/"+code).get();
+    exists = snap.exists && snap.data().status==="open";
+    attempts++;
+  } while(exists && attempts<6);
+
+  const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], ready:false, confirmed:false };
+  try{
+    await db.doc("trades/"+code).set({ code, status:"open", sideA: sideData, sideB: null, createdAt: Date.now() });
+    openTradeSession(code);
+  }catch(e){
+    showToast("Couldn't create a table. Try again.");
+  }
+}
+
+async function joinTable(code){
+  const msg = $("#joinMsg");
+  if(!/^\d{4}$/.test(code)){ msg.textContent = "Enter the 4-digit code."; return; }
+  try{
+    const snap = await db.doc("trades/"+code).get();
+    if(!snap.exists || snap.data().status!=="open"){ msg.textContent = "No open table with that code."; return; }
+    const t = snap.data();
+    if(t.sideA && t.sideA.playerId===PLAYER_ID){ openTradeSession(code); return; }
+    if(t.sideB && t.sideB.playerId===PLAYER_ID){ openTradeSession(code); return; }
+    if(t.sideB){ msg.textContent = "That table already has two traders."; return; }
+    const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], ready:false, confirmed:false };
+    await db.doc("trades/"+code).update({ sideB: sideData });
+    openTradeSession(code);
+  }catch(e){
+    msg.textContent = "Couldn't join. Try again.";
+  }
+}
+
+function openTradeSession(code){
+  tradeCode = code;
+  safeLocalSet(tradeStorageKey(), code);
+  subscribeTrade(code);
+}
+function closeTradeSession(){
+  if(tradeUnsub) tradeUnsub();
+  tradeUnsub = null;
+  tradeCode = null; tradeData = null; myOffer = [];
+  safeLocalRemove(tradeStorageKey());
+  renderTrade();
+}
+
+function subscribeTrade(code){
+  if(tradeUnsub) tradeUnsub();
+  tradeData = null;
+  tradeUnsub = db.doc("trades/"+code).onSnapshot((snap)=>{
+    if(!snap.exists){ tradeData = null; closeTradeSession(); return; }
+    const t = snap.data();
+    tradeData = t;
+    if(t.status==="completed" || t.status==="cancelled" || t.status==="failed"){
+      renderTradeEndScreen(t);
+      return;
+    }
+    const mySide = mySideKey(t);
+    if(mySide) myOffer = (t[mySide].items||[]).slice();
+    if(currentTab==="trade") renderTrade();
+    maybeExecuteTrade(t, code);
+  }, (err)=>{
+    console.warn("trade snapshot error", err);
+  });
+}
+
+function mySideKey(t){
+  if(t.sideA && t.sideA.playerId===PLAYER_ID) return "sideA";
+  if(t.sideB && t.sideB.playerId===PLAYER_ID) return "sideB";
+  return null;
+}
+function otherSideKey(t){
+  const mine = mySideKey(t);
+  return mine==="sideA" ? "sideB" : mine==="sideB" ? "sideA" : null;
+}
+
+function buildTradeTable(){
+  const t = tradeData;
+  const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
+
+  if(!t.sideB){
+    wrap.appendChild(el("div",{class:"card", style:"text-align:center"},[
+      el("p",{style:"margin:0 0 6px;color:var(--ink-dim);font-size:13px", text:"Share this code with your trade buddy:"}),
+      el("div",{class:"code-display", text:t.code}),
+      el("button",{class:"btn ghost small", text:"Cancel table", onclick:cancelTable})
+    ]));
+    return wrap;
+  }
+
+  const mine = mySideKey(t), theirs = otherSideKey(t);
+  const mySideData = t[mine], theirSideData = t[theirs];
+
+  wrap.appendChild(el("div",{class:"card", style:"text-align:center; padding:12px"},[
+    el("div",{class:"code-display", style:"font-size:22px", text:"Table "+t.code})
+  ]));
+
+  const cols = el("div",{class:"trade-cols"});
+  cols.appendChild(buildTradePanel(true, mySideData));
+  cols.appendChild(buildTradePanel(false, theirSideData));
+  wrap.appendChild(cols);
+
+  const myItemsLeft = Object.entries(player.inventory||{}).filter(([id,c])=>c>0);
+  wrap.appendChild(el("div",{class:"section-title"},[el("h2",{style:"font-size:15px", text:"Your items"}),el("span",{class:"hint", text:"Tap to offer"})]));
+  const pickerGrid = el("div",{class:"item-grid"});
+  myItemsLeft.forEach(([id,count])=>{
+    const item = ITEM_MAP[id]; if(!item) return;
+    const offeredCount = myOffer.filter(x=>x===id).length;
+    const remaining = count - offeredCount;
+    const card = el("div",{class:"item-card pickable"+(remaining<=0?" locked":"")});
+    styleRarity(card, item.rarity);
+    card.appendChild(el("div",{class:"emoji", text:item.emoji}));
+    card.appendChild(el("div",{class:"nm", text:item.name}));
+    card.appendChild(el("div",{class:"ct", text:remaining+"/"+count}));
+    if(!mySideData.ready){
+      card.addEventListener("click", ()=>{
+        if(remaining<=0) return;
+        if(myOffer.length>=6){ showToast("Max 6 items per trade."); return; }
+        myOffer.push(id);
+        writeMyOffer();
+      });
+    }
+    pickerGrid.appendChild(card);
+  });
+  if(myItemsLeft.length===0) pickerGrid.appendChild(el("p",{style:"color:var(--ink-dim);font-size:13px", text:"You don't have any items yet — play mini-games or open a pack!"}));
+  wrap.appendChild(pickerGrid);
+
+  const actions = el("div",{style:"display:flex; gap:10px"});
+  if(!mySideData.ready){
+    actions.appendChild(el("button",{class:"btn block", text: myOffer.length? "I'm Ready!" : "Mark Ready (no items)", onclick: markReady}));
+  } else if(!mySideData.confirmed){
+    actions.appendChild(el("button",{class:"btn secondary block", text:"Edit Offer", onclick: unReady}));
+    if(theirSideData.ready){
+      actions.appendChild(el("button",{class:"btn block", text:"Confirm Trade ✅", onclick: confirmTrade}));
+    }
+  } else {
+    actions.appendChild(el("div",{class:"card", style:"text-align:center;flex:1;padding:10px;font-weight:800;color:var(--mint)", text:"Waiting for your buddy to confirm…"}));
+  }
+  wrap.appendChild(actions);
+  wrap.appendChild(el("button",{class:"btn ghost small", text:"Leave table", onclick:cancelTable}));
+
+  return wrap;
+}
+
+function buildTradePanel(isMe, sideData){
+  const panel = el("div",{class:"trade-panel"});
+  const dot = el("span",{class:"ready-dot"+(sideData.ready?" on":"")});
+  panel.appendChild(el("h3",{},[document.createTextNode((sideData.avatar||"🙂")+" "+(sideData.name||"Trader")+(isMe?" (you)":"")), dot]));
+  const slots = el("div",{class:"offer-slots"});
+  const list = sideData.items||[];
+  for(let i=0;i<6;i++){
+    const id = list[i];
+    if(id && ITEM_MAP[id]){
+      const item = ITEM_MAP[id];
+      const slot = el("div",{class:"offer-slot filled", title:item.name});
+      styleRarity(slot,item.rarity);
+      slot.textContent = item.emoji;
+      if(isMe && !sideData.ready){
+        slot.style.cursor="pointer";
+        slot.addEventListener("click", ()=>{ myOffer.splice(myOffer.indexOf(id),1); writeMyOffer(); });
+      }
+      slots.appendChild(slot);
+    } else {
+      slots.appendChild(el("div",{class:"offer-slot", text:"·"}));
+    }
+  }
+  panel.appendChild(slots);
+  return panel;
+}
+
+let offerWritePending = false, offerWriteQueued = false;
+async function writeMyOffer(){
+  renderTrade();
+  if(offerWritePending){ offerWriteQueued = true; return; }
+  offerWritePending = true;
+  const t = tradeData, mine = mySideKey(t);
+  try{
+    await db.doc("trades/"+tradeCode).update({ [mine]: { items: myOffer.slice() } });
+  }catch(e){ showToast("Couldn't update offer."); }
+  offerWritePending = false;
+  if(offerWriteQueued){ offerWriteQueued = false; writeMyOffer(); }
+}
+async function markReady(){
+  const mine = mySideKey(tradeData);
+  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { items: myOffer.slice(), ready:true } }); }
+  catch(e){ showToast("Couldn't mark ready."); }
+}
+async function unReady(){
+  const mine = mySideKey(tradeData);
+  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { ready:false, confirmed:false } }); }
+  catch(e){ showToast("Couldn't update."); }
+}
+async function confirmTrade(){
+  const mine = mySideKey(tradeData);
+  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { confirmed:true } }); }
+  catch(e){ showToast("Couldn't confirm."); }
+}
+async function cancelTable(){
+  try{ if(tradeData && tradeData.status==="open") await db.doc("trades/"+tradeCode).update({ status:"cancelled" }); }
+  catch(e){}
+  closeTradeSession();
+}
+
+let executingTrade = false;
+async function maybeExecuteTrade(t, code){
+  if(!t.sideA || !t.sideB) return;
+  if(t.status!=="open") return;
+  if(!(t.sideA.confirmed && t.sideB.confirmed)) return;
+  if(executingTrade) return;
+  executingTrade = true;
+  try{
+    const lease = await db.doc("trades/"+code).acquire({ holder: PLAYER_ID, ttlMs: 8000 });
+    if(!lease.acquired){ executingTrade=false; return; }
+    const fresh = await db.doc("trades/"+code).get();
+    if(!fresh.exists){ executingTrade=false; return; }
+    const ft = fresh.data();
+    if(ft.status!=="open" || !(ft.sideA.confirmed && ft.sideB.confirmed)){ executingTrade=false; return; }
+
+    const pARef = db.doc("players/"+ft.sideA.playerId);
+    const pBRef = db.doc("players/"+ft.sideB.playerId);
+    const [sA,sB] = await Promise.all([pARef.get(), pBRef.get()]);
+    if(!sA.exists || !sB.exists){
+      await db.doc("trades/"+code).update({ status:"failed" });
+      executingTrade=false; return;
+    }
+    const invA = Object.assign({}, sA.data().inventory||{});
+    const invB = Object.assign({}, sB.data().inventory||{});
+    const countOf = (arr)=>{ const m={}; (arr||[]).forEach(id=>m[id]=(m[id]||0)+1); return m; };
+    const offerA = countOf(ft.sideA.items), offerB = countOf(ft.sideB.items);
+
+    let ok = true;
+    for(const id in offerA){ if((invA[id]||0) < offerA[id]) ok=false; }
+    for(const id in offerB){ if((invB[id]||0) < offerB[id]) ok=false; }
+    if(!ok){
+      await db.doc("trades/"+code).update({ status:"failed" });
+      executingTrade=false; return;
+    }
+    for(const id in offerA){ invA[id]=(invA[id]||0)-offerA[id]; invB[id]=(invB[id]||0)+offerA[id]; }
+    for(const id in offerB){ invB[id]=(invB[id]||0)-offerB[id]; invA[id]=(invA[id]||0)+offerB[id]; }
+
+    await Promise.all([ pARef.update({inventory:invA}), pBRef.update({inventory:invB}) ]);
+    await db.doc("trades/"+code).update({ status:"completed", completedAt: Date.now() });
+  }catch(e){
+    console.warn("trade execution error", e);
+  }
+  executingTrade = false;
+}
+
+function renderTradeEndScreen(t){
+  const area = $("#tradeArea");
+  area.innerHTML = "";
+  const mine = mySideKey(t);
+  let card;
+  if(t.status==="completed"){
+    const mySide = t[mine], theirSide = t[mine==="sideA"?"sideB":"sideA"];
+    card = el("div",{class:"card results-card"});
+    card.appendChild(el("div",{class:"big", text:"🤝"}));
+    card.appendChild(el("h2",{text:"Trade complete!"}));
+    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"You gave "+(mySide.items||[]).length+" item(s) and got "+(theirSide.items||[]).length+" item(s)."}));
+  } else if(t.status==="failed"){
+    card = el("div",{class:"card results-card"});
+    card.appendChild(el("div",{class:"big", text:"😕"}));
+    card.appendChild(el("h2",{text:"Trade fell through"}));
+    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"One of you didn't have enough of an item anymore."}));
+  } else {
+    card = el("div",{class:"card results-card"});
+    card.appendChild(el("div",{class:"big", text:"🚪"}));
+    card.appendChild(el("h2",{text:"Table closed"}));
+    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"The trade was cancelled."}));
+  }
+  card.appendChild(el("button",{class:"btn block", text:"Back to Trading Table", onclick: closeTradeSession}));
+  area.appendChild(card);
+}
+
+/* resume a stored trade code on boot */
+function resumeStoredTrade(){
+  const code = safeLocalGet(tradeStorageKey());
+  if(code && dbReady){ tradeCode = code; subscribeTrade(code); }
+}
+
+/* ============================= RENDER ALL ============================= */
+function renderAll(){
+  if(!player) return;
+  showShell();
+  renderTopbar();
+  buildCollectionFilters();
+  renderCollection();
+  if(currentTab==="trade") renderTrade();
+}
+
+/* ============================= HOT RELOAD SUPPORT ============================= */
+function startApp(){
+  buildGamePicker();
+  buildShop();
+  initIdentity().then(()=>{
+    resumeStoredTrade();
+  });
+}
+try{
+  if(window.claude && window.claude.hot){
+    window.claude.hot.snapshot(()=>({ tab: currentTab }));
+    if(window.claude.hot.ready){
+      window.claude.hot.ready((data)=>{
+        if(data && data.tab) currentTab = data.tab;
+        setTab(currentTab);
+        startApp();
+      });
+    } else { setTab(currentTab); startApp(); }
+  } else { setTab(currentTab); startApp(); }
+}catch(e){ setTab(currentTab); startApp(); }
+
+})();
+</script>
