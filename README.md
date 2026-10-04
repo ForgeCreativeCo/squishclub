@@ -10,8 +10,12 @@ A collect-and-trade game built for kids on tablets: play mini-games to earn Squi
 
 ## Running it
 
-This is a single self-contained `index.html` built as a [Claude Artifact](https://claude.ai), using the `db` runtime capability for shared, synced player data and the live trading table. It's not meant to run as a static file outside that environment — it relies on `window.claude.use("db")` for persistence and multiplayer sync.
+This is a standalone, installable [PWA](https://web.dev/progressive-web-apps/) — a static site with no build step and no server to run. Host `index.html`, `manifest.json`, `sw.js` and `icons/` anywhere that serves static files over HTTPS (e.g. GitHub Pages), and open it in a browser on each tablet. From there, "Add to Home Screen" (or the browser's install prompt) installs it like a real app.
+
+Data and live trading sync run on [Firebase](https://firebase.google.com): each tablet signs in anonymously (no accounts, no passwords — just a per-device identity) and reads/writes [Firestore](https://firebase.google.com/docs/firestore) directly from the browser. See `firestore.rules` for the security rules this project uses — paste them into the Firebase Console's Firestore → Rules tab.
+
+The service worker (`sw.js`) caches the app shell for offline/installable use, but never caches Firebase/Firestore network traffic, so saves and trades always go live.
 
 ## Tech
 
-Vanilla HTML/CSS/JS, no build step, no external JS dependencies. Fonts via Google Fonts (Baloo 2 + Nunito).
+Vanilla HTML/CSS/JS, no build step, no bundler. Firebase JS SDK (Auth + Firestore) loaded as ES modules straight from Google's CDN. Fonts via Google Fonts (Baloo 2 + Nunito).

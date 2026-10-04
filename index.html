@@ -1,4 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Squish Trade Club</title>
+<meta name="description" content="Collect squishies & fidgets, play mini-games to earn coins, and trade live with a buddy.">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#FF5FA2">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Squish Trade">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="icon" href="./icons/icon-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
 <style>
 /* Layout: single-page app shell — sticky top status bar, swipeable tabbed
@@ -378,6 +392,8 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
 
 @media (prefers-reduced-motion:reduce){ *{animation-duration:.001ms!important; transition-duration:.001ms!important} }
 </style>
+</head>
+<body>
 
 <div id="app">
   <div class="bg-deco" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -462,6 +478,90 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
 
   <div id="toast" class="toast"></div>
 </div>
+
+<!-- Firebase bootstrap: real auth + a live, synced database, replacing the
+     Claude Artifact's sandbox-only db/user capabilities so this page can run
+     as a plain installable PWA on any device. Exposes window.Squish, a small
+     adapter the game code below talks to — same doc()/onSnapshot() shape as
+     before, so the game logic barely had to change. -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+  doc, getDoc, setDoc, updateDoc, onSnapshot, runTransaction
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAO160I1qMFn_tt903lfJy7jDqRkyxoLLo",
+  authDomain: "squishtradeclub.firebaseapp.com",
+  projectId: "squishtradeclub",
+  storageBucket: "squishtradeclub.firebasestorage.app",
+  messagingSenderId: "654398774527",
+  appId: "1:654398774527:web:89f8a032da49a7d10500ca",
+  measurementId: "G-RSPJXL67JL"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const fbAuth = getAuth(fbApp);
+const fs = initializeFirestore(fbApp, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+
+let resolveAuthReady;
+const authReadyPromise = new Promise((res)=>{ resolveAuthReady = res; });
+let authResolved = false;
+onAuthStateChanged(fbAuth, (user)=>{
+  if(user && !authResolved){ authResolved = true; resolveAuthReady(user.uid); }
+});
+signInAnonymously(fbAuth).catch((err)=>{
+  console.error("Firebase anonymous sign-in failed", err);
+});
+
+// Flattens one level of nested plain-object fields into Firestore dot-notation
+// paths (e.g. {inventory:{a:1}} -> {"inventory.a":1}) so a partial update only
+// touches the keys given and never wipes out sibling keys in that same map —
+// this is what keeps a trade-offer update from erasing ready/confirmed, etc.
+function toDotPatch(patch){
+  const out = {};
+  for(const k in patch){
+    const v = patch[k];
+    if(v && typeof v === "object" && !Array.isArray(v)){
+      for(const sub in v){ out[k+"."+sub] = v[sub]; }
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+function wrapSnap(snap){
+  return { exists: snap.exists(), data: ()=>snap.data(), id: snap.id };
+}
+
+window.Squish = {
+  authReady: authReadyPromise,
+  doc(path){
+    const ref = doc(fs, path);
+    return {
+      get(){ return getDoc(ref).then(wrapSnap); },
+      set(data){ return setDoc(ref, data); },
+      update(patch){ return updateDoc(ref, toDotPatch(patch)); },
+      onSnapshot(cb, errCb){
+        return onSnapshot(ref, (snap)=>cb(wrapSnap(snap)), errCb);
+      }
+    };
+  },
+  runTransaction(fn){
+    return runTransaction(fs, (tx)=>{
+      return fn({
+        get(path){ return tx.get(doc(fs, path)).then(wrapSnap); },
+        set(path, data){ return tx.set(doc(fs, path), data); },
+        update(path, patch){ return tx.update(doc(fs, path), toDotPatch(patch)); }
+      });
+    });
+  }
+};
+</script>
 
 <script>
 (function(){
@@ -560,31 +660,15 @@ function safeLocalSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 function safeLocalRemove(k){ try{ localStorage.removeItem(k); }catch(e){} }
 
 /* ============================= IDENTITY ============================= */
-function getLocalPlayerId(){
-  let id = safeLocalGet("squishtrade_pid");
-  if(!id){
-    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("p"+Math.random().toString(36).slice(2)+Date.now().toString(36));
-    safeLocalSet("squishtrade_pid", id);
-  }
-  return id;
-}
-const PLAYER_ID = getLocalPlayerId();
+let PLAYER_ID = null;
 
-/* ============================= STORAGE ABSTRACTION =============================
-   Uses the db capability when available (live sync + trading). Falls back to
-   localStorage-only solo mode when db can't be reached, so the games still work. */
-let db = null, userCap = null, dbReady = false, canWrite = true;
+/* ============================= STORAGE (Firebase) =============================
+   Every tablet signs in anonymously and syncs live through Firestore (see the
+   <script type="module"> bootstrap above, exposed as window.Squish). There's
+   no offline/local-only mode — saving and trading both need a connection. */
+let db = null, authReady = false;
 let player = null; // current merged player data
 let playerUnsub = null;
-
-function localPlayerKey(){ return "squishtrade_player_"+PLAYER_ID; }
-function loadLocalPlayer(){
-  try{
-    const raw = safeLocalGet(localPlayerKey());
-    return raw ? JSON.parse(raw) : null;
-  }catch(e){ return null; }
-}
-function saveLocalPlayer(p){ safeLocalSet(localPlayerKey(), JSON.stringify(p)); }
 
 function onPlayerChange(data){
   player = data;
@@ -592,77 +676,52 @@ function onPlayerChange(data){
 }
 
 async function initIdentity(){
+  db = window.Squish;
   try{
-    db = await claude.use("db");
-  }catch(e){ db = null; }
-  try{
-    userCap = await claude.use("user");
-  }catch(e){ userCap = null; }
-
-  if(db){
-    dbReady = true;
-    playerUnsub = db.doc("players/"+PLAYER_ID).onSnapshot((snap)=>{
-      if(snap.exists){
-        onPlayerChange(snap.data());
-        hideBoot();
-      } else {
-        player = null;
-        hideBoot();
-        showOnboard();
-      }
-    }, (err)=>{
-      console.warn("player snapshot error", err);
-      if(err && (err.code==="revoked")) showToast("Lost the connection to saved data. Reopen the link to reconnect.");
-    });
-    if(userCap){
-      try{
-        const can = await userCap.can("data.write");
-        canWrite = (can === false) ? false : true;
-      }catch(e){ canWrite = true; }
-    }
-  } else {
-    dbReady = false;
-    const local = loadLocalPlayer();
-    if(local){ onPlayerChange(local); hideBoot(); }
-    else { hideBoot(); showOnboard(); }
+    PLAYER_ID = await db.authReady;
+  }catch(e){
+    console.warn("auth failed", e);
+    hideBoot();
+    showToast("Couldn't connect — check your internet and reload.");
+    return;
   }
+  authReady = true;
+  playerUnsub = db.doc("players/"+PLAYER_ID).onSnapshot((snap)=>{
+    if(snap.exists){
+      onPlayerChange(snap.data());
+      hideBoot();
+    } else {
+      player = null;
+      hideBoot();
+      showOnboard();
+    }
+  }, (err)=>{
+    console.warn("player snapshot error", err);
+    showToast("Lost the connection to saved data. Check your internet and try again.");
+  });
 }
 
 async function createPlayer(name, avatar){
   const newPlayer = { name: name, avatar: avatar, coins: 60, inventory: {}, createdAt: Date.now() };
-  if(dbReady){
-    try{
-      await db.doc("players/"+PLAYER_ID).set(newPlayer);
-      return true;
-    }catch(e){
-      console.warn("create player failed", e);
-      return false;
-    }
-  } else {
-    saveLocalPlayer(newPlayer);
-    onPlayerChange(newPlayer);
+  try{
+    await db.doc("players/"+PLAYER_ID).set(newPlayer);
     return true;
+  }catch(e){
+    console.warn("create player failed", e);
+    showToast("Couldn't save — check your internet and try again.");
+    return false;
   }
 }
 
 async function savePlayerPatch(patch){
   // patch: {coins?, inventory?: {id:count,...}}
-  if(dbReady){
-    try{
-      await db.doc("players/"+PLAYER_ID).update(patch);
-      return true;
-    }catch(e){
-      console.warn("save failed", e);
-      showToast(canWrite ? "Couldn't save — try again." : "Ask a grown-up for edit access so your squishies get saved!");
-      return false;
-    }
-  } else {
-    const p = Object.assign({}, player);
-    if(patch.coins!==undefined) p.coins = patch.coins;
-    if(patch.inventory){ p.inventory = Object.assign({}, p.inventory||{}, patch.inventory); }
-    saveLocalPlayer(p);
-    onPlayerChange(p);
+  try{
+    await db.doc("players/"+PLAYER_ID).update(patch);
     return true;
+  }catch(e){
+    console.warn("save failed", e);
+    showToast("Couldn't save — try again.");
+    return false;
   }
 }
 
@@ -719,10 +778,9 @@ $("#startBtn").addEventListener("click", async ()=>{
   const ok = await createPlayer(name.slice(0,14), chosenAvatar);
   $("#startBtn").disabled = false;
   if(ok){
-    if(!dbReady) showShell();
     $("#onboardMsg").textContent = "";
   } else {
-    $("#onboardMsg").textContent = "Couldn't save. Ask a grown-up to check sharing is set to Contributor or Editor, then try again.";
+    $("#onboardMsg").textContent = "Couldn't save. Check your internet connection, then try again.";
   }
 });
 
@@ -1350,12 +1408,8 @@ function renderTrade(){
   const area = $("#tradeArea");
   area.innerHTML = "";
 
-  if(!dbReady){
-    area.appendChild(emptyState("🔌","Trading needs saving turned on","This device can play solo, but trading needs the page opened with saving on. Ask a grown-up to check this artifact is shared with edit access, then reopen it."));
-    return;
-  }
-  if(!canWrite){
-    area.appendChild(emptyState("🔒","You need edit access to trade","Ask whoever shared this with you to set your access to Contributor or Editor so trades can be saved."));
+  if(!authReady){
+    area.appendChild(emptyState("🔌","Connecting…","Hang tight while we connect to the trading table."));
     return;
   }
 
@@ -1613,38 +1667,43 @@ async function maybeExecuteTrade(t, code){
   if(!(t.sideA.confirmed && t.sideB.confirmed)) return;
   if(executingTrade) return;
   executingTrade = true;
+  // Run the whole check-and-swap inside a Firestore transaction: Firestore reads
+  // everything first, then automatically retries this callback from scratch if
+  // another device (the trade buddy's tablet, racing to execute the same trade)
+  // wrote to any of the same documents first — so the swap can never double-fire
+  // and never applies to stale inventory.
   try{
-    const lease = await db.doc("trades/"+code).acquire({ holder: PLAYER_ID, ttlMs: 8000 });
-    if(!lease.acquired){ executingTrade=false; return; }
-    const fresh = await db.doc("trades/"+code).get();
-    if(!fresh.exists){ executingTrade=false; return; }
-    const ft = fresh.data();
-    if(ft.status!=="open" || !(ft.sideA.confirmed && ft.sideB.confirmed)){ executingTrade=false; return; }
+    await db.runTransaction(async (tx)=>{
+      const fresh = await tx.get("trades/"+code);
+      if(!fresh.exists) return;
+      const ft = fresh.data();
+      if(ft.status!=="open" || !(ft.sideA.confirmed && ft.sideB.confirmed)) return;
 
-    const pARef = db.doc("players/"+ft.sideA.playerId);
-    const pBRef = db.doc("players/"+ft.sideB.playerId);
-    const [sA,sB] = await Promise.all([pARef.get(), pBRef.get()]);
-    if(!sA.exists || !sB.exists){
-      await db.doc("trades/"+code).update({ status:"failed" });
-      executingTrade=false; return;
-    }
-    const invA = Object.assign({}, sA.data().inventory||{});
-    const invB = Object.assign({}, sB.data().inventory||{});
-    const countOf = (arr)=>{ const m={}; (arr||[]).forEach(id=>m[id]=(m[id]||0)+1); return m; };
-    const offerA = countOf(ft.sideA.items), offerB = countOf(ft.sideB.items);
+      const sA = await tx.get("players/"+ft.sideA.playerId);
+      const sB = await tx.get("players/"+ft.sideB.playerId);
+      if(!sA.exists || !sB.exists){
+        tx.update("trades/"+code, { status:"failed" });
+        return;
+      }
+      const invA = Object.assign({}, sA.data().inventory||{});
+      const invB = Object.assign({}, sB.data().inventory||{});
+      const countOf = (arr)=>{ const m={}; (arr||[]).forEach(id=>m[id]=(m[id]||0)+1); return m; };
+      const offerA = countOf(ft.sideA.items), offerB = countOf(ft.sideB.items);
 
-    let ok = true;
-    for(const id in offerA){ if((invA[id]||0) < offerA[id]) ok=false; }
-    for(const id in offerB){ if((invB[id]||0) < offerB[id]) ok=false; }
-    if(!ok){
-      await db.doc("trades/"+code).update({ status:"failed" });
-      executingTrade=false; return;
-    }
-    for(const id in offerA){ invA[id]=(invA[id]||0)-offerA[id]; invB[id]=(invB[id]||0)+offerA[id]; }
-    for(const id in offerB){ invB[id]=(invB[id]||0)-offerB[id]; invA[id]=(invA[id]||0)+offerB[id]; }
+      let ok = true;
+      for(const id in offerA){ if((invA[id]||0) < offerA[id]) ok=false; }
+      for(const id in offerB){ if((invB[id]||0) < offerB[id]) ok=false; }
+      if(!ok){
+        tx.update("trades/"+code, { status:"failed" });
+        return;
+      }
+      for(const id in offerA){ invA[id]=(invA[id]||0)-offerA[id]; invB[id]=(invB[id]||0)+offerA[id]; }
+      for(const id in offerB){ invB[id]=(invB[id]||0)-offerB[id]; invA[id]=(invA[id]||0)+offerB[id]; }
 
-    await Promise.all([ pARef.update({inventory:invA}), pBRef.update({inventory:invB}) ]);
-    await db.doc("trades/"+code).update({ status:"completed", completedAt: Date.now() });
+      tx.update("players/"+ft.sideA.playerId, { inventory: invA });
+      tx.update("players/"+ft.sideB.playerId, { inventory: invB });
+      tx.update("trades/"+code, { status:"completed", completedAt: Date.now() });
+    });
   }catch(e){
     console.warn("trade execution error", e);
   }
@@ -1680,7 +1739,7 @@ function renderTradeEndScreen(t){
 /* resume a stored trade code on boot */
 function resumeStoredTrade(){
   const code = safeLocalGet(tradeStorageKey());
-  if(code && dbReady){ tradeCode = code; subscribeTrade(code); }
+  if(code && authReady){ tradeCode = code; subscribeTrade(code); }
 }
 
 /* ============================= RENDER ALL ============================= */
@@ -1693,7 +1752,7 @@ function renderAll(){
   if(currentTab==="trade") renderTrade();
 }
 
-/* ============================= HOT RELOAD SUPPORT ============================= */
+/* ============================= BOOTSTRAP ============================= */
 function startApp(){
   buildGamePicker();
   buildShop();
@@ -1701,18 +1760,17 @@ function startApp(){
     resumeStoredTrade();
   });
 }
-try{
-  if(window.claude && window.claude.hot){
-    window.claude.hot.snapshot(()=>({ tab: currentTab }));
-    if(window.claude.hot.ready){
-      window.claude.hot.ready((data)=>{
-        if(data && data.tab) currentTab = data.tab;
-        setTab(currentTab);
-        startApp();
-      });
-    } else { setTab(currentTab); startApp(); }
-  } else { setTab(currentTab); startApp(); }
-}catch(e){ setTab(currentTab); startApp(); }
+setTab(currentTab);
+startApp();
 
 })();
 </script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW register failed', e));
+    });
+  }
+</script>
+</body>
+</html>
