@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Matches the PWA's background_color so launch doesn't flash white. -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar.Fullscreen">
+        <item name="android:windowBackground">@color/app_background</item>
+        <item name="android:colorPrimary">@color/app_theme</item>
+        <item name="android:colorAccent">@color/app_theme</item>
+    </style>
+    <color name="app_background">#FBF7FF</color>
+    <color name="app_theme">#FF5FA2</color>
+</resources>

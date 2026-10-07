@@ -1,0 +1,65 @@
+name: Android app
+
+# Builds the Fire tablet / Android APK. The app just wraps the live Netlify
+# site, so it only needs rebuilding when the wrapper itself changes.
+on:
+  push:
+    paths:
+      - "android/**"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 secret not set; signing with a throwaway debug key. Installs work, but future updates will need an uninstall first (which wipes the game's progress on that tablet)."
+          fi
+
+      - name: Build APK
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/SquishTradeClub.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SquishTradeClub-apk
+          path: SquishTradeClub.apk
+
+      # Builds from main become a GitHub Release, so a tablet can download the
+      # newest one straight from:
+      # https://github.com/ForgeCreativeCo/squishclub/releases/latest/download/SquishTradeClub.apk
+      - name: Publish release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "android-v1.0.${{ github.run_number }}" SquishTradeClub.apk \
+            --title "Android app 1.0.${{ github.run_number }}" \
+            --notes "Fire tablet / Android build of Squish Trade Club. Install SquishTradeClub.apk on the tablet." \
+            --target "${{ github.sha }}" --latest

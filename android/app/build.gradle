@@ -1,0 +1,52 @@
+plugins {
+    id "com.android.application"
+}
+
+// CI passes these in. VERSION_CODE must go up on every build, or Fire OS
+// refuses to install the new APK over the old one.
+def versionCodeEnv = (System.getenv("VERSION_CODE") ?: "1").toInteger()
+def keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+def keystorePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+def hasReleaseKey = keystorePath && keystorePassword && file(keystorePath).exists()
+
+android {
+    namespace "com.forgecreativeco.squishtradeclub"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.forgecreativeco.squishtradeclub"
+        minSdk 24
+        targetSdk 34
+        versionCode versionCodeEnv
+        versionName "1.0.${versionCodeEnv}"
+    }
+
+    signingConfigs {
+        if (hasReleaseKey) {
+            release {
+                storeFile file(keystorePath)
+                storePassword keystorePassword
+                keyAlias "squish"
+                keyPassword keystorePassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // Without the permanent key, fall back to the debug key so the APK
+            // still installs, but updates will need an uninstall (see README).
+            signingConfig hasReleaseKey ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        checkReleaseBuilds false
+    }
+}
