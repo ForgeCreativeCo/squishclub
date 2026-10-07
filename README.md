@@ -16,6 +16,24 @@ Data and live trading sync run on [Firebase](https://firebase.google.com): each 
 
 The service worker (`sw.js`) caches the app shell for offline/installable use, but never caches Firebase/Firestore network traffic, so saves and trades always go live.
 
+## Playing on Fire tablets (Amazon Kids)
+
+The live game is hosted on Netlify at **https://squishtradeclub.netlify.app** (Netlify project `squishtradeclub`, deployed from this repo). There's also an older GitHub Pages copy; use the Netlify address.
+
+It runs in the Amazon Kids web browser, including live trading between two tablets:
+
+1. Open the Parent Dashboard (parents.amazon.com), or the child's Amazon Kids settings on the tablet.
+2. Turn on the web browser for that child.
+3. Add `https://squishtradeclub.netlify.app` as an allowed website.
+4. Repeat for each child's profile.
+
+Good to know:
+
+- **One Amazon Kids profile per kid.** Each profile gets its own anonymous identity, coins and collection. Two kids sharing a profile share a collection.
+- **Progress lives in the browser's saved data.** Clearing the kids browser's data, or resetting the profile or tablet, starts that profile over with a new collection.
+- **Game updates are automatic.** Pushing to this repo redeploys the Netlify site, and the tablets pick up the change the next time the game loads.
+- **The browser bar stays visible**, and "Add to Home Screen" doesn't work inside a Kids profile. A full-screen Android app version was prototyped on the `ccr-080785d8-knjuoc` branch (see closed PR #1) in case that's ever wanted.
+
 ## Tech
 
 Vanilla HTML/CSS/JS, no build step, no bundler. Firebase JS SDK (Auth + Firestore) loaded as ES modules straight from Google's CDN. Fonts via Google Fonts (Baloo 2 + Nunito).
