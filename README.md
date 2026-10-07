@@ -33,7 +33,7 @@ Good to know:
 - **One Amazon Kids profile per kid.** Each profile gets its own anonymous identity, coins and collection. Two kids sharing a profile share a collection.
 - **Progress lives in the browser's saved data.** Clearing the kids browser's data, or resetting the profile or tablet, starts that profile over with a new collection.
 - **Game updates are automatic.** Pushing to this repo redeploys the Netlify site, and the tablets pick up the change the next time the game loads.
-- **The browser bar stays visible**, and "Add to Home Screen" doesn't work inside a Kids profile. A full-screen Android app version was prototyped on the `ccr-080785d8-knjuoc` branch (see closed PR #1) in case that's ever wanted.
+- **The browser bar stays visible**, and "Add to Home Screen" doesn't work inside a Kids profile. A full-screen Android app version was prototyped on the `android-app` branch (see closed PR #1) in case that's ever wanted.
 
 ## Tech
 
