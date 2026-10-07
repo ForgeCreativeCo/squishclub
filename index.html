@@ -332,6 +332,35 @@ img{max-width:100%}
 .arena-pattern .pop-cell{aspect-ratio:1; border-radius:16px; border:none; cursor:pointer; background:var(--surface); box-shadow:inset 0 3px 6px rgba(0,0,0,.12), inset 0 -2px 3px rgba(255,255,255,.4)}
 .arena-pattern .pop-cell.lit{background:var(--rc,var(--accent)); box-shadow:0 0 0 8px var(--rc-soft,var(--accent-soft)), inset 0 2px 4px rgba(0,0,0,.15); animation:popPulse .3s ease}
 
+/* arena 7 — Pop-It Math: rainbow silicone pop-it */
+.arena-mathpop{background:radial-gradient(circle at 10px 10px, rgba(0,0,0,.05) 0 2px, transparent 3px) 0 0/20px 20px, var(--surface-2); display:flex; flex-direction:column; gap:14px; align-items:center}
+.mathpop-q{font-family:var(--font-display); font-size:38px; line-height:1.1; text-align:center; font-variant-numeric:tabular-nums; min-height:46px}
+.mathpop-visual{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:2px; font-size:22px; min-height:28px; max-width:340px}
+.mathpop-visual .gone{opacity:.25; transform:scale(.8)}
+.mathpop-visual .op{font-family:var(--font-display); font-size:24px; margin:0 6px}
+.mathpop-feedback{font-family:var(--font-display); font-size:20px; min-height:26px; text-align:center}
+.mathpop-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%; max-width:360px}
+.mathpop-cell{
+  aspect-ratio:1; border-radius:50%; border:none; cursor:pointer; color:#fff;
+  font-family:var(--font-display); font-size:28px; font-variant-numeric:tabular-nums; text-shadow:0 2px 3px rgba(0,0,0,.4);
+  background:radial-gradient(circle at 34% 26%, rgba(255,255,255,.6) 0%, hsl(var(--h) 75% 58%) 30%, hsl(var(--h) 70% 44%) 100%);
+  box-shadow:0 5px 0 hsl(var(--h) 60% 32%), inset 0 -3px 5px rgba(0,0,0,.15);
+  transition:transform .08s, box-shadow .08s;
+}
+.mathpop-cell:active{transform:translateY(3px); box-shadow:0 2px 0 hsl(var(--h) 60% 38%)}
+.mathpop-cell.popped{transform:translateY(4px) scale(.92); box-shadow:inset 0 5px 10px rgba(0,0,0,.35); animation:popPulse .3s ease}
+.mathpop-cell.wrong{animation:mathShake .4s ease; filter:grayscale(.7) brightness(.9)}
+.mathpop-cell.right{box-shadow:0 0 0 6px var(--mint), 0 5px 0 hsl(var(--h) 60% 38%)}
+.mathpop-progress{display:flex; gap:6px; justify-content:center}
+.mathpop-progress span{width:12px; height:12px; border-radius:50%; background:var(--surface-3)}
+.mathpop-progress span.ok{background:var(--mint)}
+.mathpop-progress span.miss{background:var(--danger)}
+.mathpop-progress span.now{box-shadow:0 0 0 3px var(--accent-soft); background:var(--accent)}
+@keyframes mathShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.level-pick{display:flex; flex-direction:column; gap:10px; width:100%; max-width:360px}
+.level-pick .btn{justify-content:flex-start; text-align:left}
+.edu-chip{display:inline-block; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:999px; background:var(--mint-soft); color:var(--ink); margin-left:6px; vertical-align:middle}
+
 .results-card{text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px}
 .results-card .big{font-size:40px}
 .results-card .coins-earned{font-family:var(--font-display); font-size:30px; color:var(--coin)}
@@ -903,8 +932,9 @@ const GAME_DEFS = [
   {id:"stretch", name:"Stretch Zone", emoji:"📏", desc:"Time your tap inside the glowing zone."},
   {id:"sort", name:"Sort Rush", emoji:"🗂️", desc:"Squishy or fidget? Sort it before time's up."},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", desc:"Watch the pattern, then repeat it back."},
+  {id:"mathpop", name:"Pop-It Math", emoji:"➕", desc:"Pop the right answer. Levels grow with you!", edu:true},
 ];
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", pattern:"--danger"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", pattern:"--danger", mathpop:"--mint"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -913,7 +943,9 @@ function buildGamePicker(){
     card.style.setProperty("--gc", "var("+(GAME_ACCENT[g.id]||"--accent")+")");
     card.appendChild(el("div",{class:"ic", text:g.emoji}));
     const meta = el("div",{class:"meta"});
-    meta.appendChild(el("h3",{text:g.name}));
+    const h3 = el("h3",{text:g.name});
+    if(g.edu) h3.appendChild(el("span",{class:"edu-chip", text:"📚 Learning"}));
+    meta.appendChild(h3);
     meta.appendChild(el("p",{text:g.desc}));
     card.appendChild(meta);
     card.appendChild(el("div",{class:"btn small secondary", text:"Play"}));
@@ -936,6 +968,7 @@ function startGame(id){
   else if(id==="stretch") initStretchGame(stage);
   else if(id==="sort") initSortGame(stage);
   else if(id==="pattern") initPatternGame(stage);
+  else if(id==="mathpop") initMathPopGame(stage);
 }
 
 function gameResultsScreen(stage, coinsEarned, lines){
@@ -1383,6 +1416,251 @@ function initPatternGame(stage){
   }
   addStep();
   playback();
+}
+
+/* ---- Pop-It Math (adaptive arithmetic) ----
+   Each kid's level is saved on their player doc (skills.math), so a 7-year-old
+   and an 11-year-old each get their own difficulty. After every round the level
+   moves up after a strong round or down after a rough one. */
+const MATH_LEVELS = [
+  null,
+  "Adding to 10",
+  "Taking away within 10",
+  "Adding to 20",
+  "Add & subtract to 20",
+  "Two-digit add & subtract",
+  "Add & subtract with carrying",
+  "Times tables: 2, 5 & 10",
+  "Times tables to 10 × 10",
+  "Division facts",
+  "Missing numbers",
+  "Big number math",
+  "Fractions & percents of numbers",
+];
+const MATH_MAX_LEVEL = MATH_LEVELS.length - 1;
+const MATH_ROUND = 10;
+// Bubble colors, picked so white numbers stay readable (no yellows).
+const MATHPOP_HUES = [350, 22, 150, 178, 215, 270];
+
+function mathRand(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function mathPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function makeMathProblem(level){
+  const r = mathRand;
+  let a, b, op;
+  switch(level){
+    case 1:
+      a=r(0,6); b=r(1,10-a);
+      return {text:a+" + "+b, answer:a+b, visual:{a, b, op:"+"}};
+    case 2:
+      a=r(3,10); b=r(1,a);
+      return {text:a+" − "+b, answer:a-b, visual:{a, b, op:"-"}};
+    case 3:
+      a=r(3,12); b=r(2,20-a);
+      return {text:a+" + "+b, answer:a+b};
+    case 4:
+      if(Math.random()<.5){ a=r(4,14); b=r(2,20-a); return {text:a+" + "+b, answer:a+b}; }
+      a=r(8,20); b=r(2,a-1); return {text:a+" − "+b, answer:a-b};
+    case 5: // two-digit, no carrying or borrowing
+      if(Math.random()<.5){
+        a=r(11,78); b=r(1,8-Math.floor(a/10))*10 + r(0,9-a%10);
+        if(b<10) b+=10;
+        return {text:a+" + "+b, answer:a+b};
+      }
+      a=r(25,99); b=r(1,Math.floor(a/10)-1)*10 + r(0,a%10);
+      return {text:a+" − "+b, answer:a-b};
+    case 6: // two-digit with carrying or borrowing
+      if(Math.random()<.5){
+        do{ a=r(15,79); b=r(12,99-a); }while((a%10)+(b%10)<10);
+        return {text:a+" + "+b, answer:a+b};
+      }
+      do{ a=r(31,99); b=r(12,a-10); }while((a%10)>=(b%10));
+      return {text:a+" − "+b, answer:a-b};
+    case 7:
+      a=mathPick([2,5,10]); b=r(1,10); if(Math.random()<.5) [a,b]=[b,a];
+      return {text:a+" × "+b, answer:a*b, fa:a, fb:b};
+    case 8:
+      a=r(2,10); b=r(2,10);
+      return {text:a+" × "+b, answer:a*b, fa:a, fb:b};
+    case 9:
+      b=r(2,10); a=r(1,10)*b;
+      return {text:a+" ÷ "+b, answer:a/b, div:true};
+    case 10: {
+      const kind=r(0,2);
+      if(kind===0){ a=r(2,10); b=r(2,10); return {text:"? × "+b+" = "+(a*b), answer:a}; }
+      if(kind===1){ b=r(2,10); const q=r(2,10); return {text:(q*b)+" ÷ ? = "+q, answer:b}; }
+      a=r(12,60); b=r(10,99-a); return {text:"? + "+a+" = "+(a+b), answer:b};
+    }
+    case 11: {
+      const kind=r(0,2);
+      if(kind===0){ a=r(120,699); b=r(101,999-a); return {text:a+" + "+b, answer:a+b}; }
+      if(kind===1){ a=r(300,999); b=r(101,a-50); return {text:a+" − "+b, answer:a-b}; }
+      a=r(12,49); b=r(3,9); return {text:a+" × "+b, answer:a*b, fa:a, fb:b};
+    }
+    default: {
+      if(Math.random()<.6){
+        const den=mathPick([2,3,4,5,10]), num=r(1,den-1), whole=den*r(2,12);
+        return {text:num+"/"+den+" of "+whole, answer:whole/den*num, unit:whole/den};
+      }
+      const pct=mathPick([10,20,25,50,75]), whole=mathPick([20,40,60,80,100,120,200]);
+      return {text:pct+"% of "+whole, answer:whole*pct/100, unit:whole/10};
+    }
+  }
+}
+
+// Wrong answers that look like real mistakes: off by one or two, off by ten,
+// a neighboring times-table fact, or adding instead of multiplying.
+function mathChoices(p, count){
+  const ans=p.answer, set=new Set([ans]);
+  const near=[ans+1, ans-1, ans+2, ans-2];
+  if(ans>=10) near.push(ans+10, ans-10);
+  if(p.fa!=null){ near.push(p.fa*(p.fb+1), p.fa*(p.fb-1), p.fa+p.fb); }
+  if(p.unit!=null) near.push(p.unit, ans+p.unit, ans-p.unit);
+  near.sort(()=>Math.random()-.5).forEach(n=>{ if(set.size<count && n>=0 && Number.isInteger(n)) set.add(n); });
+  let spread=Math.max(3, Math.round(ans*.2));
+  while(set.size<count){
+    const n=ans+mathRand(-spread,spread);
+    if(n>=0) set.add(n);
+    spread++;
+  }
+  return Array.from(set).sort(()=>Math.random()-.5);
+}
+
+function initMathPopGame(stage){
+  id_cache = "mathpop";
+  const saved = player && player.skills && player.skills.math;
+  if(saved) runMathRound(stage, Math.max(1, Math.min(MATH_MAX_LEVEL, saved)));
+  else showMathLevelPicker(stage);
+}
+
+function showMathLevelPicker(stage){
+  stage.innerHTML = "";
+  const hud = el("div",{class:"game-hud"});
+  hud.appendChild(el("div",{class:"hud-item"},[el("div",{class:"v",text:"➕"}),el("div",{class:"k",text:"Pop-It Math"})]));
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:exitGame}));
+  stage.appendChild(hud);
+  const card = el("div",{class:"card results-card"});
+  card.appendChild(el("h2",{text:"Where should we start?"}));
+  card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"Don't worry, the game moves you up or down as you play."}));
+  const pick = el("div",{class:"level-pick"});
+  [
+    {label:"🌱 Just starting: adding & taking away", level:1},
+    {label:"🌟 Getting good: bigger adding & subtracting", level:5},
+    {label:"🚀 Math whiz: times tables & division", level:8},
+  ].forEach(o=>{
+    pick.appendChild(el("button",{class:"btn secondary", type:"button", text:o.label, onclick:async ()=>{
+      await savePlayerPatch({skills:{math:o.level}});
+      runMathRound(stage, o.level);
+    }}));
+  });
+  card.appendChild(pick);
+  stage.appendChild(card);
+}
+
+function runMathRound(stage, level){
+  stage.innerHTML = "";
+  let qIndex=0, correct=0, locked=false, running=true;
+
+  const hud = el("div",{class:"game-hud"});
+  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Correct"})]);
+  const hLevel = el("div",{class:"hud-item"},[el("div",{class:"v",text:String(level)}),el("div",{class:"k",text:"Level"})]);
+  hud.appendChild(hScore); hud.appendChild(hLevel);
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; exitGame();}}));
+  stage.appendChild(hud);
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:MATH_LEVELS[level]+". Pop the right answer!"}));
+
+  const arena = el("div",{class:"arena arena-mathpop"});
+  const progress = el("div",{class:"mathpop-progress"});
+  const dots=[];
+  for(let i=0;i<MATH_ROUND;i++){ const d=el("span"); progress.appendChild(d); dots.push(d); }
+  const qEl = el("div",{class:"mathpop-q"});
+  const visual = el("div",{class:"mathpop-visual"});
+  const feedback = el("div",{class:"mathpop-feedback"});
+  const grid = el("div",{class:"mathpop-grid"});
+  arena.appendChild(progress); arena.appendChild(qEl); arena.appendChild(visual);
+  arena.appendChild(grid); arena.appendChild(feedback);
+  stage.appendChild(arena);
+
+  const PRAISE = ["Yes! 🎉","Nice! ⭐","You got it! 💥","Awesome! 🌈","Pop-tastic! 🫧"];
+
+  function renderVisual(v){
+    visual.innerHTML = "";
+    if(!v) return;
+    const icon = "🫧";
+    if(v.op==="+"){
+      for(let i=0;i<v.a;i++) visual.appendChild(el("span",{text:icon}));
+      visual.appendChild(el("span",{class:"op", text:"+"}));
+      for(let i=0;i<v.b;i++) visual.appendChild(el("span",{text:icon}));
+    } else {
+      for(let i=0;i<v.a;i++) visual.appendChild(el("span",{class: i>=v.a-v.b ? "gone" : "", text:icon}));
+    }
+  }
+
+  function nextQuestion(){
+    if(!running) return;
+    if(qIndex>=MATH_ROUND){ finish(); return; }
+    dots.forEach((d,i)=>d.classList.toggle("now", i===qIndex));
+    const p = makeMathProblem(level);
+    qEl.textContent = p.text.includes("=") ? p.text : p.text+" = ?";
+    renderVisual(p.visual);
+    feedback.textContent = "";
+    grid.innerHTML = "";
+    const cells = [];
+    mathChoices(p, 6).forEach((n,i)=>{
+      const c = el("button",{class:"mathpop-cell", type:"button", text:String(n)});
+      c.style.setProperty("--h", String(MATHPOP_HUES[(i + qIndex) % MATHPOP_HUES.length]));
+      c.addEventListener("click", ()=>answer(c, n, p, cells));
+      grid.appendChild(c); cells.push({c, n});
+    });
+    locked = false;
+  }
+
+  function answer(cell, n, p, cells){
+    if(locked || !running) return;
+    locked = true;
+    const full = p.text.includes("=") ? p.text.replace("?", String(p.answer)) : p.text+" = "+p.answer;
+    if(n===p.answer){
+      correct++;
+      hScore.querySelector(".v").textContent = correct;
+      cell.classList.add("popped");
+      dots[qIndex].className = "ok";
+      feedback.textContent = mathPick(PRAISE);
+      qIndex++;
+      setTimeout(nextQuestion, 650);
+    } else {
+      cell.classList.add("wrong");
+      const right = cells.find(x=>x.n===p.answer);
+      if(right) right.c.classList.add("right");
+      dots[qIndex].className = "miss";
+      feedback.textContent = "Almost! "+full;
+      qIndex++;
+      setTimeout(nextQuestion, 2200);
+    }
+  }
+
+  async function finish(){
+    if(!running) return;
+    running = false;
+    let newLevel = level, levelLine;
+    if(correct>=9 && level<MATH_MAX_LEVEL){
+      newLevel = level+1;
+      levelLine = "⭐ Level up! Next: "+MATH_LEVELS[newLevel];
+    } else if(correct<=5 && level>1){
+      newLevel = level-1;
+      levelLine = "Next round we'll practice "+MATH_LEVELS[newLevel]+" a bit more.";
+    } else {
+      levelLine = "Keep going! "+(MATH_MAX_LEVEL===level && correct>=9 ? "You've mastered every level! 🏆" : "Score 9 or 10 to level up.");
+    }
+    if(newLevel!==level) await savePlayerPatch({skills:{math:newLevel}});
+    const perRight = 3 + Math.floor(level/2);
+    const coins = Math.max(5, Math.min(100, correct*perRight + (correct===MATH_ROUND ? 10 : 0)));
+    const lines = ["You got "+correct+" of "+MATH_ROUND+" right ("+MATH_LEVELS[level]+")."];
+    if(correct===MATH_ROUND) lines.push("Perfect round! +10 bonus 🪙");
+    lines.push(levelLine);
+    gameResultsScreen(stage, coins, lines);
+  }
+
+  nextQuestion();
 }
 
 /* ============================= SHOP ============================= */

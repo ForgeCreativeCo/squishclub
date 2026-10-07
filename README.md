@@ -4,7 +4,8 @@ A collect-and-trade game built for kids on tablets: play mini-games to earn Squi
 
 ## How it works
 
-- **Solo progression** — each player earns coins from 6 mini-games (Squish Match, Pop Rush, Squishy Catch, Stretch Zone, Sort Rush, Pattern Pop) and spends them on Mystery Packs across 5 rarity tiers.
+- **Solo progression** — each player earns coins from 7 mini-games (Squish Match, Pop Rush, Squishy Catch, Stretch Zone, Sort Rush, Pattern Pop, and the educational Pop-It Math) and spends them on Mystery Packs across 5 rarity tiers.
+- **Pop-It Math** — an educational game: pop the bubble with the right answer, 10 questions a round, no timer. It has 12 levels, from "adding to 10" through times tables, division and missing numbers to fractions and percents of numbers. Each kid picks a starting point the first time; after that, their level (saved as `skills.math` on their player doc) goes up after a round of 9–10 correct and down after 5 or fewer. Wrong answers show the correct equation. Beginner levels show bubbles to count.
 - **Collection** — 28 items modeled on real current squishy & fidget toy trends (NeeDoh, Taba squishies, mochi animals, Pop-Its, Infinity Cubes, Speks magnets, and more).
 - **Trading table** — two players join a 4-digit code table on separate devices, build an offer, both ready up, both confirm — then the swap executes live.
 
