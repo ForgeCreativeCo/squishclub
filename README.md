@@ -60,7 +60,7 @@ base64 -w0 squish-release.keystore   # macOS: base64 -i squish-release.keystore
 
 Put the password you chose and the base64 output into the two secrets above. ⚠️ Changing the key means every tablet that already has the app must **uninstall it** before installing the new build. That wipes that tablet's game progress, so do this only if the key is truly gone.
 
-If the secrets are missing, builds still succeed, but they use a throwaway debug key and print a warning. Don't install those builds on a kid's tablet.
+If the secrets are missing, branch builds still succeed with a throwaway debug key and a warning (don't install those on a kid's tablet), and builds on `main` fail instead of publishing. If only one secret is set, or the password doesn't match the key, every build fails with a message saying which. A correctly signed build prints the key's SHA-256 fingerprint in the "Decode signing key" step.
 
 #### Building
 

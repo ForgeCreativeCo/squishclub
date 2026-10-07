@@ -28,13 +28,25 @@ jobs:
       - name: Decode signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
-            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
-          else
-            echo "::warning::ANDROID_KEYSTORE_BASE64 secret not set; signing with a throwaway debug key. Installs work, but future updates will need an uninstall first (which wipes the game's progress on that tablet)."
+          if [ -z "$KEYSTORE_BASE64" ] && [ -z "$KEYSTORE_PASSWORD" ]; then
+            if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+              echo "::error::Signing secrets aren't set. Refusing to publish a release signed with a throwaway key. See README → Fire tablets & Amazon Kids → signing key."
+              exit 1
+            fi
+            echo "::warning::Signing secrets not set; signing with a throwaway debug key. Don't install this build on a kid's tablet."
+            exit 0
           fi
+          [ -n "$KEYSTORE_BASE64" ] || { echo "::error::ANDROID_KEYSTORE_BASE64 secret is missing or empty (check the name)."; exit 1; }
+          [ -n "$KEYSTORE_PASSWORD" ] || { echo "::error::ANDROID_KEYSTORE_PASSWORD secret is missing or empty (check the name)."; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore" \
+            || { echo "::error::ANDROID_KEYSTORE_BASE64 isn't valid base64. It was probably pasted incompletely."; exit 1; }
+          keytool -list -v -keystore "$RUNNER_TEMP/release.keystore" -storepass "$KEYSTORE_PASSWORD" -alias squish > "$RUNNER_TEMP/key.txt" 2>&1 \
+            || { echo "::error::Couldn't open the signing key. Either the password doesn't match, or ANDROID_KEYSTORE_BASE64 was pasted incompletely."; exit 1; }
+          echo "Signing with release key, SHA-256 fingerprint:"
+          grep "SHA256:" "$RUNNER_TEMP/key.txt"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
 
       - name: Build APK
         working-directory: android
