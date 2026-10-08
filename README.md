@@ -29,7 +29,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 - **Your toys live in a backpack.** Tap it to unzip it. Toys are sorted into pockets: the main pocket for squishies, the side pocket for fidgets, and a secret zipper for scam items. Counts show how many of each you have.
 - **Make it yours.** The first time, each kid picks a backpack color (Bubblegum, Sky, Grape, Mint, Galaxy or Rainbow). 🔑 **Keychain** hangs a favorite toy from the zipper; it swings when tapped, and the trade buddy can see it.
-- **📖 Collection Book.** All 28 toys with collection stats. Toys you don't own yet show as silhouettes, so kids can see what they're hunting for. Filters: Squishies, Fidgets, Owned, Scams 💩.
+- **📖 Collection Book.** All 28 toys with collection stats. Toys you don't own yet show as silhouettes, so kids can see what they're hunting for. Filters: Squishies, Fidgets, Owned, Halloween 🎃, Scams 💩.
 - **Fidget mode.** Tap any toy you own to play with it. Nothing is earned; it's just for fun.
   - **Pop-its** (Pop-It, Simple Dimple): pop every bubble; when they're all popped, it flips over to the other side.
   - **Squishies:** press and hold to squish, let go and it slowly rises.
@@ -37,7 +37,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
   - **Other fidgets:** tap for a reaction (the Infinity Cube flips, the Fidget Dodecagon clicks, the Speks jiggle, the Vortex swirls).
   - Sounds: real recorded squishes, a spinner whir that winds down with the spin, and synthesized pops and clicks. A 🔊 mute toggle covers every sound, and each tablet remembers it. Tablets that support vibration get a light buzz.
 
-**The toys.** 28 collectibles modeled on real squishy and fidget trends: 10 Common, 8 Uncommon, 6 Rare, 2 Epic, 2 Legendary. Every toy is original art drawn as SVG in code, with glossy squishies with faces and pop-its built bubble by bubble. There are no image files to download. Six extra joke items come from scam packs (see Packs).
+**The toys.** 28 collectibles modeled on real squishy and fidget trends: 10 Common, 8 Uncommon, 6 Rare, 2 Epic, 2 Legendary. Every toy is original art drawn as SVG in code, with glossy squishies with faces and pop-its built bubble by bubble. There are no image files to download. Six extra joke items come from scam packs (see Packs). Eight Halloween dumplings (2 Common, 2 Uncommon, 2 Rare, 1 Epic, 1 Legendary) drop from every pack all year and are collected on their own Halloween page in the Collection Book, separate from the main 28. In October the shop also sells the 🎃 Spooky Dumpling Pack (80 🪙), which only drops those eight.
 
 ### 🎮 Games
 

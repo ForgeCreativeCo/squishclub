@@ -4,6 +4,7 @@
    It exposes the same window.Squish API the game uses. */
 (function(){
   "use strict";
+  window.SQUISH_SANDBOX = true;   // lets the game show October-only shop items
   const KEY = "squish_sandbox_v1";
   const ME = "tester", ROBO = "robo";
   const ITEM_INFO = __ITEM_INFO__;           // id -> {r: rarity, n: name, c: category}

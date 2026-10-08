@@ -769,6 +769,7 @@ img{max-width:100%}
   transform:translate(-50%,-50%) rotate(-18deg) scale(3); opacity:0; animation:stampIn .35s cubic-bezier(.3,1.5,.5,1) .55s forwards; pointer-events:none; text-shadow:0 1px 0 rgba(255,255,255,.6)}
 @keyframes stampIn{to{transform:translate(-50%,-50%) rotate(-18deg) scale(1); opacity:.95}}
 .scam-sub{margin:10px 0 0; font-size:13px; color:var(--ink-dim); position:relative; z-index:1}
+.halloween-note{grid-column:1/-1; margin:0 0 4px; font-size:13px; color:var(--ink); background:var(--rarity-legendary-soft); border-radius:14px; padding:10px 12px}
 .scam-note{grid-column:1/-1; margin:0 0 4px; font-size:13px; color:var(--ink-dim); background:var(--rarity-scam-soft); border-radius:14px; padding:10px 12px}
 .reveal-card .rn{font-family:var(--font-display); font-size:19px; margin-top:6px; position:relative; z-index:1}
 .reveal-card .rr{margin-top:4px; position:relative; z-index:1}
@@ -1132,6 +1133,18 @@ const ITEMS = [
   {id:"golden_squish", name:"Golden Mini Plush", emoji:"🌟", category:"squishy", rarity:"legendary"},
   {id:"golden_spinner", name:"Golden Fidget Spinner", emoji:"✨", category:"fidget", rarity:"legendary"},
 ];
+// Halloween dumplings: part of the pack pool all year, but collected on their
+// own page in the Collection Book and not counted toward the main 28.
+const HALLOWEEN_ITEMS = [
+  {id:"hw_ghost", name:"Boo Dumpling", emoji:"👻", category:"squishy", rarity:"common"},
+  {id:"hw_pumpkin", name:"Pumpkin Dumpling", emoji:"🎃", category:"squishy", rarity:"common"},
+  {id:"hw_mummy", name:"Mummy Dumpling", emoji:"🧻", category:"squishy", rarity:"uncommon"},
+  {id:"hw_bat", name:"Bat Wing Dumpling", emoji:"🦇", category:"squishy", rarity:"uncommon"},
+  {id:"hw_witch", name:"Witch Hat Dumpling", emoji:"🧙", category:"squishy", rarity:"rare"},
+  {id:"hw_franken", name:"Frankendumpling", emoji:"🧟", category:"squishy", rarity:"rare"},
+  {id:"hw_candy", name:"Candy Corn Dumpling", emoji:"🍬", category:"squishy", rarity:"epic"},
+  {id:"hw_glow", name:"Glow Jack Dumpling", emoji:"🕯️", category:"squishy", rarity:"legendary"},
+];
 // Joke items from scam packs: their own "scam" rarity, worth ⭐0 on the
 // trading mat, and collected separately from the main 28.
 const SCAM_ITEMS = [
@@ -1142,7 +1155,7 @@ const SCAM_ITEMS = [
   {id:"scam_peel", name:"Banana Peel", emoji:"🍌", category:"scam", rarity:"scam"},
   {id:"scam_iou", name:"IOU Note", emoji:"📝", category:"scam", rarity:"scam"},
 ];
-const ITEM_MAP = Object.fromEntries(ITEMS.concat(SCAM_ITEMS).map(i=>[i.id,i]));
+const ITEM_MAP = Object.fromEntries(ITEMS.concat(HALLOWEEN_ITEMS, SCAM_ITEMS).map(i=>[i.id,i]));
 const RARITY_ORDER = ["common","uncommon","rare","epic","legendary"];
 const RARITY_LABEL = {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary",scam:"Scam!"};
 // About 1 in 12 packs is a scam, but never a kid's first pack and never two in a row.
@@ -1152,7 +1165,10 @@ const PACKS = [
   {id:"starter", name:"Starter Pack", emoji:"🎁", cost:40, odds:{common:.65,uncommon:.30,rare:.05,epic:0,legendary:0}},
   {id:"rare", name:"Rare Pack", emoji:"🎀", cost:120, odds:{common:.30,uncommon:.40,rare:.25,epic:.05,legendary:0}},
   {id:"legend", name:"Legendary Pack", emoji:"👑", cost:300, odds:{common:0,uncommon:.20,rare:.45,epic:.25,legendary:.10}},
+  // Only in the shop during October; its toys are also in every other pack all year.
+  {id:"spooky", name:"Spooky Dumpling Pack", emoji:"🎃", cost:80, set:"halloween", odds:{common:.50,uncommon:.28,rare:.14,epic:.06,legendary:.02}},
 ];
+function spookySeason(){ return !!window.SQUISH_SANDBOX || new Date().getMonth()===9; }
 
 const AVATARS = ["🦊","🐼","🐸","🦄","🐙","🐨","🦋","🐲","🐯","🐰","🦁","🐵"];
 
@@ -1168,9 +1184,10 @@ function rollWeighted(odds){
   for(const [rarity,w] of entries){ if(r<w) return rarity; r-=w; }
   return entries[entries.length-1][0];
 }
-function rollItem(odds){
+function rollItem(odds, set){
   const rarity = rollWeighted(odds);
-  const pool = ITEMS.filter(i=>i.rarity===rarity);
+  const source = set==="halloween" ? HALLOWEEN_ITEMS : ITEMS.concat(HALLOWEEN_ITEMS);
+  const pool = source.filter(i=>i.rarity===rarity);
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
@@ -1273,7 +1290,7 @@ function face(cx, cy, s, opts){
   return eye(cx-eo)+eye(cx+eo)
     +'<ellipse cx="'+(cx-eo-4*s)+'" cy="'+(cy+6*s)+'" rx="'+(4.5*s)+'" ry="'+(2.6*s)+'" fill="#ff7aa8" opacity=".55"/>'
     +'<ellipse cx="'+(cx+eo+4*s)+'" cy="'+(cy+6*s)+'" rx="'+(4.5*s)+'" ry="'+(2.6*s)+'" fill="#ff7aa8" opacity=".55"/>'
-    +'<path d="M'+(cx-4*s)+' '+(cy+4*s)+' Q'+(cx-2*s)+' '+(cy+7.5*s)+' '+cx+' '+(cy+4.5*s)+' Q'+(cx+2*s)+' '+(cy+7.5*s)+' '+(cx+4*s)+' '+(cy+4*s)+'" fill="none" stroke="#2b1d2f" stroke-width="'+(1.6*s)+'" stroke-linecap="round"/>';
+    +(opts.mouth || '<path d="M'+(cx-4*s)+' '+(cy+4*s)+' Q'+(cx-2*s)+' '+(cy+7.5*s)+' '+cx+' '+(cy+4.5*s)+' Q'+(cx+2*s)+' '+(cy+7.5*s)+' '+(cx+4*s)+' '+(cy+4*s)+'" fill="none" stroke="#2b1d2f" stroke-width="'+(1.6*s)+'" stroke-linecap="round"/>');
 }
 function gloss(cx,cy,rx,ry){ return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="#fff" opacity=".55" transform="rotate(-25 '+cx+' '+cy+')"/>'; }
 
@@ -1454,6 +1471,75 @@ function dumplingSVG(){ const id=toyId("dp");
     +face(50,62,0.7)+gloss(28,52,7,3),
     rg(id,"#ffffff","#f8f1e3","#e2d3b8"));
 }
+// ---------- Halloween dumplings ----------
+const DUMP_BODY = "M10 74 C10 44 30 26 50 26 C70 26 90 44 90 74 C76 84 24 84 10 74Z";
+function dumpMouth(cx,y,extra){ return '<path d="M'+(cx-5)+' '+y+' Q'+cx+' '+(y+4)+' '+(cx+5)+' '+y+'" fill="none" stroke="#2b1d2f" stroke-width="1.4" stroke-linecap="round"/>'+(extra||""); }
+function ghostDumplingSVG(){ const id=toyId("hg");
+  return svgWrap(shadow(36)
+    +'<path d="M12 80 C8 40 28 18 50 18 C72 18 92 40 88 80 Q82 90 76 82 Q70 92 62 82 Q56 92 50 82 Q44 92 38 82 Q30 92 24 82 Q18 90 12 80Z" fill="url(#'+id+')"/>'
+    +face(50,50,0.8,{mouth:'<ellipse cx="50" cy="62" rx="4" ry="5" fill="#2b1d2f"/>'})+gloss(30,36,8,3.5),
+    rg(id,"#ffffff","#f1f4ff","#cfd6f2"));
+}
+function pumpkinDumplingSVG(){ const id=toyId("hp");
+  return svgWrap(shadow(38)
+    +'<path d="M46 30 Q46 18 54 14 L58 18 Q52 22 54 30Z" fill="#4aa65a"/>'
+    +'<path d="M10 66 C10 40 30 28 50 28 C70 28 90 40 90 66 C90 82 70 86 50 86 C30 86 10 82 10 66Z" fill="url(#'+id+')"/>'
+    +'<g stroke="#c2530c" stroke-width="2" fill="none" opacity=".55" stroke-linecap="round"><path d="M34 32 Q24 56 34 84"/><path d="M50 28 L50 86"/><path d="M66 32 Q76 56 66 84"/></g>'
+    +face(50,58,0.75)+gloss(28,44,7,3),
+    rg(id,"#ffd08a","#ff9a2e","#e0650c"));
+}
+function mummyDumplingSVG(){ const id=toyId("hm");
+  const wraps=[36,44,52,60,68].map((y,k)=>'<path d="M'+(14+k*2)+' '+y+' L'+(86-k*2)+' '+(y+(k%2?5:-3))+'" stroke="#d9d2bf" stroke-width="4" stroke-linecap="round" opacity=".9"/>').join("");
+  return svgWrap(shadow(36)+'<path d="'+DUMP_BODY+'" fill="url(#'+id+')"/>'+wraps
+    +'<rect x="26" y="49" width="48" height="16" rx="8" fill="#3b2e4d"/>'
+    +face(50,57,0.62,{mouth:dumpMouth(50,70)})+gloss(26,46,6,2.5),
+    rg(id,"#fffdf5","#efe7d2","#cfc3a4"));
+}
+function batDumplingSVG(){ const id=toyId("hb");
+  const wing=(k)=>'<path d="M'+(50+k*30)+' 54 Q'+(50+k*50)+' 24 '+(50+k*47)+' 40 Q'+(50+k*40)+' 40 '+(50+k*38)+' 52 Q'+(50+k*32)+' 50 '+(50+k*30)+' 62Z" fill="#4a2a78"/>';
+  return svgWrap(shadow(38)+wing(-1)+wing(1)
+    +'<path d="M34 34 L36 14 L46 28Z" fill="#6a3fb0"/><path d="M66 34 L64 14 L54 28Z" fill="#6a3fb0"/>'
+    +'<path d="'+DUMP_BODY+'" transform="translate(11 11) scale(.78)" fill="url(#'+id+')"/>'
+    +face(50,60,0.62,{mouth:dumpMouth(50,68,'<path d="M45.5 69 L46.5 73 L48 69.5Z M52 69.5 L53.5 73 L54.5 69Z" fill="#fff"/>')})+gloss(34,50,5,2.5),
+    rg(id,"#c9a6ff","#8d5ee0","#5a35a8"));
+}
+function witchDumplingSVG(){ const id=toyId("hw");
+  return svgWrap(shadow(36)
+    +'<path d="M10 78 C10 52 30 38 50 38 C70 38 90 52 90 78 C76 88 24 88 10 78Z" fill="url(#'+id+')"/>'
+    +'<path d="M20 44 Q50 52 80 44 Q82 36 70 36 Q64 14 50 6 Q40 20 38 36 Q18 36 20 44Z" fill="#3a2766"/>'
+    +'<path d="M38 36 Q50 40 62 36 L62 31 Q50 35 38 31Z" fill="#ff9a2e"/><rect x="47" y="30" width="6" height="7" rx="1.5" fill="#ffd23f"/>'
+    +face(50,66,0.66)+gloss(26,58,6,2.5),
+    rg(id,"#d6f5a8","#9bd45a","#6aa634"));
+}
+function frankenDumplingSVG(){ const id=toyId("hf");
+  return svgWrap(shadow(36)
+    +'<path d="'+DUMP_BODY+'" fill="url(#'+id+')"/>'
+    +'<path d="M17 50 Q18 26 50 26 Q82 26 83 50 L78 40 L66 46 L56 36 L44 46 L32 38Z" fill="#2f2a3c"/>'
+    +'<rect x="5" y="56" width="9" height="7" rx="2" fill="#8d97a8"/><rect x="86" y="56" width="9" height="7" rx="2" fill="#8d97a8"/>'
+    +'<path d="M30 56 L40 52 M60 52 L70 56" stroke="#2b1d2f" stroke-width="2" stroke-linecap="round"/>'
+    +'<path d="M62 40 L66 46 L64 52" fill="none" stroke="#5c7a45" stroke-width="1.6"/>'
+    +face(50,62,0.7,{mouth:'<path d="M43 70 L57 70" stroke="#2b1d2f" stroke-width="1.8" stroke-linecap="round"/><path d="M47 68 L47 72 M50 68 L50 72 M53 68 L53 72" stroke="#2b1d2f" stroke-width="1"/>'})+gloss(28,52,6,2.5),
+    rg(id,"#d8f5c0","#9fd66f","#6aa045"));
+}
+function candyDumplingSVG(){ const id=toyId("hc");
+  const shape="M50 12 C68 12 92 56 92 78 C76 86 24 86 8 78 C8 56 32 12 50 12Z";
+  return svgWrap(shadow(36)
+    +'<g clip-path="url(#'+id+'k)"><rect x="0" y="0" width="100" height="40" fill="#fff6e6"/><rect x="0" y="40" width="100" height="22" fill="#ffa62b"/><rect x="0" y="62" width="100" height="40" fill="#ffd93d"/></g>'
+    +'<path d="'+shape+'" fill="none" stroke="rgba(0,0,0,.15)" stroke-width="1.5"/>'
+    +face(50,64,0.7)+gloss(34,34,6,3),
+    '<clipPath id="'+id+'k"><path d="'+shape+'"/></clipPath>');
+}
+function glowJackDumplingSVG(){ const id=toyId("hl");
+  return svgWrap('<circle cx="50" cy="52" r="46" fill="#ffe27a" opacity=".28"/><circle cx="50" cy="52" r="36" fill="#ffe27a" opacity=".28"/>'+shadow(36)
+    +'<path d="M46 32 Q46 20 54 16 L58 20 Q52 24 54 32Z" fill="#4aa65a"/>'
+    +'<path d="M10 68 C10 42 30 30 50 30 C70 30 90 42 90 68 C90 82 70 86 50 86 C30 86 10 82 10 68Z" fill="url(#'+id+')"/>'
+    +'<g stroke="#b8860b" stroke-width="2" fill="none" opacity=".4"><path d="M34 34 Q24 58 34 84"/><path d="M66 34 Q76 58 66 84"/></g>'
+    +'<path d="M30 54 L40 46 L44 56Z M70 54 L60 46 L56 56Z" fill="#7a4b00"/>'
+    +'<path d="M32 70 Q50 82 68 70 L62 68 L58 74 L50 69 L42 74 L38 68Z" fill="#7a4b00"/>'
+    +'<path d="M78 14 l1.6 4.4 4.4 1.6 -4.4 1.6 -1.6 4.4 -1.6 -4.4 -4.4 -1.6 4.4 -1.6z M20 26 l1.2 3.2 3.2 1.2 -3.2 1.2 -1.2 3.2 -1.2 -3.2 -3.2 -1.2 3.2 -1.2z" fill="#fff"/>'
+    +gloss(28,50,7,3),
+    rg(id,"#fff6c2","#ffd23f","#f0a010"));
+}
 function butterSVG(){ const id=toyId("bt");
   return svgWrap(shadow(36)
     +'<path d="M14 46 L36 30 L88 34 L66 50Z" fill="url(#'+id+'t)"/>'
@@ -1576,6 +1662,8 @@ const TOY_ART = {
   mochi_panda: mochiPandaSVG, butter_stick: butterSVG, cake_sq: cakeSVG, speks_magnets: speksSVG, water_vortex: vortexSVG, marble_mesh: marbleMeshSVG,
   fidget_dodeca: dodecaSVG, nice_berg: niceBergSVG,
   golden_squish: goldStarPlushSVG, golden_spinner: ()=>spinnerSVG(true),
+  hw_ghost: ghostDumplingSVG, hw_pumpkin: pumpkinDumplingSVG, hw_mummy: mummyDumplingSVG, hw_bat: batDumplingSVG,
+  hw_witch: witchDumplingSVG, hw_franken: frankenDumplingSVG, hw_candy: candyDumplingSVG, hw_glow: glowJackDumplingSVG,
 };
 
 // Wraps a toy's drawing for the page. Each call draws a fresh SVG with its own
@@ -1787,7 +1875,7 @@ let collectionFilter = "all";
 function buildCollectionFilters(){
   const wrap = $("#collectionFilters");
   wrap.innerHTML = "";
-  const opts = [["all","All"],["squishy","Squishies"],["fidget","Fidgets"],["owned","Owned"],["scam","Scams 💩"],["stickers","Stickers 🧩"]];
+  const opts = [["all","All"],["squishy","Squishies"],["fidget","Fidgets"],["owned","Owned"],["halloween","Halloween 🎃"],["scam","Scams 💩"],["stickers","Stickers 🧩"]];
   opts.forEach(([val,label])=>{
     const b = el("button",{class:"pillbtn"+(collectionFilter===val?" active":""), type:"button", text:label, onclick:()=>{
       collectionFilter = val;
@@ -1812,7 +1900,12 @@ function renderCollection(){
   let items = ITEMS;
   if(collectionFilter==="squishy") items = items.filter(i=>i.category==="squishy");
   if(collectionFilter==="fidget") items = items.filter(i=>i.category==="fidget");
-  if(collectionFilter==="owned") items = ITEMS.concat(SCAM_ITEMS).filter(i=>getInventoryCount(i.id)>0);
+  if(collectionFilter==="owned") items = ITEMS.concat(HALLOWEEN_ITEMS, SCAM_ITEMS).filter(i=>getInventoryCount(i.id)>0);
+  if(collectionFilter==="halloween"){
+    items = HALLOWEEN_ITEMS;
+    const got = HALLOWEEN_ITEMS.filter(i=>getInventoryCount(i.id)>0).length;
+    grid.appendChild(el("p",{class:"halloween-note", text:"🎃 Halloween Collection: "+got+"/"+HALLOWEEN_ITEMS.length+". These dumplings are in every pack, and the Spooky Dumpling Pack in October only has them!"}));
+  }
   if(collectionFilter==="scam"){
     items = SCAM_ITEMS;
     const got = SCAM_ITEMS.filter(i=>getInventoryCount(i.id)>0).length;
@@ -1854,7 +1947,7 @@ const POCKETS = [
   {id:"scam", label:"Secret zipper", sub:"Scams", icon:"💩"},
 ];
 function myBackpack(){ return (player && player.backpack) || {}; }
-function ownedItems(){ return ITEMS.concat(SCAM_ITEMS).filter(i=>getInventoryCount(i.id)>0); }
+function ownedItems(){ return ITEMS.concat(HALLOWEEN_ITEMS, SCAM_ITEMS).filter(i=>getInventoryCount(i.id)>0); }
 
 function backpackSVG(colorKey){
   const id = toyId("bp"), col = BACKPACK_COLORS[colorKey] || BACKPACK_COLORS.pink;
@@ -6013,6 +6106,7 @@ function buildShop(){
   const wrap = $("#packList");
   wrap.innerHTML = "";
   PACKS.forEach(p=>{
+    if(p.set==="halloween" && !spookySeason()) return;
     const card = el("div",{class:"card pack-card"});
     card.appendChild(el("div",{class:"ic", text:p.emoji}));
     const meta = el("div",{class:"meta"});
@@ -6044,7 +6138,7 @@ async function openPack(pack){
   if((player.coins||0) < pack.cost){ showToast("Not enough Squish Coins yet — play a mini-game!"); return; }
   const opened = player.packsOpened||0;
   const scam = opened>0 && !player.lastPackScam && Math.random()<SCAM_CHANCE;
-  const item = scam ? SCAM_ITEMS[Math.floor(Math.random()*SCAM_ITEMS.length)] : rollItem(pack.odds);
+  const item = scam ? SCAM_ITEMS[Math.floor(Math.random()*SCAM_ITEMS.length)] : rollItem(pack.odds, pack.set);
   const inv = Object.assign({}, player.inventory||{});
   inv[item.id] = (inv[item.id]||0) + 1;
   packOpening = true;
