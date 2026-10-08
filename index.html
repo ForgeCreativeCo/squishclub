@@ -560,6 +560,35 @@ img{max-width:100%}
 .stk-msg{position:absolute; left:12px; right:12px; top:46px; z-index:4; text-align:left; font-weight:800; font-size:13px; color:var(--ink-dim); pointer-events:none}
 .stk-msg.good{color:var(--mint)} .stk-msg.oops{color:var(--danger)}
 
+/* arena 11 — Squishy Bowling: lane, gutters and a rack of cute pins */
+.arena-bowling{padding:0; background:#2B2F45}
+.bwl-field{position:relative; height:440px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none}
+.bwl-lane{position:absolute; top:0; bottom:0; background:repeating-linear-gradient(90deg,#EBC995 0 14px,#E0B87F 14px 28px); box-shadow:inset 0 14px 18px rgba(0,0,0,.28)}
+.bwl-gutter{position:absolute; top:0; bottom:0; background:linear-gradient(90deg,#2A2D40,#4A4F68 50%,#2A2D40)}
+.bwl-foul{position:absolute; height:5px; background:#E0485C; opacity:.85}
+.bwl-arrows{position:absolute; width:100%; text-align:center; font-size:11px; letter-spacing:14px; color:rgba(120,70,30,.45); pointer-events:none}
+.bwl-back{position:absolute; left:0; right:0; top:0; height:26px; background:linear-gradient(180deg,#14162A,#2B2F45)}
+.bwl-pin{position:absolute; left:0; top:0; width:24px; height:38px; pointer-events:none; will-change:transform}
+.bwl-pin .spr{width:100%; height:100%; transition:transform .22s ease-out, opacity .5s ease-in; transform-origin:50% 80%}
+.bwl-pin .spr svg{width:100%; height:100%; display:block; overflow:visible}
+.bwl-pin.down .spr{opacity:.92}
+.bwl-pin.swept .spr{opacity:0}
+.bwl-pin.rack-in .spr{animation:bwlIn .4s ease-out}
+@keyframes bwlIn{from{transform:translateY(-20px) scale(.4); opacity:0}to{transform:none; opacity:1}}
+.bwl-ball{position:absolute; left:0; top:0; z-index:3; pointer-events:none; will-change:transform; filter:drop-shadow(0 5px 3px rgba(0,0,0,.35))}
+.bwl-ball .spr{width:100%; height:100%}
+.bwl-ball .spr .toy-art{width:100%; height:100%}
+.bwl-ball.bonk .squash{animation:bwlBonk .2s ease-out}
+.bwl-ball .squash{width:100%; height:100%}
+@keyframes bwlBonk{0%{transform:scale(1.25,.8)}60%{transform:scale(.9,1.12)}100%{transform:none}}
+.bwl-hint{position:absolute; left:0; right:0; z-index:4; text-align:center; pointer-events:none; color:#fff; font-weight:800; font-size:12.5px; text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.bwl-chev{position:absolute; z-index:2; font-size:22px; color:#fff; opacity:.8; pointer-events:none; animation:bwlChev 1s ease-in-out infinite; text-shadow:0 1px 3px rgba(0,0,0,.5)}
+@keyframes bwlChev{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.bwl-next{position:absolute; left:10px; top:32px; z-index:4; font-size:11.5px; font-weight:800; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.bwl-next .tag{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; font-size:10.5px; border:2px solid #fff; background:rgba(0,0,0,.3)}
+.bwl-msg{position:absolute; left:0; right:0; top:50px; z-index:4; text-align:center; font-weight:800; font-size:13px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.7); pointer-events:none}
+.bwl-roll{align-self:center}
+
 /* arena 9 — Spot the Fake: detective's display shelf under a spotlight */
 .arena-fake{background:radial-gradient(ellipse at 50% 0%, var(--coin-soft), transparent 70%), repeating-linear-gradient(0deg, transparent 0 46px, rgba(0,0,0,.04) 46px 48px), var(--surface-2); display:flex; flex-direction:column; gap:12px; align-items:center}
 .fake-tools{display:flex; justify-content:flex-end; width:100%}
@@ -2151,6 +2180,7 @@ const GAME_DEFS = [
   {id:"sorter", name:"Squish Sorter", emoji:"🗂️", art:"infinity_cube", desc:"Sort toys on the conveyor belt. Watch out for junk!"},
   {id:"fake", name:"Spot the Fake", emoji:"🔍", art:"needoh_cube", desc:"One of these is a knockoff dupe. Can you spot it?"},
   {id:"stacker", name:"Squishy Stacker", emoji:"🗼", art:"cake_sq", desc:"Stack squishies into a wobbly tower. Round ones wobble!"},
+  {id:"bowling", name:"Squishy Bowling", emoji:"🎳", art:"fuzz_ball", desc:"Flick a squishy down the lane and knock down the pins!"},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
   {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
   {id:"words", name:"Word Builder", emoji:"🔤", art:"knitten", desc:"Pop the letters in order to spell the word.", edu:true},
@@ -2163,7 +2193,7 @@ function gameIcon(g){
   else wrap.textContent = g.emoji;
   return wrap;
 }
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", bowling:"--danger", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -2199,6 +2229,7 @@ function startGame(id){
   else if(id==="sorter") initSorterGame(stage);
   else if(id==="fake") initFakeGame(stage);
   else if(id==="stacker") initStackerGame(stage);
+  else if(id==="bowling") initBowlingGame(stage);
   else if(id==="pattern") initPatternGame(stage);
   else if(id==="mathpop") initMathPopGame(stage);
   else if(id==="words") initWordGame(stage);
@@ -3003,6 +3034,312 @@ function initStackerGame(stage){
       el("p",{text:"Tap to drop each toy on the tower. Line it up over the toy below!"}),
       el("p",{text:"Round, soft toys make the tower wobble. Wait for the wobble bar to calm down. If it gets too wobbly, TIMBER!"}),
       el("button",{class:"btn", text:"Start stacking!", onclick:()=>{ ov.remove(); lastTs = 0; loadNext(); }}),
+    ]);
+    const ov = el("div",{class:"sorter-intro"},[card]);
+    field.appendChild(ov);
+    rafId = requestAnimationFrame(tick);
+  });
+}
+
+/* ---- Squishy Bowling (flick a squishy down the lane at the pins) ---- */
+const BWL = {frames:5, laneW:260, gutterW:24, pinR:10, pinGap:34, rowGap:30, deckY:70, backY:28,
+             minSpeed:300, maxSpeed:540, maxAngle:.46, pinEnd:.5};
+const BWL_HEAVY = ["nice_berg","cake_sq","dumpling_sq","butter_stick","golden_squish"];
+const BWL_LIGHT = ["fuzz_ball","gummy_bear_sq","dream_drop","pocket_fruit","jelly_squish","cheese_sq"];
+function bowlBall(item){
+  if(BWL_HEAVY.includes(item.id)) return {mass:7, r:21, tag:"Heavy"};
+  if(BWL_LIGHT.includes(item.id)) return {mass:3, r:16, tag:"Light"};
+  return {mass:4.8, r:18.5, tag:"Medium"};
+}
+function bowlPinSVG(){
+  return '<svg viewBox="0 0 24 38"><ellipse cx="12" cy="36" rx="8" ry="2" fill="rgba(0,0,0,.25)"/>'
+    +'<ellipse cx="12" cy="25" rx="10" ry="12" fill="#fff" stroke="#C5CBDD" stroke-width="1.2"/>'
+    +'<rect x="8.5" y="11" width="7" height="8" fill="#fff" stroke="#C5CBDD" stroke-width="1.2"/>'
+    +'<circle cx="12" cy="8" r="6.2" fill="#fff" stroke="#C5CBDD" stroke-width="1.2"/>'
+    +'<rect x="7.4" y="14" width="9.2" height="2.4" fill="#E0485C"/>'
+    +'<circle cx="8.8" cy="25" r="1.4" fill="#3A3F57"/><circle cx="15.2" cy="25" r="1.4" fill="#3A3F57"/>'
+    +'<path d="M9.4 29 Q12 31.6 14.6 29" fill="none" stroke="#3A3F57" stroke-width="1.2" stroke-linecap="round"/>'
+    +'<ellipse cx="6.4" cy="27.6" rx="1.7" ry="1.1" fill="#FFB3C1"/><ellipse cx="17.6" cy="27.6" rx="1.7" ry="1.1" fill="#FFB3C1"/></svg>';
+}
+
+function initBowlingGame(stage){
+  id_cache = "bowling";
+  const B = BWL;
+  const hud = el("div",{class:"game-hud"});
+  const hFrame = el("div",{class:"hud-item"},[el("div",{class:"v",text:"1/"+B.frames}),el("div",{class:"k",text:"Frame"})]);
+  const hPins = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Pins"})]);
+  const hThrow = el("div",{class:"hud-item"},[el("div",{class:"v",text:"1/2"}),el("div",{class:"k",text:"Ball"})]);
+  hud.appendChild(hFrame); hud.appendChild(hPins); hud.appendChild(hThrow);
+  let running = true, rafId = null;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{ running=false; cancelAnimationFrame(rafId); exitGame(); }}));
+  stage.appendChild(hud);
+
+  const arena = el("div",{class:"arena arena-bowling"});
+  const field = el("div",{class:"bwl-field"});
+  arena.appendChild(field); stage.appendChild(arena);
+  const rollBtn = el("button",{class:"btn secondary small bwl-roll", text:"▲ Roll it straight", type:"button"});
+  stage.appendChild(rollBtn);
+
+  let W = 340, H = 440, cx = 170, laneHalf = B.laneW/2, foulY = 356, ballY = 394;
+  const lane = el("div",{class:"bwl-lane"}), gutL = el("div",{class:"bwl-gutter"}), gutR = el("div",{class:"bwl-gutter"});
+  const back = el("div",{class:"bwl-back"}), foul = el("div",{class:"bwl-foul"});
+  const arrows = el("div",{class:"bwl-arrows", text:"▲ ▲ ▲ ▲ ▲"});
+  const hint = el("div",{class:"bwl-hint"});
+  const chev = el("div",{class:"bwl-chev", text:"⌃"});
+  const nextLine = el("div",{class:"bwl-next"});
+  const msg = el("div",{class:"bwl-msg"});
+  [gutL, gutR, lane, back, foul, arrows, nextLine, msg, hint, chev].forEach(n=>field.appendChild(n));
+
+  let pins = [], ball = null, phase = "intro", frame = 1, throwNo = 1;
+  let pinsTotal = 0, strikes = 0, spares = 0, lastHit = 0, settleStart = 0, ballDoneAt = 0, lastTs = 0;
+  const rad2deg = r=>r*180/Math.PI;
+  function setMsg(t){ msg.textContent = t; }
+  function measure(){
+    W = field.clientWidth || 340; H = field.clientHeight || 440;
+    cx = W/2; laneHalf = B.laneW/2; foulY = H - 84; ballY = H - 46;
+    const gx = cx - laneHalf - B.gutterW;
+    lane.style.left = (cx-laneHalf)+"px"; lane.style.width = B.laneW+"px";
+    gutL.style.left = gx+"px"; gutL.style.width = B.gutterW+"px";
+    gutR.style.left = (cx+laneHalf)+"px"; gutR.style.width = B.gutterW+"px";
+    foul.style.left = (cx-laneHalf)+"px"; foul.style.width = B.laneW+"px"; foul.style.top = foulY+"px";
+    arrows.style.top = (foulY-70)+"px";
+    hint.style.top = (foulY+14)+"px";
+    msg.style.top = (foulY-130)+"px";
+  }
+
+  function placePin(p){
+    p.node.style.transform = "translate("+Math.round(p.x-12)+"px,"+Math.round(p.y-28)+"px)";
+  }
+  function buildRack(animate){
+    pins.forEach(p=>p.node.remove()); pins = [];
+    for(let r=0;r<4;r++){
+      const n = 4-r;
+      for(let i=0;i<n;i++){
+        const node = el("div",{class:"bwl-pin"+(animate?" rack-in":"")});
+        const spr = el("div",{class:"spr"}); spr.innerHTML = bowlPinSVG(); node.appendChild(spr);
+        field.insertBefore(node, nextLine);
+        const p = {x: cx + (i-(n-1)/2)*B.pinGap, y: B.deckY + r*B.rowGap, vx:0, vy:0, down:false, gone:false, node, spr};
+        pins.push(p); placePin(p);
+      }
+    }
+  }
+  function knock(p, dirx){
+    if(p.down) return;
+    p.down = true;
+    p.node.classList.add("down");
+    const sign = dirx===0 ? (Math.random()<.5?-1:1) : Math.sign(dirx);
+    p.spr.style.transform = "rotate("+(sign*(65+Math.random()*50))+"deg)";
+  }
+  function hitSound(){
+    const now = performance.now();
+    if(now-lastHit < 70) return; lastHit = now;
+    sfx("pop"); buzz(8);
+  }
+
+  function loadBall(){
+    if(ball) ball.node.remove();
+    const squishies = ITEMS.filter(i=>i.category==="squishy");
+    const item = squishies[Math.floor(Math.random()*squishies.length)];
+    const tr = bowlBall(item);
+    const node = el("div",{class:"bwl-ball"}); node.style.width = (tr.r*2)+"px"; node.style.height = (tr.r*2)+"px";
+    const squash = el("div",{class:"squash"}); const spr = el("div",{class:"spr"});
+    spr.appendChild(toyEl(item)); squash.appendChild(spr); node.appendChild(squash);
+    field.appendChild(node);
+    ball = {item, node, squash, spr, r:tr.r, mass:tr.mass, x:cx, y:ballY, vx:0, vy:0, rolling:false, gutter:false, roll:0};
+    placeBall();
+    nextLine.innerHTML = ""; nextLine.appendChild(document.createTextNode(item.name));
+    nextLine.appendChild(el("span",{class:"tag", text:tr.tag}));
+    chev.style.left = (cx-8)+"px"; chev.style.top = (foulY-40)+"px"; chev.style.display = "";
+    hint.textContent = "Slide the ball sideways, then flick it up!";
+    phase = "aim";
+    hThrow.querySelector(".v").textContent = throwNo+"/2";
+    hFrame.querySelector(".v").textContent = frame+"/"+B.frames;
+  }
+  function placeBall(){
+    ball.node.style.transform = "translate("+Math.round(ball.x-ball.r)+"px,"+Math.round(ball.y-ball.r)+"px)";
+    ball.spr.style.transform = "rotate("+ball.roll.toFixed(1)+"deg)";
+    chev.style.left = (ball.x-8)+"px";
+  }
+
+  function launch(vxIn, vyIn){
+    if(phase!=="aim" || !ball) return;
+    let ang = Math.atan2(vxIn, -vyIn);
+    ang = Math.max(-B.maxAngle, Math.min(B.maxAngle, ang));
+    const mag = Math.hypot(vxIn, vyIn);
+    const t = Math.max(0, Math.min(1, (mag-300)/1100));
+    const sp = B.minSpeed + (B.maxSpeed-B.minSpeed)*t;
+    ball.vx = Math.sin(ang)*sp; ball.vy = -Math.cos(ang)*sp;
+    ball.rolling = true; phase = "roll"; ballDoneAt = 0;
+    chev.style.display = "none"; hint.textContent = ""; setMsg("");
+    sfx("whoosh");
+  }
+
+  // flick gesture: slide with a finger to place the ball, flick up to throw
+  let drag = null;
+  field.addEventListener("pointerdown",(e)=>{
+    if(phase!=="aim") return;
+    const r = field.getBoundingClientRect();
+    if(e.clientY - r.top < foulY - 30) return;
+    e.preventDefault();
+    drag = {samples:[{t:e.timeStamp, x:e.clientX, y:e.clientY}]};
+    try{ field.setPointerCapture(e.pointerId); }catch(_){}
+    moveBallTo(e.clientX - r.left);
+  });
+  field.addEventListener("pointermove",(e)=>{
+    if(!drag) return;
+    const r = field.getBoundingClientRect();
+    drag.samples.push({t:e.timeStamp, x:e.clientX, y:e.clientY});
+    if(drag.samples.length>12) drag.samples.shift();
+    moveBallTo(e.clientX - r.left);
+  });
+  function endDrag(e, cancel){
+    if(!drag) return;
+    const s = drag.samples; drag = null;
+    if(cancel || phase!=="aim") return;
+    const last = s[s.length-1];
+    let first = s[0];
+    for(let i=s.length-1;i>=0;i--){ if(last.t - s[i].t >= 90){ first = s[i]; break; } }
+    const dt = Math.max(16, last.t - first.t)/1000;
+    const vx = (last.x-first.x)/dt, vy = (last.y-first.y)/dt;
+    if(vy < -300 && last.t - first.t < 400) launch(vx, vy);
+  }
+  field.addEventListener("pointerup",(e)=>endDrag(e,false));
+  field.addEventListener("pointercancel",(e)=>endDrag(e,true));
+  function moveBallTo(x){
+    if(phase!=="aim" || !ball) return;
+    ball.x = Math.max(cx-laneHalf+ball.r, Math.min(cx+laneHalf-ball.r, x));
+    placeBall();
+  }
+  rollBtn.addEventListener("click", ()=>{ if(phase==="aim") launch(0, -700); });
+
+  // ---- physics ----
+  function collide(a, b, ma, mb, e, onHit){
+    const dx = b.x-a.x, dy = b.y-a.y, ra = a.r||B.pinR, rb = b.r||B.pinR;
+    const d2 = dx*dx+dy*dy, min = ra+rb;
+    if(d2 >= min*min || d2 === 0) return false;
+    const d = Math.sqrt(d2), nx = dx/d, ny = dy/d;
+    const tot = ma+mb, push = min-d;
+    a.x -= nx*push*(mb/tot); a.y -= ny*push*(mb/tot);
+    b.x += nx*push*(ma/tot); b.y += ny*push*(ma/tot);
+    const vrel = (a.vx-b.vx)*nx + (a.vy-b.vy)*ny;
+    if(vrel > 0){
+      const j = (1+e)*vrel/(1/ma+1/mb);
+      a.vx -= j*nx/ma; a.vy -= j*ny/ma;
+      b.vx += j*nx/mb; b.vy += j*ny/mb;
+    }
+    onHit && onHit(Math.abs(vrel), nx);
+    return true;
+  }
+  function step(dt){
+    if(ball && ball.rolling){
+      ball.x += ball.vx*dt; ball.y += ball.vy*dt;
+      ball.vx *= 1-0.1*dt; ball.vy *= 1-0.1*dt;
+      ball.roll += Math.hypot(ball.vx,ball.vy)*dt/ball.r*57.3;
+      const off = ball.x - cx;
+      if(!ball.gutter && Math.abs(off) > laneHalf + 2 - 0){
+        ball.gutter = true; ball.vx = 0; ball.vy = -Math.max(220, Math.abs(ball.vy));
+        ball.x = cx + Math.sign(off)*(laneHalf+B.gutterW/2);
+        sfx("sad");
+      }
+      if(!ball.gutter){
+        for(const p of pins){
+          if(p.gone) continue;
+          const bp = {x:ball.x,y:ball.y,vx:ball.vx,vy:ball.vy,r:ball.r};
+          const pp = {x:p.x,y:p.y,vx:p.vx,vy:p.vy,r:B.pinR};
+          if(collide(bp, pp, ball.mass, 1, .55, (v,nx)=>{ if(v>40){ knock(p, pp.vx); hitSound(); ball.node.classList.remove("bonk"); void ball.node.offsetWidth; ball.node.classList.add("bonk"); } })){
+            ball.x=bp.x; ball.y=bp.y; ball.vx=bp.vx; ball.vy=bp.vy;
+            p.x=pp.x; p.y=pp.y; p.vx=pp.vx; p.vy=pp.vy;
+          }
+        }
+      }
+      if(ball.y < B.backY+4 || (Math.hypot(ball.vx,ball.vy) < 25)){
+        ball.rolling = false; ball.vx = ball.vy = 0; ballDoneAt = performance.now();
+        ball.node.style.transition = "opacity .4s"; ball.node.style.opacity = "0";
+      }
+    }
+    // pins slide, bump each other, and bounce off the back wall
+    for(let i=0;i<pins.length;i++){
+      const p = pins[i]; if(p.gone) continue;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      const f = Math.max(0, 1-(p.down?4:7)*dt); p.vx*=f; p.vy*=f;
+      if(p.y < B.backY+B.pinR){ p.y = B.backY+B.pinR; p.vy = Math.abs(p.vy)*.4; }
+      if(Math.abs(p.x-cx) > laneHalf+2){
+        knock(p, p.vx); p.gone = true; p.vx = p.vy = 0;
+        p.node.classList.add("swept"); p.x = cx + Math.sign(p.x-cx)*(laneHalf+B.gutterW/2);
+      }
+      for(let j=i+1;j<pins.length;j++){
+        const q = pins[j]; if(q.gone) continue;
+        collide(p, q, 1, 1, .5, (v)=>{ if(v>55){ knock(p, q.x-p.x); knock(q, q.x-p.x); hitSound(); } });
+      }
+    }
+  }
+
+  function settled(){
+    return pins.every(p=>p.gone || Math.hypot(p.vx,p.vy) < 10);
+  }
+  function evaluate(){
+    phase = "sweep";
+    const downNow = pins.filter(p=>p.down);
+    const newDown = downNow.length;
+    pinsTotal += newDown;
+    hPins.querySelector(".v").textContent = pinsTotal;
+    const standing = pins.filter(p=>!p.down).length;
+    let text, big = null;
+    if(throwNo===1 && standing===0){ strikes++; big = "🎳 STRIKE!"; text = "All 10 pins!"; sfx("fanfare"); buzz(60); }
+    else if(throwNo===2 && standing===0){ spares++; big = "SPARE!"; text = "You got them all!"; sfx("ding"); }
+    else if(ball && ball.gutter && newDown===0){ text = "Gutter ball! Slide it nearer the middle."; }
+    else if(newDown===0){ text = "Missed them all! Try again."; }
+    else text = newDown+" pin"+(newDown===1?"":"s")+" down!";
+    setMsg(text);
+    if(big) popAt(big);
+    downNow.forEach(p=>p.node.classList.add("swept"));
+    setTimeout(()=>{ downNow.forEach(p=>p.node.remove()); }, 600);
+    pins = pins.filter(p=>!p.down);
+    const frameOver = (throwNo===2) || standing===0;
+    setTimeout(()=>{
+      if(!running) return;
+      if(frameOver){
+        if(frame>=B.frames){ finish(); return; }
+        frame++; throwNo = 1; buildRack(true);
+      } else throwNo = 2;
+      loadBall();
+    }, big ? 1500 : 1100);
+  }
+  function popAt(text){
+    const p = el("div",{class:"stk-pop", text}); p.style.left = cx+"px"; p.style.top = (B.deckY+90)+"px"; p.style.fontSize = "32px";
+    field.appendChild(p); setTimeout(()=>p.remove(), 1000);
+  }
+
+  function tick(ts){
+    if(!running || !field.isConnected){ running = false; return; }
+    const dt = lastTs ? Math.min(0.05,(ts-lastTs)/1000) : 0; lastTs = ts;
+    if(phase==="roll" || phase==="settle"){
+      const n = 3; for(let i=0;i<n;i++) step(dt/n);
+      pins.forEach(placePin);
+      if(ball) placeBall();
+      if(phase==="roll" && ball && !ball.rolling){ phase = "settle"; settleStart = performance.now(); }
+      if(phase==="settle" && (settled() && performance.now()-settleStart > 500 || performance.now()-settleStart > 3500)) evaluate();
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function finish(){
+    if(!running) return;
+    running = false; cancelAnimationFrame(rafId);
+    window.removeEventListener("resize", measure);
+    const coins = Math.max(8, Math.min(90, pinsTotal + strikes*6 + spares*3));
+    const lines = ["You knocked down "+pinsTotal+" of "+(B.frames*10)+" pins.", strikes+" strike"+(strikes===1?"":"s")+" and "+spares+" spare"+(spares===1?"":"s")+"."];
+    gameResultsScreen(stage, coins, lines);
+  }
+
+  window.addEventListener("resize", measure);
+  requestAnimationFrame(()=>{
+    measure(); buildRack(false);
+    const card = el("div",{class:"card"},[
+      el("h2",{text:"Squishy Bowling"}),
+      el("p",{text:"Slide the squishy left or right along the line, then flick it up the lane to knock down the pins!"}),
+      el("p",{text:"Heavy squishies smash through. Light ones bounce off. Strikes and spares earn bonus coins."}),
+      el("button",{class:"btn", text:"Start bowling!", onclick:()=>{ ov.remove(); lastTs = 0; loadBall(); }}),
     ]);
     const ov = el("div",{class:"sorter-intro"},[card]);
     field.appendChild(ov);

@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Ten mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Eleven mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -50,6 +50,7 @@ Ten mini-games earn Squish Coins. Each round ends with a results screen, and the
 | Squishy Catch | Catch falling squishies in your backpack, dodge bombs |
 | Stretch Zone | Time your tap inside the glowing zone |
 | Squish Sorter 🗂️ | Toys ride a conveyor belt. Drag each into the right bin before it falls off |
+| Squishy Bowling 🎳 | Flick a squishy down the lane and knock down the pins |
 | Squishy Stacker 🗼 | Drop squishies onto a wobbly tower. Round toys wobble more |
 | Spot the Fake 🔍 | Find the knockoff dupe hiding among the real toys |
 | Pattern Pop | Watch the pattern, then repeat it |
@@ -63,6 +64,8 @@ All the games use the same toy art as the rest of the game: real toys on the mat
 **Squish Sorter** replaced Sort Rush. Toys ride a belt that speeds up, and kids drag each one into a bin (or tap a bin to send the toy at the front). Three rules of 8 toys each, announced before each starts: **sort by type** (squishy / fidget / trash), **sort by rarity** (Common / Uncommon / Rare+ / trash; toys get a rarity-colored border), and a **treasure hunt** (Rare+ toys go in Treasure, the rest by type). Joke scam items are the traps and belong in the 🗑️ trash. A toy that falls off the end counts as a miss. Each correct sort pays 2 🪙, plus a combo bonus (+1 at a streak of 3, +2 at 6, +3 from 9), capped at 90. A wrong bin explains why ("Pop-It is a Fidget").
 
 **Squishy Stacker.** A toy swings across the top; tap to drop it onto the tower. Line it up over the toy below: a "Perfect!" lands within a few pixels and calms the tower, while a sloppy drop kicks it. The tower sways on a simple damped spring (no physics engine), with a Wobble bar that goes green, yellow and red. Flat toys (Pop-It, cubes) are steady and round, soft ones (Fuzz Ball, Mochi Panda) are wobbly, and each toy is tagged Steady, Squishy or Wobbly as it swings. Too much wobble means TIMBER! and the tower tumbles. A drop that misses the tower slides off and costs one of three hearts. The round has 14 toys. Coins are 5 per toy stacked, +2 per perfect, +10 for finishing the tower, capped at 90, and a tumbled tower still pays for its height. Per-toy width and wobble live in `STACK_TRAITS`, and the feel is tuned in `STACK_TUNE`.
+
+**Squishy Bowling.** A squishy rolls down a lane at a rack of 10 cute pins. Kids slide the ball sideways along the foul line with a finger, then flick it up the lane; the flick's direction and speed set the aim and power (there's also a "Roll it straight" button). The ball is a random squishy each throw, tagged Heavy (smashes through), Medium or Light (bounces off). It's simple 2D circle physics, with no physics engine. Pins that get hit hard enough fall and are swept away, and pins in the gutter are out. There are 5 frames of up to 2 balls, and a strike or spare ends the frame. Coins are 1 per pin, +6 per strike and +3 per spare, capped at 90. The lane and pin sizes, ball weights and flick speeds are in `BWL` and the knock thresholds are in the physics step.
 
 #### Planned mini-games
 
