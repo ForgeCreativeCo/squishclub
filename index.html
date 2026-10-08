@@ -581,6 +581,47 @@ img{max-width:100%}
 .crn-ctl .btn{flex:1; min-height:52px; font-size:18px; touch-action:none; user-select:none; -webkit-user-select:none}
 .crn-ctl .crn-go{flex:2}
 
+/* arena 14 — Squishy Racers: top-down karts */
+.arena-race{padding:0; background:#2B2F45}
+.rc-field{position:relative; height:440px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; background:#86CC72}
+.rc-world{position:absolute; left:0; top:0; will-change:transform}
+.rc-world canvas{position:absolute; left:0; top:0; display:block}
+.rc-mini{position:absolute; right:8px; top:8px; z-index:6; border-radius:8px; border:2px solid rgba(255,255,255,.7); pointer-events:none}
+.rc-count{position:absolute; left:0; right:0; top:34%; z-index:7; text-align:center; font-family:var(--font-display); font-size:80px; color:#fff; text-shadow:0 4px 0 rgba(0,0,0,.35); pointer-events:none}
+.rc-banner{position:absolute; left:0; right:0; top:14px; z-index:7; text-align:center; font-family:var(--font-display); font-size:22px; color:#fff; text-shadow:0 2px 0 rgba(0,0,0,.4); pointer-events:none; padding-right:104px}
+.rc-kart{position:absolute; left:0; top:0; width:0; height:0; will-change:transform; z-index:2}
+.rc-shadow{position:absolute; left:-18px; top:-9px; width:36px; height:22px; border-radius:50%; background:rgba(0,0,0,.2)}
+.rc-body{position:absolute; left:-18px; top:-12px; width:36px; height:24px; border-radius:9px 12px 12px 9px; background:var(--kc); border:3px solid rgba(0,0,0,.25); box-sizing:border-box}
+.rc-wheel{position:absolute; width:10px; height:6px; background:#222; border-radius:3px}
+.rc-wheel.w1{left:2px; top:-5px} .rc-wheel.w2{left:2px; bottom:-5px} .rc-wheel.w3{right:2px; top:-5px} .rc-wheel.w4{right:2px; bottom:-5px}
+.rc-flame{position:absolute; left:-18px; top:4px; width:16px; height:10px; border-radius:50% 0 0 50%; background:linear-gradient(90deg,transparent,#FF8A3D,#FFE066); display:none}
+.boosting .rc-flame{display:block}
+.rc-drv{position:absolute; left:-15px; top:-27px; width:30px; height:30px; pointer-events:none}
+.rc-drv .toy-art{width:100%; height:100%}
+.rc-shield{position:absolute; left:-25px; top:-27px; width:50px; height:50px; border-radius:50%; border:3px solid #3BC7E8; background:rgba(59,199,232,.22); display:none}
+.shielded .rc-shield{display:block}
+.rc-kart.popped .rc-shield{display:block; animation:rcPop .4s ease-out forwards}
+@keyframes rcPop{to{transform:scale(1.7); opacity:0}}
+.rc-tag{position:absolute; left:-30px; width:60px; top:-44px; text-align:center; font-size:10px; font-weight:800; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.8); pointer-events:none; white-space:nowrap}
+.rc-tag.me{color:#FFE066}
+.spin .rc-drv{animation:rcSpin .45s linear infinite}
+@keyframes rcSpin{to{transform:rotate(360deg)}}
+.goo .rc-body{filter:hue-rotate(80deg) saturate(1.4)}
+.blink{animation:rcBlink .25s linear infinite}
+@keyframes rcBlink{50%{opacity:.45}}
+.rc-box{position:absolute; left:0; top:0; width:30px; height:30px; border-radius:8px; background:conic-gradient(#FF5FA2,#FFE066,#22B07D,#3B7DE8,#FF5FA2); border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:18px; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.6); animation:rcBox 1.2s ease-in-out infinite; transition:opacity .2s}
+@keyframes rcBox{50%{filter:brightness(1.25)}}
+.rc-shot{position:absolute; left:0; top:0; width:28px; height:28px; border-radius:50%; will-change:transform; pointer-events:none}
+.rc-shot.s-bubble{background:radial-gradient(circle at 32% 28%,#fff,#6FA0FF 45%,#2B5FD0); border:2px solid #fff; transform-origin:center}
+.rc-shot.s-homing{background:radial-gradient(circle at 32% 28%,#fff,#FF8FC0 45%,#E0307F); border:2px solid #fff; box-shadow:0 0 10px #FF5FA2}
+.rc-shot.s-bouncer{background:radial-gradient(circle at 32% 28%,#fff6c8,#FFB020 50%,#C77A00); border:2px solid #fff}
+.rc-shot.s-goo{width:46px; height:36px; margin:-4px 0 0 -9px; border-radius:50% 40% 55% 45%; background:radial-gradient(circle at 40% 35%,#9BF0C4,#22B07D 60%,#16805A); opacity:.9}
+.rc-shot.s-meteor{width:56px; height:56px; margin:-14px 0 0 -14px; border:4px dashed #E0485C; background:rgba(224,72,92,.25)}
+.rc-ctl .rc-item{flex:2; min-height:52px; font-size:15px; background:var(--surface-3); color:var(--ink); box-shadow:none}
+.rc-ctl .rc-item.ready{color:#fff; animation:rcReady .8s ease-in-out infinite}
+@keyframes rcReady{50%{transform:scale(1.05)}}
+.rc-pick{max-height:200px; overflow:auto}
+
 /* arena 11 — Squishy Bowling: lane, gutters and a rack of cute pins */
 .arena-bowling{padding:0; background:#2B2F45}
 .bwl-field{position:relative; height:440px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none}
@@ -2240,6 +2281,7 @@ const GAME_DEFS = [
   {id:"stacker", name:"Squishy Stacker", emoji:"🗼", art:"cake_sq", desc:"Stack squishies into a wobbly tower. Round ones wobble!"},
   {id:"bowling", name:"Squishy Bowling", emoji:"🎳", art:"fuzz_ball", desc:"Flick a squishy down the lane and knock down the pins!"},
   {id:"crane", name:"Squishy Crane", emoji:"🏗️", art:"mochi_panda", desc:"Steer the claw and grab a squishy from the pile!"},
+  {id:"race", name:"Squishy Racers", emoji:"🏎", art:"golden_squish", desc:"Race squishies around the track with power-ups. Play alone or with a buddy!"},
   {id:"puzzle", name:"Puzzles", emoji:"🧩", art:"taba_sq", desc:"Build a jigsaw of toy art, alone or with a buddy on another tablet."},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
   {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
@@ -2253,7 +2295,7 @@ function gameIcon(g){
   else wrap.textContent = g.emoji;
   return wrap;
 }
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", bowling:"--danger", crane:"--coin", puzzle:"--accent", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", bowling:"--danger", crane:"--coin", race:"--danger", puzzle:"--accent", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -2291,6 +2333,7 @@ function startGame(id){
   else if(id==="stacker") initStackerGame(stage);
   else if(id==="bowling") initBowlingGame(stage);
   else if(id==="crane") initCraneGame(stage);
+  else if(id==="race") initRaceGame(stage);
   else if(id==="puzzle") initPuzzleGame(stage);
   else if(id==="pattern") initPatternGame(stage);
   else if(id==="mathpop") initMathPopGame(stage);
@@ -3672,6 +3715,591 @@ function initCraneGame(stage){
     field.appendChild(ov);
     rafId = requestAnimationFrame(tick);
   });
+}
+
+/* ---- Squishy Racers (top-down kart racing with power-ups, solo or with a buddy) ----
+   Solo: you and 3 computer racers. With a buddy (two tablets): each tablet
+   drives its own kart and sends it a few times a second; the other tablet
+   draws it, and the computer racers are simulated on each tablet. A table is
+   a document in the existing trades collection (id "race-<code>"), and each
+   kart's position goes in "race-<code>-A" / "-B" so one writer owns each doc. */
+const RACE = {laps:4, W:132, maxV:250, turn:2.5, kartR:17, pay:[40,25,12,5], boxEvery:7, boxRespawn:3.5,
+              poseMs:250, countdown:3.4, maxTime:200};
+const RACE_COLORS = ["#FF5FA2","#3B7DE8","#FFB020","#22B07D"];
+const RACE_TRACKS = [
+  {id:"meadow", name:"Meadow Loop", blurb:"A friendly warm-up with wide curves.", grass:["#8FD67A","#86CC72"],
+   pts:[[300,520],[420,230],[800,140],[1180,230],[1330,500],[1200,820],[820,930],[460,860],[260,700]]},
+  {id:"wave", name:"Wiggle Wave", blurb:"Snake through the S-bends.", grass:["#9ADBA0","#90D298"],
+   pts:[[260,320],[620,170],[960,350],[1320,190],[1520,470],[1320,760],[960,620],[620,820],[300,760],[150,540]]},
+  {id:"candy", name:"Candy Twist", blurb:"A long track with a sneaky hairpin.", grass:["#F2B6D4","#EBABCB"],
+   pts:[[200,300],[640,170],[1100,260],[1420,500],[1250,760],[920,640],[720,860],[1000,1060],[520,1090],[200,900],[260,600]]},
+];
+const RACE_ITEMS = {
+  boost:  {name:"Turbo",        glyph:"⚡", col:"#FF8A3D", w:[16,14]},
+  shield: {name:"Shield",       glyph:"🛡", col:"#3BC7E8", w:[20,4]},
+  bubble: {name:"Bubble Pop",   glyph:"🔵", col:"#3B7DE8", w:[26,10]},
+  triple: {name:"Triple Pop",   glyph:"🔵", col:"#7C5CE8", w:[4,20]},
+  homing: {name:"Homing Jelly", glyph:"🎯", col:"#FF5FA2", w:[6,20]},
+  bouncer:{name:"Boing Ball",   glyph:"🏀", col:"#FFB020", w:[10,10]},
+  goo:    {name:"Goo Puddle",   glyph:"🍯", col:"#22B07D", w:[18,0]},
+  meteor: {name:"Mochi Meteor", glyph:"☄", col:"#E0485C", w:[0,18]},
+};
+// hit effect per projectile: spin out (seconds) or slow down
+const RACE_HIT = {bubble:{spin:.9}, homing:{spin:1.2}, bouncer:{spin:1}, meteor:{spin:1.6}, goo:{slow:1.8}};
+function raceRng(seed){ let s = (seed>>>0)||1; return ()=>{ s = (Math.imul(s,1664525)+1013904223)>>>0; return s/4294967296; }; }
+function raceAngDiff(a,b){ let d = a-b; while(d>Math.PI) d-=2*Math.PI; while(d<-Math.PI) d+=2*Math.PI; return d; }
+function raceTraitsOf(item){ const t = bowlBall(item).tag; return t==="Heavy" ? {top:1.06, acc:.85, turn:.9, tag:t} : t==="Light" ? {top:.95, acc:1.15, turn:1.1, tag:t} : {top:1, acc:1, turn:1, tag:t}; }
+
+function raceBuildTrack(def){
+  const P = def.pts, n = P.length, raw = [];
+  for(let i=0;i<n;i++){
+    const p0=P[(i+n-1)%n], p1=P[i], p2=P[(i+1)%n], p3=P[(i+2)%n];
+    for(let k=0;k<24;k++){
+      const t=k/24, t2=t*t, t3=t2*t;
+      raw.push([0,1].map(c=>0.5*((2*p1[c])+(-p0[c]+p2[c])*t+(2*p0[c]-5*p1[c]+4*p2[c]-p3[c])*t2+(-p0[c]+3*p1[c]-3*p2[c]+p3[c])*t3)));
+    }
+  }
+  let L = 0; const cum = [0];
+  for(let i=0;i<raw.length;i++){ const a=raw[i], b=raw[(i+1)%raw.length]; L += Math.hypot(b[0]-a[0], b[1]-a[1]); cum.push(L); }
+  const N = Math.floor(L/12), step = L/N, px = new Float32Array(N), py = new Float32Array(N), ang = new Float32Array(N);
+  let j = 0;
+  for(let i=0;i<N;i++){
+    const s = i*step;
+    while(cum[j+1] < s) j++;
+    const a = raw[j], b = raw[(j+1)%raw.length], f = (s-cum[j])/((cum[j+1]-cum[j])||1);
+    px[i] = a[0]+(b[0]-a[0])*f; py[i] = a[1]+(b[1]-a[1])*f;
+  }
+  for(let i=0;i<N;i++) ang[i] = Math.atan2(py[(i+1)%N]-py[(i+N-1)%N], px[(i+1)%N]-px[(i+N-1)%N]);
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for(let i=0;i<N;i++){ x0=Math.min(x0,px[i]); y0=Math.min(y0,py[i]); x1=Math.max(x1,px[i]); y1=Math.max(y1,py[i]); }
+  const pad = 190;
+  return {def, N, L, step, px, py, ang, ox:x0-pad, oy:y0-pad, w:Math.ceil(x1-x0+pad*2), h:Math.ceil(y1-y0+pad*2)};
+}
+function raceLocate(tr, x, y, hint){
+  const N = tr.N; let best = 1e18, bi = hint;
+  if(hint<0){ for(let i=0;i<N;i++){ const dx=x-tr.px[i], dy=y-tr.py[i], d=dx*dx+dy*dy; if(d<best){best=d; bi=i;} } }
+  else for(let o=-14;o<=14;o++){ const i=(hint+o+N)%N, dx=x-tr.px[i], dy=y-tr.py[i], d=dx*dx+dy*dy; if(d<best){best=d; bi=i;} }
+  const ca = Math.cos(tr.ang[bi]), sa = Math.sin(tr.ang[bi]), dx = x-tr.px[bi], dy = y-tr.py[bi];
+  return {i:bi, s:bi*tr.step + dx*ca + dy*sa, lat:-dx*sa + dy*ca};
+}
+function raceTrackCanvas(tr, rng){
+  const cv = document.createElement("canvas"); cv.width = tr.w; cv.height = tr.h;
+  const g = cv.getContext("2d"), W = RACE.W, N = tr.N, ox = tr.ox, oy = tr.oy;
+  g.fillStyle = tr.def.grass[1]; g.fillRect(0,0,cv.width,cv.height);
+  g.fillStyle = tr.def.grass[0];
+  for(let y=0;y<cv.height;y+=80) g.fillRect(0,y,cv.width,40);
+  const path = (off)=>{ g.beginPath(); for(let i=0;i<=N;i++){ const k=i%N; const x=tr.px[k]-ox, y=tr.py[k]-oy; if(i===0) g.moveTo(x,y); else g.lineTo(x,y); } g.closePath(); };
+  g.lineJoin = "round"; g.lineCap = "butt";
+  // trees and flowers off the road
+  for(let t=0;t<90;t++){
+    const x = rng()*tr.w, y = rng()*tr.h, loc = raceLocate(tr, x+ox, y+oy, -1);
+    if(Math.abs(loc.lat) < W/2+80 || Math.hypot(x+ox-tr.px[loc.i], y+oy-tr.py[loc.i]) < W/2+80) continue;
+    g.fillStyle = "rgba(0,0,0,.14)"; g.beginPath(); g.arc(x+5,y+7,17,0,7); g.fill();
+    g.fillStyle = "#5BAE5B"; g.beginPath(); g.arc(x,y,16,0,7); g.fill();
+    g.fillStyle = "#79C879"; g.beginPath(); g.arc(x-4,y-4,9,0,7); g.fill();
+  }
+  // curb, road, edge lines
+  path(); g.strokeStyle = "#fff"; g.lineWidth = W+20; g.stroke();
+  g.setLineDash([26,26]); path(); g.strokeStyle = "#E0485C"; g.lineWidth = W+20; g.stroke(); g.setLineDash([]);
+  path(); g.strokeStyle = "#555B73"; g.lineWidth = W; g.stroke();
+  g.setLineDash([30,34]); path(); g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 4; g.stroke(); g.setLineDash([]);
+  // start / finish line at s = 0
+  const a = tr.ang[0], nx = -Math.sin(a), ny = Math.cos(a), cx = tr.px[0]-ox, cy = tr.py[0]-oy, sq = 12, cols = Math.round(W/sq);
+  for(let r=0;r<2;r++) for(let c=0;c<cols;c++){
+    const lat = (c-cols/2+.5)*sq, al = (r-.5)*sq;
+    g.fillStyle = (r+c)%2 ? "#fff" : "#222";
+    g.save(); g.translate(cx+nx*lat+Math.cos(a)*al, cy+ny*lat+Math.sin(a)*al); g.rotate(a); g.fillRect(-sq/2,-sq/2,sq,sq); g.restore();
+  }
+  return cv;
+}
+
+function initRaceGame(stage){
+  id_cache = "race";
+  const C = RACE;
+  const ctx = {unsub:null, poseUnsub:null, code:null, side:null, data:null, playing:false, finished:false};
+  const marker = el("div",{style:"display:none"});
+  const alive = ()=>marker.isConnected;
+  const RDOC = code => "trades/race-"+code;
+  const PDOC = (code,side) => "trades/race-"+code+"-"+side;
+  function clear(){ stage.innerHTML = ""; stage.appendChild(marker); }
+  function dropNet(){ if(ctx.unsub){ ctx.unsub(); ctx.unsub = null; } if(ctx.poseUnsub){ ctx.poseUnsub(); ctx.poseUnsub = null; } }
+  function leave(){
+    if(ctx.code && ctx.data && (ctx.data.status==="lobby"||ctx.data.status==="playing") && !ctx.finished){
+      try{ db.doc(RDOC(ctx.code)).update({status:"closed", closedBy:player.name}); }catch(e){}
+    }
+    dropNet(); ctx.left = true; exitGame();
+  }
+  function topRow(title){
+    stage.appendChild(el("div",{class:"game-hud"},[el("div",{style:"font-family:var(--font-display);font-size:16px", text:title}), el("button",{class:"btn ghost small", text:"Exit", onclick:leave})]));
+  }
+
+  /* ---------- driver + track pick, menu ---------- */
+  const pool = ()=>{ const o = ownedItems().filter(i=>i.rarity!=="scam"); return o.length ? o : ITEMS.filter(i=>i.rarity!=="scam"); };
+  let driverId = null, trackId = RACE_TRACKS[0].id;
+  try{ driverId = localStorage.getItem("squishRaceDriver"); trackId = localStorage.getItem("squishRaceTrack") || trackId; }catch(e){}
+  if(!pool().some(i=>i.id===driverId)) driverId = pool().slice().sort((a,b)=>RARITY_ORDER.indexOf(b.rarity)-RARITY_ORDER.indexOf(a.rarity))[0].id;
+  if(!RACE_TRACKS.some(t=>t.id===trackId)) trackId = RACE_TRACKS[0].id;
+  const myItem = ()=>ITEMS.find(i=>i.id===driverId) || ITEMS[0];
+  const remember = ()=>{ try{ localStorage.setItem("squishRaceDriver", driverId); localStorage.setItem("squishRaceTrack", trackId); }catch(e){} };
+
+  function pickerCard(){
+    const card = el("div",{class:"card pz-menu"});
+    card.appendChild(el("h3",{text:"1. Pick your driver"}));
+    const sel = el("p",{style:"font-weight:800;color:var(--ink)"});
+    const grid = el("div",{class:"item-grid rc-pick"});
+    const refresh = ()=>{
+      const it = myItem(), t = raceTraitsOf(it);
+      sel.textContent = it.name+" · "+(t.tag==="Heavy"?"Heavy: fast but wide turns":t.tag==="Light"?"Light: zippy and nimble, lower top speed":"Medium: balanced");
+      grid.querySelectorAll(".item-card").forEach(c=>c.classList.toggle("selected", c.dataset.id===driverId));
+    };
+    pool().forEach(it=>{
+      const c = el("div",{class:"item-card pickable", onclick:()=>{ driverId = it.id; remember(); refresh(); }});
+      c.dataset.id = it.id; styleRarity(c, it.rarity);
+      c.appendChild(toyEl(it)); c.appendChild(el("div",{class:"nm", text:it.name}));
+      grid.appendChild(c);
+    });
+    card.appendChild(sel); card.appendChild(grid); refresh();
+    card.appendChild(el("h3",{text:"2. Pick a track"}));
+    const pills = el("div",{class:"pz-pills", style:"flex-wrap:wrap"}), blurb = el("p");
+    const rp = ()=>{ pills.querySelectorAll(".pillbtn").forEach(b=>b.classList.toggle("active", b.dataset.id===trackId)); blurb.textContent = RACE_TRACKS.find(t=>t.id===trackId).blurb; };
+    RACE_TRACKS.forEach(t=>{ const b = el("button",{class:"pillbtn", type:"button", text:t.name, onclick:()=>{ trackId = t.id; remember(); rp(); }}); b.dataset.id = t.id; pills.appendChild(b); });
+    card.appendChild(pills); card.appendChild(blurb); rp();
+    return card;
+  }
+  function menu(){
+    clear(); topRow("🏎 Squishy Racers");
+    const wrap = el("div",{class:"pz-menu"});
+    wrap.appendChild(pickerCard());
+    wrap.appendChild(el("div",{class:"card"},[el("h3",{text:"Race!"}),
+      el("p",{text:"4 laps. Grab the ? boxes for power-ups and shoot your rivals. 1st place wins the most coins!"}),
+      el("button",{class:"btn block", text:"Race the computers", onclick:()=>{ remember(); const seed = Math.floor(Math.random()*1e9); racePlay({trackId, seed, net:false, humans:[{slot:0, item:driverId, name:player.name, avatar:player.avatar}]}); }}),
+      el("p",{style:"margin-top:6px", text:"Race with a buddy on another tablet. Two kids and two computer racers."}),
+      el("button",{class:"btn secondary block", text:"Create a race table", onclick:createTable}),
+      el("button",{class:"btn secondary block", text:"Join a race table", onclick:joinScreen})]));
+    stage.appendChild(wrap);
+  }
+
+  /* ---------- 2 players: create / join / lobby ---------- */
+  async function createTable(){
+    remember();
+    let code, tries = 0, busy = true;
+    do{
+      code = String(Math.floor(1000+Math.random()*9000));
+      const snap = await db.doc(RDOC(code)).get();
+      busy = snap.exists && (snap.data().status==="lobby"||snap.data().status==="playing");
+    } while(busy && ++tries<6);
+    try{
+      await db.doc(RDOC(code)).set({kind:"race", code, status:"lobby", trackId, seed:Math.floor(Math.random()*1e9),
+        sideA:{playerId:PLAYER_ID, name:player.name, avatar:player.avatar, item:driverId}, sideB:null, createdAt:Date.now()});
+      ctx.side = "A"; subscribe(code);
+    }catch(e){ showToast("Couldn't create a table. Try again."); }
+  }
+  function joinScreen(){
+    clear(); topRow("🏎 Join a race table");
+    const card = el("div",{class:"card pz-menu"});
+    card.appendChild(el("h3",{text:"Type the 4-digit code"}));
+    const input = el("input",{type:"tel", id:"rcJoinInput", placeholder:"4-digit code", maxlength:"4", inputmode:"numeric"});
+    const msg = el("p",{style:"color:var(--danger);min-height:16px"});
+    const btn = el("button",{class:"btn block", text:"Join race table", onclick:async ()=>{
+      const code = input.value.trim();
+      if(!/^\d{4}$/.test(code)){ msg.textContent = "Enter the 4-digit code."; return; }
+      try{
+        const snap = await db.doc(RDOC(code)).get();
+        const t = snap.exists && snap.data();
+        if(!t || t.kind!=="race" || t.status!=="lobby"){ msg.textContent = "No race table waiting with that code."; return; }
+        if(t.sideA.playerId===PLAYER_ID){ msg.textContent = "That's your own table! Give the code to your buddy."; return; }
+        if(t.sideB && t.sideB.playerId!==PLAYER_ID){ msg.textContent = "That table already has two players."; return; }
+        await db.doc(RDOC(code)).update({sideB:{playerId:PLAYER_ID, name:player.name, avatar:player.avatar, item:driverId}});
+        ctx.side = "B"; subscribe(code);
+      }catch(e){ msg.textContent = "Couldn't join. Try again."; }
+    }});
+    card.appendChild(pickerCard()); card.appendChild(input); card.appendChild(btn); card.appendChild(msg);
+    stage.appendChild(card);
+  }
+  function subscribe(code){
+    ctx.code = code; ctx.playing = false; ctx.finished = false;
+    dropNet();
+    ctx.unsub = db.doc(RDOC(code)).onSnapshot((snap)=>{
+      if(!alive()){ dropNet(); return; }
+      if(!snap.exists) return;
+      const t = snap.data(); ctx.data = t;
+      if(t.status==="closed"){ if(!ctx.finished){ ctx.finished = true; closedScreen(t); } return; }
+      if(t.status==="lobby"){ lobbyScreen(t); return; }
+      if(t.status==="playing" && !ctx.playing){
+        ctx.playing = true;
+        racePlay({trackId:t.trackId, seed:t.seed, net:true, humans:[
+          {slot:0, item:t.sideA.item, name:t.sideA.name, avatar:t.sideA.avatar},
+          {slot:1, item:t.sideB.item, name:t.sideB.name, avatar:t.sideB.avatar}]});
+      }
+    }, (err)=>console.warn("race snapshot error", err));
+  }
+  function lobbyScreen(t){
+    clear(); topRow("🏎 Race table");
+    const mine = ctx.side==="A", T = RACE_TRACKS.find(x=>x.id===t.trackId) || RACE_TRACKS[0];
+    const card = el("div",{class:"card pz-menu", style:"text-align:center"});
+    card.appendChild(el("p",{text: mine ? "Tell your buddy this code:" : "You joined the table!"}));
+    card.appendChild(el("div",{class:"pz-code", text:t.code}));
+    card.appendChild(el("p",{text:T.name+" · 4 laps · you + buddy + 2 computer racers"}));
+    const who = (s)=>{ const it = ITEMS.find(i=>i.id===s.item); return el("span",{text:s.avatar+" "+s.name+(it?" · "+it.name:"")}); };
+    card.appendChild(el("div",{class:"pz-who", style:"flex-direction:column;align-items:center"},[who(t.sideA), t.sideB ? who(t.sideB) : el("span",{text:"Waiting…"})]));
+    if(mine){
+      const go = el("button",{class:"btn block", text: t.sideB ? "Start the race!" : "Waiting for your buddy…", onclick:()=>{ db.doc(RDOC(t.code)).update({status:"playing", startedAt:Date.now()}); }});
+      go.disabled = !t.sideB; card.appendChild(go);
+    } else card.appendChild(el("p",{text:"Waiting for "+t.sideA.name+" to start…"}));
+    stage.appendChild(card);
+  }
+  function closedScreen(t){
+    clear();
+    stage.appendChild(el("div",{class:"card results-card"},[el("div",{class:"big", text:"👋"}), el("h2",{text:"Race table closed"}),
+      el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:(t.closedBy||"Your buddy")+" left the race."}),
+      el("button",{class:"btn", text:"Back", onclick:()=>{ dropNet(); exitGame(); }})]));
+  }
+
+  /* ---------- the race ---------- */
+  function racePlay(cfg){
+    clear();
+    const tr = raceBuildTrack(RACE_TRACKS.find(t=>t.id===cfg.trackId) || RACE_TRACKS[0]);
+    const net = !!cfg.net, mySlot = net ? (ctx.side==="A"?0:1) : 0, rng = raceRng(cfg.seed);
+    const trackRng = raceRng(cfg.seed+7);
+
+    // ----- HUD + field + controls
+    const hud = el("div",{class:"game-hud"});
+    const hPlace = el("div",{class:"hud-item"},[el("div",{class:"v",text:"4th"}),el("div",{class:"k",text:"Place"})]);
+    const hLap = el("div",{class:"hud-item"},[el("div",{class:"v",text:"1/"+C.laps}),el("div",{class:"k",text:"Lap"})]);
+    const hTime = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0:00"}),el("div",{class:"k",text:"Time"})]);
+    hud.appendChild(hPlace); hud.appendChild(hLap); hud.appendChild(hTime);
+    hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{ running=false; cancelAnimationFrame(rafId); clearInterval(poseTimer); window.removeEventListener("keydown",kd); window.removeEventListener("keyup",ku); window.removeEventListener("resize",measure); if(net) leave(); else exitGame(); }}));
+    stage.appendChild(hud);
+    const arena = el("div",{class:"arena arena-race"});
+    const field = el("div",{class:"rc-field"});
+    const world = el("div",{class:"rc-world"});
+    const cv = raceTrackCanvas(tr, trackRng); world.appendChild(cv);
+    const layerBoxes = el("div"), layerShots = el("div"), layerKarts = el("div");
+    [layerBoxes, layerShots, layerKarts].forEach(n=>world.appendChild(n));
+    field.appendChild(world);
+    const mini = document.createElement("canvas"); mini.className = "rc-mini"; mini.width = 96; mini.height = 72; field.appendChild(mini);
+    const bigMsg = el("div",{class:"rc-count"}), banner = el("div",{class:"rc-banner"});
+    field.appendChild(bigMsg); field.appendChild(banner);
+    arena.appendChild(field); stage.appendChild(arena);
+    const bL = el("button",{class:"btn secondary", text:"◀", type:"button"}), bR = el("button",{class:"btn secondary", text:"▶", type:"button"});
+    const bItem = el("button",{class:"btn rc-item", type:"button", text:"No item"});
+    stage.appendChild(el("div",{class:"crn-ctl"},[bL, bItem, bR]));
+
+    // ----- karts
+    const order = [0,1,2,3].sort(()=>rng()-.5);
+    const aiPool = ITEMS.filter(i=>i.rarity!=="scam" && !cfg.humans.some(h=>h.item===i.id)).sort(()=>rng()-.5);
+    const karts = [];
+    const humanBySlot = {}; cfg.humans.forEach(h=>humanBySlot[h.slot]=h);
+    let aiN = 0;
+    for(let slot=0; slot<4; slot++){
+      const h = humanBySlot[slot];
+      const item = h ? (ITEMS.find(i=>i.id===h.item)||ITEMS[0]) : aiPool[aiN++];
+      const T = raceTraitsOf(item), g = order[slot], row = Math.floor(g/2), col = g%2;
+      const s0 = tr.L - 50 - row*52, i0 = Math.round(s0/tr.step)%tr.N, lat = col ? 30 : -30, a0 = tr.ang[i0];
+      const k = {slot, item, T, kind: !h ? "ai" : (slot===mySlot ? "me" : "remote"), name: h ? h.name : item.name, avatar: h ? h.avatar : "",
+        x: tr.px[i0]-Math.sin(a0)*lat, y: tr.py[i0]+Math.cos(a0)*lat, a:a0, v:0, steerS:0, idx:i0, sPrev:s0, prog:s0-tr.L,
+        held:null, shield:0, boost:0, spin:0, slow:0, inv:0, off:false, finished:false, finOrder:0, auto:false,
+        top: T.top*(h ? 1 : [.95,.92,.97][aiN-1]||.93), aiOff:0, aiPh:rng()*6, itemT:0, lastPose:0, tgt:null, pend:null};
+      const node = el("div",{class:"rc-kart"}), body = el("div",{class:"rc-body"}), drv = el("div",{class:"rc-drv"});
+      body.style.setProperty("--kc", RACE_COLORS[slot]);
+      ["w1","w2","w3","w4"].forEach(c=>body.appendChild(el("i",{class:"rc-wheel "+c})));
+      body.appendChild(el("div",{class:"rc-flame"}));
+      drv.appendChild(toyEl(item));
+      node.appendChild(el("div",{class:"rc-shadow"})); node.appendChild(body); node.appendChild(drv);
+      node.appendChild(el("div",{class:"rc-shield"}));
+      node.appendChild(el("div",{class:"rc-tag"+(k.kind==="me"?" me":""), text: k.kind==="me" ? "YOU" : k.kind==="remote" ? k.name : ""}));
+      k.node = node; k.body = body; k.drv = drv; layerKarts.appendChild(node); karts.push(k);
+    }
+    const me = karts[mySlot]; me.kind = "me";
+    const remote = karts.find(k=>k.kind==="remote") || null;
+    if(remote){ remote.goal = {x:remote.x, y:remote.y, a:remote.a, v:0, at:0}; remote.lastPose = 0; }
+
+    // ----- item boxes
+    const boxes = [];
+    for(let b=0;b<C.boxEvery;b++){
+      const i = Math.round(((b+.5)/C.boxEvery)*tr.N)%tr.N, a = tr.ang[i];
+      [-.3,0,.3].forEach(f=>{
+        const lat = f*C.W, node = el("div",{class:"rc-box"},[el("span",{text:"?"})]);
+        const x = tr.px[i]-Math.sin(a)*lat, y = tr.py[i]+Math.cos(a)*lat;
+        node.style.transform = "translate("+(x-tr.ox-15)+"px,"+(y-tr.oy-15)+"px)"; layerBoxes.appendChild(node);
+        boxes.push({x,y,node,t:0});
+      });
+    }
+
+    // ----- state
+    let running = true, rafId = null, lastTs = 0, rt = 0, cd = C.countdown, phase = "wait", finCount = 0, shotSeq = 0, poseTimer = null, lastCount = 99, goAt = 0;
+    const shots = [], outShots = [], myHits = [], seen = new Set(), keys = {L:false,R:false};
+    let W = 340, H = 440, camX = me.x, camY = me.y;
+    function measure(){ W = field.clientWidth || 340; H = field.clientHeight || 440; }
+    const hold = (btn,k)=>{ const on = e=>{ e.preventDefault(); keys[k] = true; }, off = ()=>{ keys[k] = false; };
+      btn.addEventListener("pointerdown", on); ["pointerup","pointercancel","pointerleave"].forEach(ev=>btn.addEventListener(ev, off)); };
+    hold(bL,"L"); hold(bR,"R");
+    bItem.addEventListener("pointerdown", e=>{ e.preventDefault(); useItem(me); });
+    const kd = e=>{ if(!alive()) return; if(e.key==="ArrowLeft"||e.key==="a") keys.L = true; else if(e.key==="ArrowRight"||e.key==="d") keys.R = true; else if(e.key===" "||e.key==="Enter"||e.key==="ArrowUp"){ useItem(me); e.preventDefault(); } };
+    const ku = e=>{ if(e.key==="ArrowLeft"||e.key==="a") keys.L = false; else if(e.key==="ArrowRight"||e.key==="d") keys.R = false; };
+    window.addEventListener("keydown",kd); window.addEventListener("keyup",ku); window.addEventListener("resize",measure);
+    // dragging a finger on the field steers too
+    field.addEventListener("pointerdown", e=>{ if(e.target.closest("button")) return; const r = field.getBoundingClientRect(); keys.L = e.clientX-r.left < r.width/2; keys.R = !keys.L; });
+    ["pointerup","pointercancel"].forEach(ev=>field.addEventListener(ev, ()=>{ keys.L = keys.R = false; }));
+
+    // ----- items
+    function rankOf(k){ return karts.slice().sort(cmpKart).indexOf(k); }
+    function cmpKart(a,b){ if(a.finished!==b.finished) return a.finished ? -1 : 1; if(a.finished) return a.finOrder-b.finOrder; return b.prog-a.prog; }
+    function rollItem(k){
+      const r = rankOf(k)/3, ent = Object.entries(RACE_ITEMS).map(([id,d])=>[id, d.w[0]+(d.w[1]-d.w[0])*r]).filter(e=>e[1]>0);
+      const total = ent.reduce((s,e)=>s+e[1],0); let x = Math.random()*total;
+      for(const [id,w] of ent){ if((x-=w)<=0) return id; }
+      return "boost";
+    }
+    function showHeld(){
+      const d = me.held && RACE_ITEMS[me.held];
+      bItem.textContent = d ? d.glyph+" "+d.name : "No item";
+      bItem.style.background = d ? d.col : ""; bItem.classList.toggle("ready", !!d);
+    }
+    function spawnShot(ty, owner, x, y, a, o){
+      o = o||{};
+      const s = {id:o.id || owner.slot+"-"+(++shotSeq), ty, owner:owner.slot, x, y, a, v:o.v||0, life:o.life||2, tg:o.tg===undefined?null:o.tg, idx:-1, age:0, mine:o.mine!==false};
+      const node = el("div",{class:"rc-shot s-"+ty}); layerShots.appendChild(node); s.node = node; shots.push(s);
+      if(o.out && net){ outShots.push({id:s.id, ty, x:Math.round(x), y:Math.round(y), a:+a.toFixed(2), tg:s.tg, life:s.life, at:rt}); }
+      return s;
+    }
+    function nearestAhead(k, maxD){
+      let best = null, bd = maxD;
+      karts.forEach(o=>{ if(o===k) return; const dx=o.x-k.x, dy=o.y-k.y, d=Math.hypot(dx,dy); if(d<bd && Math.cos(raceAngDiff(Math.atan2(dy,dx), k.a))>.2){ bd = d; best = o; } });
+      return best;
+    }
+    function useItem(k){
+      if(phase!=="race" || !k.held || k.finished && k===me) return;
+      const t = k.held; k.held = null; if(k===me) showHeld();
+      const out = k===me;
+      if(t==="boost"){ k.boost = 1.7; }
+      else if(t==="shield"){ k.shield = 8; }
+      else if(t==="bubble") spawnShot("bubble", k, k.x+Math.cos(k.a)*24, k.y+Math.sin(k.a)*24, k.a, {v:560, life:1.5, out});
+      else if(t==="triple") [-.24,0,.24].forEach(d=>spawnShot("bubble", k, k.x+Math.cos(k.a)*24, k.y+Math.sin(k.a)*24, k.a+d, {v:520, life:1.3, out}));
+      else if(t==="homing"){ const tg = nearestAhead(k, 900) || karts.filter(o=>o!==k).sort(cmpKart)[0]; spawnShot("homing", k, k.x+Math.cos(k.a)*24, k.y+Math.sin(k.a)*24, k.a, {v:340, life:4.5, tg:tg.slot, out}); }
+      else if(t==="bouncer") spawnShot("bouncer", k, k.x+Math.cos(k.a)*24, k.y+Math.sin(k.a)*24, k.a, {v:400, life:5, out});
+      else if(t==="goo") spawnShot("goo", k, k.x-Math.cos(k.a)*34, k.y-Math.sin(k.a)*34, k.a, {v:0, life:18, out});
+      else if(t==="meteor"){ const lead = karts.filter(o=>o!==k).sort(cmpKart)[0]; spawnShot("meteor", k, lead.x, lead.y, 0, {v:0, life:1.2, tg:lead.slot, out}); }
+      if(k===me){ sfx(t==="boost"||t==="shield" ? "ding" : "whoosh"); buzz(15); }
+    }
+    function hitKart(k, ty, sid){
+      if(k.inv>0 && ty!=="goo") return false;
+      if(k.shield>0){ k.shield = 0; k.node.classList.add("popped"); setTimeout(()=>k.node.classList.remove("popped"), 400); if(k===me){ sfx("pop"); } return true; }
+      const e = RACE_HIT[ty] || {spin:.9};
+      if(e.spin){ k.spin = e.spin; k.v *= .25; k.inv = e.spin+1.2; k.boost = 0; } else { k.slow = Math.max(k.slow, e.slow); }
+      if(k===me){ sfx("sad"); buzz(60); if(sid) myHits.push({id:sid, at:rt}); }
+      return true;
+    }
+    const authoritative = k=>k.kind!=="remote" || k.auto;
+
+    // ----- driving
+    function steerAI(k, dt){
+      const look = 150 + k.v*.35, ti = (k.idx + Math.round(look/tr.step))%tr.N, a = tr.ang[ti];
+      k.aiOff = Math.sin(rt*.45+k.aiPh)*C.W*.26;
+      const tx = tr.px[ti]-Math.sin(a)*k.aiOff, ty = tr.py[ti]+Math.cos(a)*k.aiOff;
+      k.steerS = Math.max(-1, Math.min(1, raceAngDiff(Math.atan2(ty-k.y, tx-k.x), k.a)*2.4));
+      // rubber band: slow a little when far ahead of a human, speed up when far behind
+      const lead = Math.max(me.prog, remote ? remote.prog : -1e9);
+      const gap = k.prog - lead; k.rub = gap>900 ? .94 : gap<-700 ? 1.06 : 1;
+      // use items
+      if(k.held){
+        k.itemT += dt;
+        if(k.itemT > 1.2+k.aiPh*.3){
+          const t = k.held, tg = nearestAhead(k, 380), behind = karts.some(o=>o!==k && Math.hypot(o.x-k.x,o.y-k.y)<220 && Math.cos(raceAngDiff(Math.atan2(o.y-k.y,o.x-k.x), k.a+Math.PI))>.4);
+          if(t==="boost"||t==="shield"||t==="homing"||t==="meteor" || (t==="goo"&&behind) || ((t==="bubble"||t==="triple"||t==="bouncer")&&tg)){ useItem(k); k.itemT = 0; }
+        }
+      }
+    }
+    function stepKart(k, dt){
+      if(k.kind==="remote" && !k.auto){
+        const g = k.goal, el_ = Math.min(.5,(performance.now()-g.at)/1000);
+        const px = g.x+Math.cos(g.a)*g.v*el_, py = g.y+Math.sin(g.a)*g.v*el_, f = Math.min(1, dt*9);
+        k.x += (px-k.x)*f; k.y += (py-k.y)*f; k.a += raceAngDiff(g.a,k.a)*f; k.v = g.v;
+      } else {
+        if(k.kind==="me" && !k.finished && !k.auto) k.steerS += (((keys.R?1:0)-(keys.L?1:0))-k.steerS)*Math.min(1,dt*10);
+        else if(phase==="race" || phase==="end") steerAI(k, dt);
+        if(phase==="count"){ k.v = 0; }
+        else {
+          if(k.spin>0){ k.spin -= dt; k.a += 11*dt; k.v *= Math.pow(.15, dt); }
+          else {
+            const top = C.maxV*k.top*(k.rub||1)*(k.boost>0?1.55:1)*(k.slow>0?.5:1)*(k.off?.55:1), acc = (k.boost>0?6:1.7)*k.T.acc;
+            k.v += (top-k.v)*Math.min(1, acc*dt);
+            k.a += k.steerS*C.turn*k.T.turn*(.35+.65*Math.min(1,k.v/C.maxV))*dt;
+          }
+          k.x += Math.cos(k.a)*k.v*dt; k.y += Math.sin(k.a)*k.v*dt;
+        }
+      }
+      k.boost = Math.max(0,k.boost-dt); k.slow = Math.max(0,k.slow-dt); k.inv = Math.max(0,k.inv-dt); k.shield = Math.max(0,k.shield-dt);
+      const loc = raceLocate(tr, k.x, k.y, k.idx);
+      k.idx = loc.i; k.off = Math.abs(loc.lat) > C.W/2;
+      const lim = C.W/2+70;
+      if(Math.abs(loc.lat) > lim && !(k.kind==="remote" && !k.auto)){
+        const over = Math.abs(loc.lat)-lim, sg = Math.sign(loc.lat), a = tr.ang[loc.i];
+        k.x += Math.sin(a)*sg*over; k.y -= Math.cos(a)*sg*over; k.v *= .9;
+      }
+      let s = ((loc.s%tr.L)+tr.L)%tr.L, d = s-k.sPrev; if(d<-tr.L/2) d += tr.L; else if(d>tr.L/2) d -= tr.L;
+      k.prog += d; k.sPrev = s;
+      if(!k.finished && k.prog >= C.laps*tr.L && !(k.kind==="remote" && !k.auto)) finishKart(k);
+      // item boxes
+      if(!k.held && k.kind!=="remote" && !k.finished) boxes.forEach(b=>{ if(b.t<=0 && Math.hypot(b.x-k.x,b.y-k.y)<30){ b.t = C.boxRespawn; b.node.style.opacity = .12; k.held = rollItem(k); k.itemT = 0; if(k===me){ showHeld(); sfx("boop"); } } });
+    }
+    function finishKart(k){
+      k.finished = true; k.finOrder = ++finCount; k.finT = rt;
+      if(k===me){ phase = "end"; k.auto = true; banner.textContent = "Finished "+ordinal(k.finOrder)+"!"; sfx("fanfare"); buzz(80); sendPose(true); setTimeout(()=>sendPose(true), 500); setTimeout(showResults, 1900); }
+    }
+    const ordinal = n=>["","1st","2nd","3rd","4th"][n]||n+"th";
+
+    // ----- projectiles
+    function stepShots(dt){
+      for(let i=shots.length-1;i>=0;i--){
+        const s = shots[i]; s.age += dt; s.life -= dt; let dead = s.life<=0;
+        if(s.ty==="goo"){
+          karts.forEach(k=>{ if(!dead && authoritative(k) && Math.hypot(k.x-s.x,k.y-s.y)<26 && !k.finished && !(k.slot===s.owner && s.age<.8)){ if(hitKart(k,"goo",s.id)) { dead = true; } } });
+        } else if(s.ty==="meteor"){
+          const t = karts.find(k=>k.slot===s.tg); if(t){ s.x = t.x; s.y = t.y; }
+          if(dead && t && authoritative(t)) hitKart(t,"meteor",s.id);
+        } else {
+          if(s.ty==="homing"){
+            const t = karts.find(k=>k.slot===s.tg);
+            if(t) s.a += Math.max(-3.2*dt, Math.min(3.2*dt, raceAngDiff(Math.atan2(t.y-s.y, t.x-s.x), s.a)));
+          }
+          s.x += Math.cos(s.a)*s.v*dt; s.y += Math.sin(s.a)*s.v*dt;
+          const loc = raceLocate(tr, s.x, s.y, s.idx); s.idx = loc.i;
+          if(Math.abs(loc.lat) > C.W/2+10){
+            if(s.ty==="bouncer"){
+              const a = tr.ang[loc.i], nx = -Math.sin(a), ny = Math.cos(a), sg = Math.sign(loc.lat), dx = Math.cos(s.a), dy = Math.sin(s.a), dot = (dx*nx+dy*ny)*sg;
+              if(dot>0){ const rx = dx-2*dot*nx*sg, ry = dy-2*dot*ny*sg; s.a = Math.atan2(ry,rx); }
+              s.x -= nx*sg*6; s.y -= ny*sg*6;
+            } else dead = true;
+          }
+          if(!dead) for(const k of karts){
+            if(k.slot===s.owner && s.age<.5) continue;
+            if(k.finished && k.kind==="me") continue;
+            if(Math.hypot(k.x-s.x,k.y-s.y) < C.kartR+9){
+              if(authoritative(k)){ hitKart(k, s.ty==="bubble"?"bubble":s.ty, s.id); dead = true; break; }
+              else { dead = true; break; }
+            }
+          }
+        }
+        if(dead){ s.node.remove(); shots.splice(i,1); }
+        else s.node.style.transform = "translate("+(s.x-tr.ox-14)+"px,"+(s.y-tr.oy-14)+"px)"+(s.ty==="meteor"?" scale("+(1.4-s.life/1.2*.6)+")":"");
+      }
+    }
+    function bump(){
+      for(let i=0;i<karts.length;i++) for(let j=i+1;j<karts.length;j++){
+        const a = karts[i], b = karts[j], dx = b.x-a.x, dy = b.y-a.y, d = Math.hypot(dx,dy), min = C.kartR*1.7;
+        if(d<min && d>0.01){
+          const push = (min-d)/2, ux = dx/d, uy = dy/d;
+          const af = !(a.kind==="remote"&&!a.auto), bf = !(b.kind==="remote"&&!b.auto);
+          if(af){ a.x -= ux*push*(bf?1:2); a.y -= uy*push*(bf?1:2); a.v *= .985; }
+          if(bf){ b.x += ux*push*(af?1:2); b.y += uy*push*(af?1:2); b.v *= .985; }
+        }
+      }
+    }
+
+    // ----- network
+    function sendPose(force){
+      if(!net || !ctx.code) return;
+      const now = performance.now();
+      if(!force && now-me.lastPose < C.poseMs-20) return; me.lastPose = now;
+      while(outShots.length && rt-outShots[0].at > 8) outShots.shift();
+      while(myHits.length && rt-myHits[0].at > 8) myHits.shift();
+      const p = {kind:"racepose", side:ctx.side, x:Math.round(me.x*10)/10, y:Math.round(me.y*10)/10, a:+me.a.toFixed(3), v:Math.round(me.v), lap:Math.floor(me.prog/tr.L),
+        fin: me.finished ? me.finT : null, shots:outShots.slice(), hits:myHits.map(h=>h.id), spin:me.spin>0, shield:me.shield>0, boost:me.boost>0, t:Date.now()};
+      try{ const r = db.doc(PDOC(ctx.code, ctx.side)).set(p); if(r && r.catch) r.catch(()=>{}); }catch(e){}
+    }
+    function onPose(snap){
+      if(!snap.exists || !remote) return;
+      const p = snap.data(), g = remote.goal, now = performance.now();
+      g.x = p.x; g.y = p.y; g.a = p.a; g.v = p.v||0; g.at = now; remote.lastPose = now; remote.auto = false;
+      remote.rSpin = p.spin; remote.rShield = p.shield; remote.rBoost = p.boost;
+      (p.shots||[]).forEach(s=>{
+        if(seen.has(s.id)) return; seen.add(s.id);
+        const adv = .15, sp = s.ty==="bubble"?(s.life>1.4?560:520):s.ty==="homing"?340:s.ty==="bouncer"?400:0;
+        spawnShot(s.ty, remote, s.x+Math.cos(s.a)*sp*adv, s.y+Math.sin(s.a)*sp*adv, s.a, {id:s.id, v:sp, life:s.life-adv, tg:s.tg, mine:false});
+      });
+      (p.hits||[]).forEach(id=>{ const i = shots.findIndex(s=>s.id===id); if(i>=0){ shots[i].node.remove(); shots.splice(i,1); } });
+      if(p.fin!=null && !remote.finished){ remote.finished = true; remote.finOrder = ++finCount; remote.finT = p.fin; }
+    }
+    if(net){
+      const other = ctx.side==="A" ? "B" : "A";
+      if(ctx.poseUnsub) ctx.poseUnsub();
+      ctx.poseUnsub = db.doc(PDOC(ctx.code, other)).onSnapshot(snap=>{ if(running && alive()) onPose(snap); }, e=>console.warn("race pose error", e));
+      poseTimer = setInterval(()=>{ if(!running || !alive()){ clearInterval(poseTimer); return; } sendPose(false); }, C.poseMs);
+    }
+
+    // ----- frame
+    function paintKart(k){
+      k.node.style.transform = "translate("+(k.x-tr.ox).toFixed(1)+"px,"+(k.y-tr.oy).toFixed(1)+"px)";
+      k.body.style.transform = "rotate("+k.a.toFixed(3)+"rad)";
+      const spin = k.spin>0 || (k.kind==="remote" && !k.auto && k.rSpin), sh = k.shield>0 || (k.kind==="remote" && !k.auto && k.rShield), bo = k.boost>0 || (k.kind==="remote" && !k.auto && k.rBoost);
+      k.node.classList.toggle("spin", !!spin); k.node.classList.toggle("shielded", !!sh); k.node.classList.toggle("boosting", !!bo);
+      k.node.classList.toggle("goo", k.slow>0); k.node.classList.toggle("blink", k.inv>0 && !spin);
+    }
+    function drawMini(){
+      const g = mini.getContext("2d"), sx = 96/tr.w, sy = 72/tr.h, sc = Math.min(sx,sy), ox = (96-tr.w*sc)/2, oy = (72-tr.h*sc)/2;
+      g.clearRect(0,0,96,72); g.fillStyle = "rgba(20,22,40,.55)"; g.fillRect(0,0,96,72);
+      g.strokeStyle = "rgba(255,255,255,.8)"; g.lineWidth = 3; g.beginPath();
+      for(let i=0;i<=tr.N;i+=4){ const k = i%tr.N, x = ox+(tr.px[k]-tr.ox)*sc, y = oy+(tr.py[k]-tr.oy)*sc; if(i===0) g.moveTo(x,y); else g.lineTo(x,y); }
+      g.closePath(); g.stroke();
+      karts.forEach(k=>{ g.fillStyle = RACE_COLORS[k.slot]; g.beginPath(); g.arc(ox+(k.x-tr.ox)*sc, oy+(k.y-tr.oy)*sc, k===me?4.5:3.2, 0, 7); g.fill(); if(k===me){ g.strokeStyle="#fff"; g.lineWidth=1.5; g.stroke(); } });
+    }
+    function tick(ts){
+      if(!running || !field.isConnected){ running = false; clearInterval(poseTimer); window.removeEventListener("keydown",kd); window.removeEventListener("keyup",ku); window.removeEventListener("resize",measure); return; }
+      const dt = lastTs ? Math.min(.05,(ts-lastTs)/1000) : 0; lastTs = ts;
+      if(phase==="count"){
+        cd -= dt; const c = Math.ceil(cd);
+        if(cd <= 0){ phase = "race"; goAt = performance.now(); rt = 0; bigMsg.textContent = "GO!"; sfx("ding"); setTimeout(()=>{ if(bigMsg.textContent==="GO!") bigMsg.textContent = ""; }, 700); }
+        else { bigMsg.textContent = String(c); if(c!==lastCount){ lastCount = c; sfx("boop"); } }
+      } else if(phase==="race" || phase==="end") rt += dt;
+      if(remote && !remote.auto && phase!=="count" && performance.now()-Math.max(remote.lastPose, goAt) > 3500){ remote.auto = true; }
+      if(phase!=="wait"){ karts.forEach(k=>stepKart(k, dt)); bump(); stepShots(dt); }
+      boxes.forEach(b=>{ if(b.t>0){ b.t -= dt; if(b.t<=0) b.node.style.opacity = 1; } });
+      karts.forEach(paintKart);
+      // camera
+      const tx = me.x+Math.cos(me.a)*me.v*.25, ty = me.y+Math.sin(me.a)*me.v*.25;
+      camX += (tx-camX)*Math.min(1,dt*6); camY += (ty-camY)*Math.min(1,dt*6);
+      world.style.transform = "translate("+Math.round(W/2-(camX-tr.ox))+"px,"+Math.round(H/2-(camY-tr.oy))+"px)";
+      // HUD
+      const place = me.finished ? me.finOrder : rankOf(me)+1;
+      hPlace.querySelector(".v").textContent = ordinal(place);
+      hLap.querySelector(".v").textContent = Math.min(C.laps, Math.max(0,Math.floor(me.prog/tr.L))+1)+"/"+C.laps;
+      hTime.querySelector(".v").textContent = pzClock(Math.max(0,rt));
+      drawMini();
+      if(phase==="race" && rt > C.maxTime && !me.finished){ me.finished = true; me.finOrder = rankOf(me)+1; finishKart2(); }
+      rafId = requestAnimationFrame(tick);
+    }
+    function finishKart2(){ phase = "end"; setTimeout(showResults, 300); }
+
+    function showResults(){
+      if(!running) return; running = false; cancelAnimationFrame(rafId); clearInterval(poseTimer); ctx.finished = true;
+      window.removeEventListener("keydown",kd); window.removeEventListener("keyup",ku); window.removeEventListener("resize",measure);
+      if(net){ ctx.poseUnsub && ctx.poseUnsub(); ctx.poseUnsub = null; sendPose(true); }
+      const place = me.finOrder || 4, coins = C.pay[Math.min(3,place-1)];
+      const lines = ["You finished "+ordinal(place)+" of 4 in "+pzClock(Math.max(0,(me.finT!=null?me.finT:rt)))+"."];
+      const names = karts.slice().sort(cmpKart).map((k,i)=>(i+1)+". "+(k.kind==="ai" ? k.name+" (computer)" : k.kind==="me" ? "You" : k.name)).join("   ");
+      lines.push(names);
+      gameResultsScreen(stage, coins, lines);
+    }
+
+    showHeld(); measure();
+    requestAnimationFrame(()=>{ measure(); camX = me.x; camY = me.y;
+      const begin = ()=>{ lastTs = 0; cd = C.countdown; phase = "count"; };
+      if(net){ banner.textContent = "Hold ◀ ▶ to steer"; setTimeout(()=>{ if(banner.textContent==="Hold ◀ ▶ to steer") banner.textContent = ""; }, 4000); begin(); }
+      else {
+        const card = el("div",{class:"card"},[
+          el("h2",{text:tr.def.name}),
+          el("p",{text:"You're driving "+me.item.name+" ("+me.T.tag+"). Your squishy drives itself forward: hold ◀ ▶ to turn."}),
+          el("p",{text:"Drive through ? boxes to get power-ups, then tap the big button to use them. Shoot rivals, drop goo behind you, or zoom ahead. 4 laps!"}),
+          el("button",{class:"btn", text:"Ready!", onclick:()=>{ ov.remove(); begin(); }}),
+        ]);
+        const ov = el("div",{class:"sorter-intro"},[card]); field.appendChild(ov);
+      }
+      rafId = requestAnimationFrame(tick);
+    });
+  }
+
+  menu();
 }
 
 /* ---- Puzzles (jigsaw of toy art, solo or two players) ----

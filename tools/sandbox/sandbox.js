@@ -30,6 +30,7 @@
     persist();
     (listeners[path]||[]).slice().forEach(fn=>setTimeout(()=>fn(),0));
     if(path.startsWith("trades/puzzle-")) setTimeout(()=>robo.onPuzzle(path), 0);
+    else if(path.startsWith("trades/race-")) setTimeout(()=>robo.onRace(path), 0);
     else if(path.startsWith("trades/")) setTimeout(()=>robo.onTrade(path), 0);
   }
   const snap = path => ({ exists: store[path]!==undefined, data: ()=>clone(store[path]), id: path.split("/").pop() });
@@ -182,6 +183,30 @@
       }
       if(t.status!=="playing" && m.timer){ clearInterval(m.timer); m.timer = null; }
     },
+    // ---- racing: Robo joins the table; the game drives Robo's kart itself once no position updates arrive ----
+    onRace(path){
+      const t = store[path]; if(!t || t.kind!=="race" || t.status!=="lobby") return;
+      if(t.sideA && t.sideA.playerId===ROBO && t.sideB && !robo.raceStarted[path]){
+        robo.raceStarted[path] = true;
+        setTimeout(()=>{ const c = store[path]; if(c && c.status==="lobby") db.doc(path).update({status:"playing", startedAt:Date.now()}); }, 1800);
+      }
+    },
+    raceStarted:{},
+    inviteRace(){
+      const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/race-") && t.kind==="race" && t.status==="lobby" && t.sideA && t.sideA.playerId===ME && !t.sideB);
+      if(!entry){ panelLog("Create a race table first (Games → Squishy Racers → Create), then invite Robo."); return false; }
+      db.doc(entry[0]).update({sideB:{playerId:ROBO, name:"Robo", avatar:"🤖", item:"golden_spinner"}});
+      panelLog("🤖 Robo joined race table "+entry[1].code+". Tap Start the race! (Robo's kart is driven by the computer.)");
+      return true;
+    },
+    hostRace(){
+      let code; do{ code = String(Math.floor(1000+realRandom()*9000)); }while(store["trades/race-"+code] && ["lobby","playing"].includes(store["trades/race-"+code].status));
+      db.doc("trades/race-"+code).set({kind:"race", code, status:"lobby", trackId:"wave", seed:Math.floor(realRandom()*1e9),
+        sideA:{playerId:ROBO, name:"Robo", avatar:"🤖", item:"golden_spinner"}, sideB:null, createdAt:Date.now()});
+      panelLog("🤖 Robo opened race table "+code+". Games → Squishy Racers → Join a race table, then type "+code+". Robo starts the race.");
+      const input = document.getElementById("rcJoinInput"); if(input) input.value = code;
+      return code;
+    },
     invitePuzzle(){
       const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/puzzle-") && t.status==="lobby" && t.sideA && t.sideA.playerId===ME && !t.sideB);
       if(!entry){ panelLog("Create a puzzle table first (Games → Puzzles → Create), then invite Robo."); return false; }
@@ -232,6 +257,10 @@
       + '<button type="button" data-a="stickers">Give me every sticker</button>'
       + '<button type="button" data-a="nostickers">Clear my stickers</button>'
       + '<small>Create a puzzle table under Games → Puzzles, then invite Robo. Or let Robo host and join with the code.</small></div>'
+      + '<div class="sb-group"><b>🏎 Racing with Robo</b>'
+      + '<button type="button" data-a="rcinvite">Invite Robo to my race table</button>'
+      + '<button type="button" data-a="rchost">Robo hosts a race table</button>'
+      + '<small>Create a race table under Games → Squishy Racers, then invite Robo. Robo\'s kart is driven by the computer, so this checks the table, lobby and start flow.</small></div>'
       + '<div class="sb-group"><b>🪙 Coins & toys</b>'
       + '<button type="button" data-a="coins">+1,000 coins</button>'
       + '<button type="button" data-a="unlock">Refill every toy (×3)</button>'
@@ -247,6 +276,7 @@
       const closePanel = ()=>{ panel.hidden = true; fab.setAttribute("aria-expanded","false"); };
       ({ join:()=>{ robo.joinMyTable(); closePanel(); }, host:()=>{ robo.hostTable(); closePanel(); },
          pzinvite:()=>{ if(robo.invitePuzzle()) closePanel(); }, pzcoop:()=>{ robo.hostPuzzle("coop"); closePanel(); }, pzrace:()=>{ robo.hostPuzzle("race"); closePanel(); },
+         rcinvite:()=>{ if(robo.inviteRace()) closePanel(); }, rchost:()=>{ robo.hostRace(); closePanel(); },
          stickers:()=>{ const o = {}; STICKER_IDS.forEach(id=>o[id]=1); store["players/"+ME].stickers = o; notify("players/"+ME); panelLog("Every puzzle sticker added."); },
          nostickers:()=>{ store["players/"+ME].stickers = {}; notify("players/"+ME); panelLog("Stickers cleared."); },
          coins:()=>{ tools.addCoins(1000); panelLog("Added 1,000 coins."); },

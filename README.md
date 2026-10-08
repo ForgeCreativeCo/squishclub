@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Thirteen mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Fourteen mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -52,6 +52,7 @@ Thirteen mini-games earn Squish Coins. Each round ends with a results screen, an
 | Squish Sorter 🗂️ | Toys ride a conveyor belt. Drag each into the right bin before it falls off |
 | Puzzles 🧩 | Build a jigsaw of toy art, alone or with a buddy on another tablet |
 | Squishy Bowling 🎳 | Flick a squishy down the lane and knock down the pins |
+| Squishy Racers 🏎 | Kart-race around a track with power-ups and projectiles, alone or with a buddy |
 | Squishy Crane 🏗️ | Steer a claw over a pile of toys and grab one. Rarer toys are slipperier but pay more |
 | Squishy Stacker 🗼 | Drop squishies onto a wobbly tower. Round toys wobble more |
 | Spot the Fake 🔍 | Find the knockoff dupe hiding among the real toys |
@@ -68,6 +69,12 @@ All the games use the same toy art as the rest of the game: real toys on the mat
 **Squishy Stacker.** A toy swings across the top; tap to drop it onto the tower. Line it up over the toy below: a "Perfect!" lands within a few pixels and calms the tower, while a sloppy drop kicks it. The tower sways on a simple damped spring (no physics engine), with a Wobble bar that goes green, yellow and red. Flat toys (Pop-It, cubes) are steady and round, soft ones (Fuzz Ball, Mochi Panda) are wobbly, and each toy is tagged Steady, Squishy or Wobbly as it swings. Too much wobble means TIMBER! and the tower tumbles. A drop that misses the tower slides off and costs one of three hearts. The round has 14 toys. Coins are 5 per toy stacked, +2 per perfect, +10 for finishing the tower, capped at 90, and a tumbled tower still pays for its height. Per-toy width and wobble live in `STACK_TRAITS`, and the feel is tuned in `STACK_TUNE`.
 
 **Squishy Bowling.** A squishy rolls down a lane at a rack of 10 cute pins. Kids slide the ball sideways along the foul line with a finger, then flick it up the lane; the flick's direction and speed set the aim and power (there's also a "Roll it straight" button). The ball is a random squishy each throw, tagged Heavy (smashes through), Medium or Light (bounces off). It's simple 2D circle physics, with no physics engine. Pins that get hit hard enough fall and are swept away, and pins in the gutter are out. There are 5 frames of up to 2 balls, and a strike or spare ends the frame. Coins are 1 per pin, +6 per strike and +3 per spare, capped at 90. The lane and pin sizes, ball weights and flick speeds are in `BWL` and the knock thresholds are in the physics step.
+
+**Squishy Racers.** Top-down kart racing for four: pick any squishy you own as your driver (Heavy toys are faster with wide turns, Light ones are nimble with a lower top speed, Medium is balanced), pick one of three tracks (Meadow Loop, Wiggle Wave, Candy Twist) and race 4 laps. The kart drives itself forward; hold ◀ ▶ (or touch the left/right half of the track) to steer. Driving through a rainbow **?** box gives a power-up, and trailing karts get stronger ones: **Turbo**, **Shield**, **Bubble Pop** (straight shot), **Triple Pop**, **Homing Jelly**, **Boing Ball** (bounces off the track edges), **Goo Puddle** (dropped behind you, slows whoever drives through) and **Mochi Meteor** (drops on whoever is in the lead). A hit spins a kart out for about a second (Goo just slows it); a Shield soaks up one hit. 1st place pays 40 coins, 2nd 25, 3rd 12 and 4th 5.
+- **Alone:** you and three computer racers. They follow the track, use their own items, and speed up a little when far behind or ease off when far ahead.
+- **With a buddy (two tablets, 4-digit code):** the host picks the track and starts the race, and the other kid joins with the code. Each tablet drives its own kart and sends its position about 4 times a second, so the other tablet draws it and shows its shots; the computer racers are two more karts simulated on each tablet. A hit on your kart is decided on your tablet, and your place is the order you cross the line as seen on your tablet. If the buddy's tablet goes quiet for a few seconds, their kart is driven by the computer.
+- A table is a document in the existing `trades` collection with the id `race-<code>` and each kart's position goes in `race-<code>-A` / `race-<code>-B` (one writer per document), so no Firestore rules change was needed. Both tablets must be on the same game version. Tracks, speeds, item odds and rewards are in `RACE`, `RACE_TRACKS` and `RACE_ITEMS`.
+- The sandbox's Test tools have a **Racing with Robo** group (Robo joins your table, or hosts one); Robo's kart is driven by the computer.
 
 **Squishy Crane.** A claw machine with a pyramid of 12 toys (mostly common, with a rare, an epic and sometimes a legendary mixed in). Kids steer the claw by holding ◀ ▶ or dragging a finger across the machine, and the toy under the claw glows with its name and rarity. **GRAB!** lowers the claw onto the highest toy within reach. How well the claw is lined up sets the grip: a centred claw almost always holds, an off-centre one may drop the toy back onto the pile partway to the chute. Each rarity slips a bit more (`CRN.slip`) and pays more (`CRN.pay`: 4, 7, 12, 18, 25 coins). There are 6 tries, a toy that reaches the chute pays its coins, and the round is capped at 90 coins with a 5-coin minimum. Claw speeds, toy size and the grip odds are in `CRN`.
 
