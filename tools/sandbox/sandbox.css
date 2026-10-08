@@ -1,0 +1,13 @@
+/* sandbox test tools */
+.sb-fab{position:fixed; z-index:95; top:calc(env(safe-area-inset-top, 0px) + 64px); right:12px; border:2px solid var(--ink); background:var(--coin-soft); color:var(--ink); font:800 13px/1 var(--font-body, system-ui); padding:9px 12px; border-radius:999px; box-shadow:var(--shadow); cursor:pointer}
+.sb-fab:focus-visible, .sb-panel button:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+.sb-panel{position:fixed; z-index:95; top:calc(env(safe-area-inset-top, 0px) + 106px); right:12px; width:min(330px, calc(100vw - 24px)); max-height:calc(100% - 200px); overflow:auto; background:var(--surface); color:var(--ink); border:2px solid var(--ink); border-radius:18px; padding:12px; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 40px -14px rgba(0,0,0,.45)}
+.sb-title{font-weight:800; font-size:15px; display:flex; flex-direction:column; gap:2px}
+.sb-title span{font-weight:600; font-size:11.5px; color:var(--ink-dim)}
+.sb-group{display:flex; flex-direction:column; gap:6px; padding-top:8px; border-top:1px dashed var(--line)}
+.sb-group b{font-size:12.5px}
+.sb-group small{font-size:11px; color:var(--ink-dim); line-height:1.35}
+.sb-panel button{font:700 13px/1.2 var(--font-body, system-ui); text-align:left; padding:8px 10px; border-radius:10px; border:1.5px solid var(--line); background:var(--surface-2); color:var(--ink); cursor:pointer}
+.sb-panel button.danger{border-color:var(--danger); color:var(--danger)}
+.sb-log{margin:0; padding:8px 10px 8px 22px; background:var(--surface-2); border-radius:10px; font-size:11.5px; color:var(--ink-dim); display:flex; flex-direction:column; gap:4px; min-height:20px}
+.sb-panel[hidden]{display:none}

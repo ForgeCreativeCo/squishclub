@@ -42,3 +42,8 @@ Good to know:
 ## Tech
 
 Vanilla HTML/CSS/JS, no build step, no bundler. Firebase JS SDK (Auth + Firestore) loaded as ES modules straight from Google's CDN. Fonts via Google Fonts (Baloo 2 + Nunito).
+
+## Sandbox (testing copy)
+
+A private test copy of the game lives at https://claude.ai/artifact/LMH3hdc6PtG4gNxW6HWhtN (owner-only). It has everything unlocked, a 🧪 Test tools panel, and Robo, a computer trade buddy for practice trades, and it never touches the real Firebase data. It's generated from `index.html` by `tools/sandbox/build.py`; every change to the game is made to both. See `CLAUDE.md`.
+
