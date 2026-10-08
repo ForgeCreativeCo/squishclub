@@ -29,7 +29,8 @@
   function notify(path){
     persist();
     (listeners[path]||[]).slice().forEach(fn=>setTimeout(()=>fn(),0));
-    if(path.startsWith("trades/")) setTimeout(()=>robo.onTrade(path), 0);
+    if(path.startsWith("trades/puzzle-")) setTimeout(()=>robo.onPuzzle(path), 0);
+    else if(path.startsWith("trades/")) setTimeout(()=>robo.onTrade(path), 0);
   }
   const snap = path => ({ exists: store[path]!==undefined, data: ()=>clone(store[path]), id: path.split("/").pop() });
   function flatten(patch){ const out={}; for(const k in patch){ const v=patch[k]; if(v && typeof v==="object" && !Array.isArray(v)){ for(const sub in v) out[k+"."+sub]=v[sub]; } else out[k]=v; } return out; }
@@ -84,6 +85,9 @@
   // something close in value, answers "Add More" by adding an item, asks
   // for more when your side is too low, and accepts fair deals.
   const memory = {};   // per trade: asks, timers
+  const puzMem = {};   // per puzzle table: timers
+  const PUZ_TOTAL = {easy:6, medium:12, hard:20};
+  const STICKER_IDS = __STICKER_IDS__;
   const roboSide = {playerId:ROBO, name:"Robo", avatar:"🤖", items:[], accepted:null, bpColor:"galaxy", keychain:"golden_spinner"};
   const dealKey = t => JSON.stringify([(t.sideA&&t.sideA.items)||[], (t.sideB&&t.sideB.items)||[]]);
   const roboStock = (t, side)=>{ const inv = Object.assign({}, store["players/"+ROBO].inventory||{}); (t[side].items||[]).forEach(id=>inv[id]--); return inv; };
@@ -98,7 +102,7 @@
   const robo = {
     say(text){ panelLog("🤖 "+text); },
     onTrade(path){
-      const t = store[path]; if(!t || t.status!=="open") return;
+      const t = store[path]; if(!t || t.kind==="puzzle" || t.status!=="open") return;
       const side = t.sideA && t.sideA.playerId===ROBO ? "sideA" : t.sideB && t.sideB.playerId===ROBO ? "sideB" : null;
       if(!side || !t.sideB) return;
       const m = memory[path] = memory[path] || {asks:0, timer:null};
@@ -150,6 +154,49 @@
       robo.say("says ⭐"+theirVal+" isn't enough for ⭐"+myVal+" and presses ＋ Add More.");
       return ref.update({addMoreTo:other, addMoreValue:theirVal});
     },
+    // ---- puzzles: Robo is a slow, steady puzzle partner ----
+    onPuzzle(path){
+      const t = store[path]; if(!t || t.kind!=="puzzle") return;
+      const key = t.sideA && t.sideA.playerId===ROBO ? "A" : t.sideB && t.sideB.playerId===ROBO ? "B" : null;
+      if(!key) return;
+      const m = puzMem[path] = puzMem[path] || {timer:null, started:false};
+      if(t.status==="lobby" && key==="A" && t.sideB && !m.started){
+        m.started = true;
+        setTimeout(()=>{ const c = store[path]; if(c && c.status==="lobby") db.doc(path).update({status:"playing", startedAt:Date.now()}); }, 1800);
+      }
+      if(t.status==="playing" && !m.timer){
+        const total = PUZ_TOTAL[t.size] || 12, pace = {easy:3600, medium:3000, hard:2600}[t.size] || 3000;
+        m.timer = setInterval(()=>{
+          const c = store[path];
+          if(!c || c.status!=="playing"){ clearInterval(m.timer); m.timer = null; return; }
+          if(c.mode==="coop"){
+            const mine = []; for(let i=0;i<total;i++){ if(i%2===(key==="A"?0:1) && !(c.placed||{})[i]) mine.push(i); }
+            if(mine.length){ const i = mine[Math.floor(realRandom()*mine.length)]; db.doc(path).update({["placed."+i]: key}); robo.say("placed puzzle piece "+(i+1)+"."); }
+            else if(Object.keys(c.placed||{}).length>=total) db.doc(path).update({status:"done", doneAt:Date.now()});
+          } else {
+            const me = key, n = ((c.progress||{})[me]||0)+1;
+            if(n>=total){ db.doc(path).update({["progress."+me]: total, status:"done", winner:me, doneAt:Date.now()}); robo.say("finished the race first!"); clearInterval(m.timer); m.timer = null; }
+            else db.doc(path).update({["progress."+me]: n});
+          }
+        }, pace);
+      }
+      if(t.status!=="playing" && m.timer){ clearInterval(m.timer); m.timer = null; }
+    },
+    invitePuzzle(){
+      const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/puzzle-") && t.status==="lobby" && t.sideA && t.sideA.playerId===ME && !t.sideB);
+      if(!entry){ panelLog("Create a puzzle table first (Games → Puzzles → Create), then invite Robo."); return false; }
+      db.doc(entry[0]).update({sideB:{playerId:ROBO, name:"Robo", avatar:"🤖"}});
+      panelLog("🤖 Robo joined puzzle table "+entry[1].code+". Tap Start the puzzle!");
+      return true;
+    },
+    hostPuzzle(mode){
+      let code; do{ code = String(Math.floor(1000+realRandom()*9000)); }while(store["trades/puzzle-"+code] && ["lobby","playing"].includes(store["trades/puzzle-"+code].status));
+      db.doc("trades/puzzle-"+code).set({kind:"puzzle", code, status:"lobby", mode, size:"medium", seed:Math.floor(realRandom()*1e9),
+        sideA:{playerId:ROBO, name:"Robo", avatar:"🤖"}, sideB:null, placed:{}, progress:{A:0,B:0}, winner:null, createdAt:Date.now()});
+      panelLog("🤖 Robo opened a "+(mode==="coop"?"build-together":"race")+" puzzle table "+code+". Games → Puzzles → Join, then type "+code+".");
+      const input = document.getElementById("pzJoinInput"); if(input) input.value = code;
+      return code;
+    },
     joinMyTable(){
       const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/") && t.status==="open" && t.sideA && t.sideA.playerId===ME && !t.sideB);
       if(!entry){ panelLog("Create a table on the Trade tab first, then invite Robo."); return; }
@@ -178,6 +225,13 @@
       + '<button type="button" data-a="join">Invite Robo to my table</button>'
       + '<button type="button" data-a="host">Robo hosts a table (Robo antes)</button>'
       + '<small>To go first: Trade tab → Create Trading Table → Invite Robo. To let Robo go first: tap Robo hosts, then join with the code.</small></div>'
+      + '<div class="sb-group"><b>🧩 Puzzles with Robo</b>'
+      + '<button type="button" data-a="pzinvite">Invite Robo to my puzzle table</button>'
+      + '<button type="button" data-a="pzcoop">Robo hosts: build together</button>'
+      + '<button type="button" data-a="pzrace">Robo hosts: race</button>'
+      + '<button type="button" data-a="stickers">Give me every sticker</button>'
+      + '<button type="button" data-a="nostickers">Clear my stickers</button>'
+      + '<small>Create a puzzle table under Games → Puzzles, then invite Robo. Or let Robo host and join with the code.</small></div>'
       + '<div class="sb-group"><b>🪙 Coins & toys</b>'
       + '<button type="button" data-a="coins">+1,000 coins</button>'
       + '<button type="button" data-a="unlock">Refill every toy (×3)</button>'
@@ -192,6 +246,9 @@
       const a = e.target.closest("button[data-a]"); if(!a) return;
       const closePanel = ()=>{ panel.hidden = true; fab.setAttribute("aria-expanded","false"); };
       ({ join:()=>{ robo.joinMyTable(); closePanel(); }, host:()=>{ robo.hostTable(); closePanel(); },
+         pzinvite:()=>{ if(robo.invitePuzzle()) closePanel(); }, pzcoop:()=>{ robo.hostPuzzle("coop"); closePanel(); }, pzrace:()=>{ robo.hostPuzzle("race"); closePanel(); },
+         stickers:()=>{ const o = {}; STICKER_IDS.forEach(id=>o[id]=1); store["players/"+ME].stickers = o; notify("players/"+ME); panelLog("Every puzzle sticker added."); },
+         nostickers:()=>{ store["players/"+ME].stickers = {}; notify("players/"+ME); panelLog("Stickers cleared."); },
          coins:()=>{ tools.addCoins(1000); panelLog("Added 1,000 coins."); },
          unlock:()=>{ tools.unlockAll(); panelLog("Every toy refilled to ×3 (scams ×1)."); },
          empty:()=>{ tools.emptyBackpack(); panelLog("Backpack emptied."); },

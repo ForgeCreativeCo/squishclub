@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Eleven mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Twelve mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -50,6 +50,7 @@ Eleven mini-games earn Squish Coins. Each round ends with a results screen, and 
 | Squishy Catch | Catch falling squishies in your backpack, dodge bombs |
 | Stretch Zone | Time your tap inside the glowing zone |
 | Squish Sorter 🗂️ | Toys ride a conveyor belt. Drag each into the right bin before it falls off |
+| Puzzles 🧩 | Build a jigsaw of toy art, alone or with a buddy on another tablet |
 | Squishy Bowling 🎳 | Flick a squishy down the lane and knock down the pins |
 | Squishy Stacker 🗼 | Drop squishies onto a wobbly tower. Round toys wobble more |
 | Spot the Fake 🔍 | Find the knockoff dupe hiding among the real toys |
@@ -66,6 +67,12 @@ All the games use the same toy art as the rest of the game: real toys on the mat
 **Squishy Stacker.** A toy swings across the top; tap to drop it onto the tower. Line it up over the toy below: a "Perfect!" lands within a few pixels and calms the tower, while a sloppy drop kicks it. The tower sways on a simple damped spring (no physics engine), with a Wobble bar that goes green, yellow and red. Flat toys (Pop-It, cubes) are steady and round, soft ones (Fuzz Ball, Mochi Panda) are wobbly, and each toy is tagged Steady, Squishy or Wobbly as it swings. Too much wobble means TIMBER! and the tower tumbles. A drop that misses the tower slides off and costs one of three hearts. The round has 14 toys. Coins are 5 per toy stacked, +2 per perfect, +10 for finishing the tower, capped at 90, and a tumbled tower still pays for its height. Per-toy width and wobble live in `STACK_TRAITS`, and the feel is tuned in `STACK_TUNE`.
 
 **Squishy Bowling.** A squishy rolls down a lane at a rack of 10 cute pins. Kids slide the ball sideways along the foul line with a finger, then flick it up the lane; the flick's direction and speed set the aim and power (there's also a "Roll it straight" button). The ball is a random squishy each throw, tagged Heavy (smashes through), Medium or Light (bounces off). It's simple 2D circle physics, with no physics engine. Pins that get hit hard enough fall and are swept away, and pins in the gutter are out. There are 5 frames of up to 2 balls, and a strike or spare ends the frame. Coins are 1 per pin, +6 per strike and +3 per spare, capped at 90. The lane and pin sizes, ball weights and flick speeds are in `BWL` and the knock thresholds are in the physics step.
+
+**Puzzles.** A jigsaw cut from a scene of the game's own toy art, with real tabbed piece shapes. Kids drag pieces onto the board, where they snap into place (👁 Peek shows the whole picture for a moment, 🔀 Spread out re-lays the table). Three sizes: Easy (6 pieces), Medium (12) and Hard (20).
+- **Play alone.** Coins are 15 / 35 / 60 by size, plus up to +20 for finishing under a par time, and every finished puzzle wins a **sticker**.
+- **Play with a buddy (two tablets, 4-digit code, like trading).** The host picks a mode and size, the buddy joins with the code, and the host starts it. **🤝 Build together:** both kids see one board and each holds half the pieces (the pieces they place show up live on the other tablet). Coins are 1.2× and the sticker is one tier higher. **🏁 Race:** both build their own copy of the same puzzle and see each other's progress. The winner gets +15 coins and a higher-tier sticker, and the other kid gets half the coins and a normal sticker.
+- **Stickers** are a separate collection of 18 (6 Common, 6 Uncommon, 6 Rare) kept in the player's `stickers` map. They live in the Collection Book's **Stickers 🧩** filter, don't count toward the 28 toys, and can't be traded. Easy puzzles give Common stickers, Medium Uncommon and Hard Rare.
+- Both tablets draw the same picture and the same piece shapes from one `seed` number. A two-player table is a document in the existing `trades` collection with the id `puzzle-<code>` (so no Firestore rules change was needed), and both tablets must be on the same game version.
 
 #### Planned mini-games
 
@@ -139,6 +146,7 @@ Each tablet signs in to [Firebase](https://firebase.google.com) anonymously (no 
 | `inventory` | `{ itemId: count }`, including scam items |
 | `skills.math`, `skills.words` | Pop-It Math and Word Builder levels |
 | `backpack.color`, `backpack.keychain` | Backpack color and keychain toy |
+| `stickers` | `{ stickerId: count }`, won by finishing puzzles |
 | `packsOpened`, `lastPackScam` | Used for the scam-pack rules |
 
 **`trades/{code}`**, one per trading table:

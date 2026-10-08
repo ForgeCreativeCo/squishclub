@@ -28,6 +28,10 @@ for m in re.finditer(r'\{id:"([a-z0-9_]+)", name:"([^"]+)", emoji:"[^"]+", categ
 if len(info) < 30:
     sys.exit("build.py: found only %d catalog items; did the ITEMS format change?" % len(info))
 
+sticker_ids = re.findall(r'\{id:"(st_[a-z0-9_]+)"', src)
+if len(sticker_ids) < 10:
+    sys.exit("build.py: found only %d puzzle stickers; did the STICKERS format change?" % len(sticker_ids))
+
 s = src
 # 1. The artifact host adds its own document skeleton, charset and viewport.
 for tag in ['<!doctype html>\n', '<html lang="en">\n', '</body>\n', '</html>\n', '</html>']:
@@ -45,7 +49,7 @@ for pat in [r'<link rel="manifest"[^>]*>\n', r'<link rel="apple-touch-icon"[^>]*
 # 3. Swap the Firebase bootstrap module for the sandbox layer.
 a = s.index('<!-- Firebase bootstrap')
 b = s.index('</script>', s.index('<script type="module">', a)) + len('</script>')
-layer = open(os.path.join(HERE, "sandbox.js"), encoding="utf-8").read().replace('__ITEM_INFO__', json.dumps(info, ensure_ascii=False))
+layer = open(os.path.join(HERE, "sandbox.js"), encoding="utf-8").read().replace('__ITEM_INFO__', json.dumps(info, ensure_ascii=False)).replace('__STICKER_IDS__', json.dumps(sticker_ids))
 s = s[:a] + '<!-- Sandbox: a pretend database in this browser instead of Firebase, plus test tools and Robo. -->\n<script>\n' + layer + '\n</script>' + s[b:]
 # 4. No service worker in the sandbox.
 s = re.sub(r"<script>\s*if\('serviceWorker' in navigator\)\{.*?</script>\n?", '', s, flags=re.S)

@@ -7,7 +7,8 @@ rules_version = '2';
 // two collections this app uses:
 //
 //   players/{playerId}  — one doc per device/kid: name, avatar, coins, inventory
-//   trades/{code}       — one doc per open trading table
+//   trades/{code}       — one doc per open trading table (puzzle tables are
+//                         stored here too, with the id "puzzle-<code>")
 //
 // Why not restrict a player doc to "only its own owner can write it"? Because
 // completing a trade has to move items between BOTH players' inventories in
