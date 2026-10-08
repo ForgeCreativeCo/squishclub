@@ -205,7 +205,7 @@ Source recordings: "unzip-mid", "fidget-spinner1", "wet-slaps", "wet-squishy-sou
 
 ## Sandbox (testing copy)
 
-A private copy of the game for the parent to test with, at https://claude.ai/artifact/LMH3hdc6PtG4gNxW6HWhtN (owner-only). It's the same game, but:
+A private copy of the game for the parent to test with, at https://claude.ai/artifact/LMH3hdc6PtG4gNxW6HWhtN or https://claude.ai/artifact/KjCC4sLixwJwfaS97WR1HU (owner-only; one copy for each of the parent's two claude.ai accounts). It's the same game, but:
 
 - It saves everything in that browser only and **never touches the kids' real Firebase data**.
 - It starts with 99,999 coins and every toy unlocked.

@@ -12,8 +12,13 @@ Every feature or fix goes into **both** versions in the same change:
    https://squishtradeclub.netlify.app. This is what the kids play. It must stay
    a normal game: kids earn coins and toys. Never ship unlocked items, test
    tools, cheat buttons or Robo controls here.
-2. **Sandbox**: a private claude.ai artifact for the parent to test with:
-   https://claude.ai/artifact/LMH3hdc6PtG4gNxW6HWhtN
+2. **Sandbox**: a private claude.ai artifact for the parent to test with. The
+   parent works from two claude.ai accounts, so there is one copy per account:
+   - Account A: https://claude.ai/artifact/LMH3hdc6PtG4gNxW6HWhtN
+   - Account B: https://claude.ai/artifact/KjCC4sLixwJwfaS97WR1HU
+   Artifacts are owner-only, so a session can only read or update the copy its
+   own account owns (the other reads as "not found"). Update that one, and tell
+   the parent the other copy is behind. Ask which account if it is unclear.
    It is generated from `index.html` by `tools/sandbox/build.py`, which swaps
    Firebase for a pretend in-browser database and adds everything unlocked
    (99,999 coins, every toy), the 🧪 Test tools panel, and Robo the practice
@@ -25,9 +30,9 @@ After changing `index.html`:
 python3 tools/sandbox/build.py          # -> tools/sandbox/dist/squish-club-sandbox.html
 ```
 
-Then republish that file to the sandbox artifact **by its URL** (Artifact tool,
-`url: https://claude.ai/artifact/LMH3hdc6PtG4gNxW6HWhtN`; read it first if this
-session hasn't). If a feature needs new test controls (a new reset, a way to
+Then republish that file to this account's sandbox artifact **by its URL**
+(Artifact tool, `url:` one of the two above; read it first if this session
+hasn't). If a feature needs new test controls (a new reset, a way to
 trigger a rare event), add them to the panel in `sandbox.js`. If a feature
 changes trading, check Robo still plays it correctly. The build fails loudly if
 the Firebase bootstrap or the catalog format it depends on changes.
