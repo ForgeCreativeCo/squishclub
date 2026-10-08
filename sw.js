@@ -3,7 +3,7 @@
 // Firebase (auth + firestore) calls are never intercepted here — they
 // always go to the network so saves and trades stay live and correct.
 
-const CACHE_VERSION = "v18";
+const CACHE_VERSION = "v19";
 const SHELL_CACHE = "squish-shell-" + CACHE_VERSION;
 const FONT_CACHE = "squish-fonts-" + CACHE_VERSION;
 
@@ -15,6 +15,13 @@ const SHELL_URLS = [
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
   "./icons/apple-touch-icon.png",
+  "./sounds/unzip.mp3",
+  "./sounds/spin.mp3",
+  "./sounds/squish1.mp3",
+  "./sounds/squish2.mp3",
+  "./sounds/slap1.mp3",
+  "./sounds/slap2.mp3",
+  "./sounds/slap3.mp3",
   "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js",
   "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js",
   "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js"

@@ -1660,7 +1660,7 @@ function renderBackpack(){
     const stage = el("div",{class:"bp-stage"},[big, el("p",{class:"bp-tap", text:"Tap your backpack to open it!"})]);
     big.addEventListener("click", ()=>{
       if(!bp.color){ openColorPicker(true); return; }
-      big.classList.add("unzipping"); sfx("whoosh");
+      big.classList.add("unzipping"); sfx("unzip");
       setTimeout(()=>{ backpackOpen = true; renderBackpack(); }, 420);
     });
     area.appendChild(stage);
@@ -1788,11 +1788,75 @@ const FIDGET_HINT = {
 
 let fidgetSoundOn = safeLocalGet("squish_fidget_sound")!=="off";
 let audioCtx = null;
-function sfx(kind){
-  if(!fidgetSoundOn) return;
+// Recorded sound effects (short clips in sounds/). They load in the
+// background when the game starts; until a clip is ready, the matching
+// synthesized sound plays instead. A kind with several clips picks one at
+// random so repeated squishes and slaps don't sound robotic.
+const SOUND_FILES = {
+  unzip:  ["sounds/unzip.mp3"],
+  spin:   ["sounds/spin.mp3"],
+  squish: ["sounds/squish1.mp3", "sounds/squish2.mp3"],
+  slap:   ["sounds/slap1.mp3", "sounds/slap2.mp3", "sounds/slap3.mp3"],
+};
+const soundBytes = {};   // url -> Promise<ArrayBuffer>
+const soundBuffers = {}; // url -> AudioBuffer
+function soundFileBytes(url){
+  if(!soundBytes[url]){
+    soundBytes[url] = url.startsWith("data:")
+      ? Promise.resolve(Uint8Array.from(atob(url.slice(url.indexOf(",")+1)), c=>c.charCodeAt(0)).buffer)
+      : fetch(url).then(r=>{ if(!r.ok) throw new Error(url+" "+r.status); return r.arrayBuffer(); });
+    soundBytes[url].catch(()=>{});
+  }
+  return soundBytes[url];
+}
+function preloadSounds(){
+  Object.values(SOUND_FILES).flat().forEach(soundFileBytes);
+  // Browsers only allow audio after the player touches the screen, so the
+  // first tap anywhere starts the audio engine and decodes every clip. That
+  // way the very first unzip or squish is already the real sound.
+  const wake = ()=>{ if(fidgetSoundOn) ensureAudio(); };
+  window.addEventListener("pointerdown", wake, {once:true, capture:true});
+}
+function decodeSounds(){
+  if(!audioCtx) return;
+  Object.values(SOUND_FILES).flat().forEach(url=>{
+    if(soundBuffers[url]!==undefined) return;
+    soundBuffers[url] = null; // decoding
+    soundFileBytes(url).then(buf=>new Promise((ok,fail)=>audioCtx.decodeAudioData(buf.slice(0), ok, fail)))
+      .then(b=>{ soundBuffers[url] = b; }).catch(()=>{ delete soundBuffers[url]; });
+  });
+}
+function ensureAudio(){
   try{
     audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
     if(audioCtx.state==="suspended") audioCtx.resume();
+    decodeSounds();
+    return true;
+  }catch(e){ return false; }
+}
+// Plays a recorded clip; returns {src, gain} so a caller can fade or stop it,
+// or null if sound is off or the clip isn't ready yet.
+function playSample(kind, opts){
+  opts = opts||{};
+  if(!fidgetSoundOn || !ensureAudio()) return null;
+  const ready = (SOUND_FILES[kind]||[]).map(u=>soundBuffers[u]).filter(Boolean);
+  if(!ready.length) return null;
+  const src = audioCtx.createBufferSource(), gain = audioCtx.createGain();
+  src.buffer = ready[Math.floor(Math.random()*ready.length)];
+  src.playbackRate.value = opts.rate || (0.94 + Math.random()*0.12);
+  gain.gain.value = opts.gain==null ? 0.9 : opts.gain;
+  src.connect(gain); gain.connect(audioCtx.destination);
+  src.start();
+  return {src, gain};
+}
+
+function sfx(kind){
+  if(!fidgetSoundOn) return;
+  if((kind==="squish" || kind==="slap" || kind==="unzip") && playSample(kind)) return;
+  if(kind==="slap") kind = "pop";
+  if(kind==="unzip") kind = "whoosh";
+  try{
+    if(!ensureAudio()) return;
     const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
     if(kind==="pop"){ o.type="sine"; o.frequency.setValueAtTime(520+Math.random()*180,t); o.frequency.exponentialRampToValueAtTime(140,t+.09); g.gain.setValueAtTime(.5,t); g.gain.exponentialRampToValueAtTime(.001,t+.11); o.start(t); o.stop(t+.12); }
@@ -1888,15 +1952,27 @@ function setupSpinFidget(item, toy, status){
   const target = toy.querySelector(".spin") || toy.querySelector("svg");
   target.style.transformOrigin = target.classList.contains("spin") ? "50px 52px" : "50% 50%";
   target.style.transformBox = target.classList.contains("spin") ? "view-box" : "fill-box";
-  let angle = 0, vel = 0, raf = null, lastX = null, lastT = 0, best = 0;
+  let angle = 0, vel = 0, raf = null, lastX = null, lastT = 0, best = 0, whir = null;
+  // The recorded whir gets quieter and lower as the spinner slows down.
+  const whirLevel = ()=> Math.min(1, Math.abs(vel)/30);
+  const stopWhir = ()=>{
+    if(!whir) return;
+    const w = whir; whir = null;
+    try{ const t = audioCtx.currentTime; w.gain.gain.cancelScheduledValues(t); w.gain.gain.setTargetAtTime(0, t, 0.08); w.src.stop(t+0.4); }catch(e){}
+  };
   const tick = ()=>{
     angle += vel; vel *= 0.985;
     target.style.transform = "rotate("+angle+"deg)";
     if(Math.abs(vel) > best){ best = Math.abs(vel); }
+    if(whir){ try{ const t = audioCtx.currentTime; whir.gain.gain.setTargetAtTime(0.9*whirLevel(), t, 0.05); whir.src.playbackRate.setTargetAtTime(0.75+0.35*whirLevel(), t, 0.05); }catch(e){} }
     if(Math.abs(vel) > 0.2) raf = requestAnimationFrame(tick);
-    else { raf = null; if(best>20) status.textContent = "Whoa, what a spin! 🌀"; best = 0; }
+    else { raf = null; stopWhir(); if(best>20) status.textContent = "Whoa, what a spin! 🌀"; best = 0; }
   };
-  const kick = (v)=>{ vel = Math.max(-60, Math.min(60, vel + v)); sfx("whoosh"); buzz(10); if(!raf) raf = requestAnimationFrame(tick); };
+  const kick = (v)=>{
+    vel = Math.max(-60, Math.min(60, vel + v));
+    if(!whir){ whir = playSample("spin", {gain: 0.9*whirLevel(), rate: 0.75+0.35*whirLevel()}); if(!whir) sfx("whoosh"); }
+    buzz(10); if(!raf) raf = requestAnimationFrame(tick);
+  };
   toy.addEventListener("pointerdown", (e)=>{ e.preventDefault(); lastX = e.clientX; lastT = performance.now(); });
   toy.addEventListener("pointerup", (e)=>{
     if(lastX===null) return;
@@ -1904,7 +1980,7 @@ function setupSpinFidget(item, toy, status){
     kick(Math.abs(dx) < 6 ? 12 : dx/dt*14);
     lastX = null;
   });
-  return ()=>{ if(raf) cancelAnimationFrame(raf); };
+  return ()=>{ if(raf) cancelAnimationFrame(raf); stopWhir(); };
 }
 
 function setupTapFidget(item, toy, kind){
@@ -2211,7 +2287,7 @@ function initCatchGame(stage){
           sfx("sad"); basket.classList.remove("hit","gulp"); void basket.offsetWidth; basket.classList.add("hit");
         } else {
           score++; hScore.querySelector(".v").textContent = score;
-          sfx("pop"); basket.classList.remove("hit","gulp"); void basket.offsetWidth; basket.classList.add("gulp");
+          sfx("slap"); basket.classList.remove("hit","gulp"); void basket.offsetWidth; basket.classList.add("gulp");
         }
         it.node.remove(); items.splice(k,1);
         if(lives<=0){ finish(); return; }
@@ -3259,7 +3335,7 @@ function buildTradeTable(){
   ]));
   const openBtn = el("button",{class:"btn small", type:"button", text:"🎒 Open"});
   row.appendChild(openBtn);
-  const openIt = ()=>{ tradeDrawerOpen = true; sfx("whoosh"); renderTradeDrawer(); };
+  const openIt = ()=>{ tradeDrawerOpen = true; sfx("unzip"); renderTradeDrawer(); };
   openBtn.addEventListener("click", openIt);
   mini.addEventListener("click", openIt);
   wrap.appendChild(row);
@@ -3415,7 +3491,7 @@ function renderTradeDrawer(){
     const why = !canPlace ? "Wait for the ante first" : left<=0 ? "Already on the mat" : full ? "The mat is full" : "";
     if(why){ putBtn.disabled = true; putBtn.textContent = "⬆️ "+why; }
     else putBtn.addEventListener("click", ()=>{
-      myOffer.push(item.id); sfx("pop");
+      myOffer.push(item.id); sfx("slap");
       closeTradeDrawer();
       writeMyOffer();
     });
@@ -3440,7 +3516,7 @@ function reactToTradeChange(prev, t){
     return;
   }
   const before = (prev[theirs].items||[]).length, after = (them.items||[]).length;
-  if(after > before) sfx("pop");
+  if(after > before) sfx("slap");
   if(t.addMoreTo===mine && prev.addMoreTo!==mine){ showReaction("😆", "ADD MORE!", theirName); sfx("boop"); buzz(30); }
   if(hasAccepted(t, theirs) && !hasAccepted(prev, theirs)){ showReaction("😄", "I ACCEPT!", theirName); sfx("ding"); buzz(20); }
 }
@@ -3592,6 +3668,7 @@ function renderAll(){
 
 /* ============================= BOOTSTRAP ============================= */
 function startApp(){
+  preloadSounds();
   buildGamePicker();
   buildShop();
   initIdentity().then(()=>{

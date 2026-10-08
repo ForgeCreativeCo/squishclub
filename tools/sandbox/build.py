@@ -49,11 +49,17 @@ layer = open(os.path.join(HERE, "sandbox.js"), encoding="utf-8").read().replace(
 s = s[:a] + '<!-- Sandbox: a pretend database in this browser instead of Firebase, plus test tools and Robo. -->\n<script>\n' + layer + '\n</script>' + s[b:]
 # 4. No service worker in the sandbox.
 s = re.sub(r"<script>\s*if\('serviceWorker' in navigator\)\{.*?</script>\n?", '', s, flags=re.S)
-# 5. Test panel styles.
+# 5. Sound clips are inlined: the sandbox page can't load separate files.
+import base64
+def _inline(m):
+    path = os.path.join(ROOT, m.group(1))
+    return '"data:audio/mpeg;base64,' + base64.b64encode(open(path, "rb").read()).decode() + '"'
+s, n_sounds = re.subn(r'"(sounds/[a-z0-9_]+\.mp3)"', _inline, s)
+# 6. Test panel styles.
 s = s.replace('</style>', open(os.path.join(HERE, "sandbox.css"), encoding="utf-8").read() + '\n</style>', 1)
 
 assert 'gstatic.com/firebasejs' not in s, "Firebase import survived"
 assert 'serviceWorker' not in s, "service worker registration survived"
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 open(OUT, "w", encoding="utf-8").write(s)
-print("Built %s (%d bytes, %d catalog items)" % (OUT, len(s), len(info)))
+print("Built %s (%d bytes, %d catalog items, %d sound clips inlined)" % (OUT, len(s), len(info), n_sounds))

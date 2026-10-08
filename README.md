@@ -35,7 +35,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
   - **Squishies:** press and hold to squish, let go and it slowly rises.
   - **Spinners** (Golden Fidget Spinner, Fidget Ring, Marble Mesh): flick to spin with momentum.
   - **Other fidgets:** tap for a reaction (the Infinity Cube flips, the Fidget Dodecagon clicks, the Speks jiggle, the Vortex swirls).
-  - Sounds are generated in code (no audio files), with a 🔊 mute toggle each tablet remembers. Tablets that support vibration get a light buzz.
+  - Sounds: real recorded squishes, a spinner whir that winds down with the spin, and synthesized pops and clicks. A 🔊 mute toggle covers every sound, and each tablet remembers it. Tablets that support vibration get a light buzz.
 
 **The toys.** 28 collectibles modeled on real squishy and fidget trends: 10 Common, 8 Uncommon, 6 Rare, 2 Epic, 2 Legendary. Every toy is original art drawn as SVG in code, with glossy squishies with faces and pop-its built bubble by bubble. There are no image files to download. Six extra joke items come from scam packs (see Packs).
 
@@ -135,6 +135,19 @@ Each tablet signs in to [Firebase](https://firebase.google.com) anonymously (no 
 
 `firestore.rules` holds the security rules (paste them into Firebase Console → Firestore → Rules). Any signed-in device can read and write both collections, because a trade must update both kids' inventories in one transaction. That's fine for a private family app; the file explains the next step if it ever gets a wider audience.
 
+## Sound effects
+
+Recorded clips live in `sounds/`, trimmed from longer recordings and leveled. Each kind has a synthesized fallback that plays until the clip has loaded. All sounds share the 🔊 mute toggle.
+
+| Clip | Plays when |
+|---|---|
+| `unzip.mp3` | A backpack opens (Backpack tab and the trade drawer) |
+| `spin.mp3` | A spinner is flicked in fidget mode; it gets quieter and lower as the spin slows, and fades out when it stops |
+| `squish1.mp3`, `squish2.mp3` | Squishing a squishy in fidget mode, and a scored squish in Stretch Zone (picked at random) |
+| `slap1.mp3`–`slap3.mp3` | A toy lands on the trading mat, or drops into the backpack in Squishy Catch (picked at random) |
+
+Source recordings: "unzip-mid", "fidget-spinner1", "wet-slaps" and "wet-squishy-sound" from the freesound_community collection (per the original filenames, as distributed on Pixabay). Check each one's license before publishing the game anywhere public.
+
 ## Project files
 
 | File | Purpose |
@@ -142,13 +155,14 @@ Each tablet signs in to [Firebase](https://firebase.google.com) anonymously (no 
 | `index.html` | The whole game: HTML, CSS and JavaScript, including the toy art |
 | `sw.js` | Service worker that caches the game for fast, offline-capable loading (never caches Firebase traffic) |
 | `manifest.json`, `icons/` | Installable-app (PWA) metadata and icons |
+| `sounds/` | Short recorded sound effects (unzip, spinner whir, squishes, slaps) |
 | `scripts_gen_icons.py` | Regenerates the app icons |
 | `firestore.rules` | Firestore security rules |
 | `_redirects` | Netlify rules that keep `tools/` and `CLAUDE.md` off the public site |
 | `tools/sandbox/` | Builder for the sandbox testing copy |
 | `CLAUDE.md` | Working notes for Claude sessions on this repo |
 
-**Tech:** vanilla HTML/CSS/JS with no build step or bundler. Firebase JS SDK (Auth + Firestore) loads as ES modules from Google's CDN. Fonts come from Google Fonts (Baloo 2 + Nunito). Toy art is SVG generated in code; sounds are generated with Web Audio.
+**Tech:** vanilla HTML/CSS/JS with no build step or bundler. Firebase JS SDK (Auth + Firestore) loads as ES modules from Google's CDN. Fonts come from Google Fonts (Baloo 2 + Nunito). Toy art is SVG generated in code. Sounds play through Web Audio: recorded clips from `sounds/` plus synthesized pops, dings and chimes.
 
 ## Updating the game
 
