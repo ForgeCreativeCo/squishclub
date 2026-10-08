@@ -389,6 +389,68 @@ img{max-width:100%}
 .words-letters .mathpop-cell.used{visibility:hidden}
 .words-letters .mathpop-cell.hint{box-shadow:0 0 0 6px var(--coin), 0 5px 0 hsl(var(--h) 60% 32%); animation:popPulse .6s ease infinite}
 
+/* backpack */
+.bp-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.bp-head h2{margin:0}
+.bp-stage{display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px 0}
+.bp-wrap{position:relative; width:min(260px,62vw); aspect-ratio:120/130; cursor:pointer}
+.bp-wrap.small{width:92px}
+.bp-wrap .toy-svg{width:100%; height:100%; overflow:visible}
+.bp-wrap.closed{animation:bpIdle 3.5s ease-in-out infinite}
+.bp-wrap.unzipping{animation:bpUnzip .42s ease forwards}
+@keyframes bpIdle{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(-1.5deg)}}
+@keyframes bpUnzip{0%{transform:scale(1)}40%{transform:scale(1.12,.9)}100%{transform:scale(.6) translateY(30%); opacity:0}}
+.bp-keychain{position:absolute; left:76%; top:52%; width:26%; transform-origin:50% 0; animation:kcSway 3s ease-in-out infinite; cursor:pointer}
+.bp-keychain .ring{width:10%; height:14%; min-width:6px; min-height:8px; margin:0 auto; border:2px solid #b9c1d0; border-radius:50%}
+.bp-keychain .toy-art{width:100%; aspect-ratio:1; margin-top:-2px}
+.bp-keychain .toy-art.toy-emoji{font-size:28px}
+.bp-wrap.small .bp-keychain .toy-art.toy-emoji{font-size:13px}
+.bp-keychain.swing{animation:kcSwing 1.2s ease}
+@keyframes kcSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes kcSwing{0%{transform:rotate(0)}15%{transform:rotate(35deg)}35%{transform:rotate(-28deg)}55%{transform:rotate(18deg)}75%{transform:rotate(-10deg)}100%{transform:rotate(0)}}
+.bp-tap{margin:4px 0 0; font-weight:800; color:var(--ink-dim)}
+.bp-tools{display:flex; justify-content:center; gap:6px; flex-wrap:wrap}
+.bp-open-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.bp-inside{border-radius:22px; padding:12px; background:repeating-linear-gradient(45deg, rgba(0,0,0,.025) 0 6px, transparent 6px 12px), var(--surface-2); border:2px dashed var(--line); display:flex; flex-direction:column; gap:12px; animation:revealPop .35s cubic-bezier(.2,1.4,.4,1)}
+.bp-pockets{display:flex; gap:8px; flex-wrap:wrap}
+.bp-pocket{flex:1; min-width:96px; display:flex; flex-direction:column; align-items:center; gap:1px; padding:8px 6px; border-radius:16px 16px 10px 10px; border:2px solid var(--line); background:var(--surface); cursor:pointer; color:var(--ink)}
+.bp-pocket .i{font-size:22px} .bp-pocket .t{font-weight:800; font-size:12.5px} .bp-pocket .s{font-size:11px; color:var(--ink-dim)}
+.bp-pocket.active{border-color:var(--accent); background:var(--accent-soft); box-shadow:0 4px 0 var(--accent)}
+.bp-grid .item-card{background:var(--surface)}
+.bp-empty{grid-column:1/-1; color:var(--ink-dim); font-size:13px; text-align:center; margin:10px 0}
+.book-head{display:flex; align-items:center; gap:10px}
+.book-head h2{margin:0}
+.sheet-card{width:min(440px,92vw); max-height:84vh; overflow:auto; background:var(--surface); border-radius:24px; padding:18px; display:flex; flex-direction:column; gap:12px; align-items:stretch; animation:revealPop .35s cubic-bezier(.2,1.4,.4,1)}
+.sheet-card h2{margin:0; text-align:center}
+.bp-sub{margin:0; font-size:13px; color:var(--ink-dim); text-align:center}
+.bp-colors{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.bp-color{display:flex; flex-direction:column; align-items:center; gap:4px; padding:8px 4px; border-radius:16px; border:2px solid var(--line); background:var(--surface-2); cursor:pointer; font-weight:800; font-size:12.5px; color:var(--ink)}
+.bp-color .bp-wrap.small{width:72px}
+.bp-color.active{border-color:var(--accent); background:var(--accent-soft)}
+
+/* backpack during a trade */
+.trade-bp-row{display:flex; align-items:center; gap:12px; background:var(--surface); border:2px solid var(--line); border-radius:20px; padding:8px 12px}
+.trade-bp-row .bp-wrap.small{width:74px; flex:none}
+.trade-bp-text{flex:1; display:flex; flex-direction:column; gap:2px; font-size:12.5px; color:var(--ink-dim)}
+.trade-bp-text strong{font-size:15px; color:var(--ink)}
+.board-head .bp-wrap.small{width:34px; flex:none; cursor:default}
+.board-head .bp-keychain{animation:none}
+.board-slot.inspectable{cursor:zoom-in}
+.trade-drawer{position:fixed; left:0; right:0; bottom:0; z-index:82; max-height:62vh; display:flex; flex-direction:column; background:var(--surface); border-radius:26px 26px 0 0; box-shadow:0 -14px 40px -10px rgba(0,0,0,.4); animation:drawerUp .3s cubic-bezier(.2,1.2,.4,1); max-width:720px; margin:0 auto}
+.trade-drawer.settled{animation:none}
+@keyframes drawerUp{from{transform:translateY(100%)}to{transform:none}}
+.drawer-head{display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line)}
+.drawer-head .bp-wrap.small{width:44px}
+.drawer-head strong{flex:1; font-size:16px}
+.drawer-body{overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px}
+.drawer-note{margin:0; font-size:12.5px; font-weight:800; color:var(--ink-dim); background:var(--coin-soft); border-radius:12px; padding:8px 10px}
+.drawer-pick{position:absolute; inset:0; border-radius:26px 26px 0 0; background:var(--surface); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px; animation:revealPop .25s ease}
+.drawer-pick .toy-art.big{width:130px; height:130px}
+.drawer-pick .toy-art.big.toy-emoji{font-size:80px}
+.drawer-actions{display:flex; flex-direction:column; gap:8px; width:min(300px,100%); align-items:center}
+.fidget-trade-strip{width:100%; text-align:center; font-weight:800; font-size:12.5px; background:#0b1633; color:#fff; border-radius:12px; padding:7px 10px}
+.fidget-owner{font-size:12.5px; font-weight:800; color:var(--ink-dim)}
+
 /* fidget mode */
 .fidget-overlay{position:fixed; inset:0; z-index:85; background:rgba(20,14,36,.55); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:16px}
 .fidget-panel{width:min(520px,100%); background:var(--surface); border-radius:28px; padding:16px 18px 22px; box-shadow:0 30px 60px -20px rgba(0,0,0,.5); display:flex; flex-direction:column; align-items:center; gap:6px; animation:revealPop .35s cubic-bezier(.2,1.4,.4,1)}
@@ -611,6 +673,9 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
 
     <!-- COLLECTION -->
     <section class="view" id="view-collection">
+      <div id="backpackArea"></div>
+      <div id="bookArea" class="hidden" style="display:flex;flex-direction:column;gap:14px">
+      <div class="book-head"><button class="btn ghost small" type="button" id="bookBack">← Back to backpack</button><h2>📖 Collection Book</h2></div>
       <div class="stat-row">
         <div class="stat-tile"><div class="num" id="statOwned">0/28</div><div class="lbl">Collected</div></div>
         <div class="stat-tile"><div class="num" id="statCoins">0</div><div class="lbl">Squish Coins</div></div>
@@ -619,9 +684,10 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
       <div>
         <div class="progress-track"><div class="progress-fill" id="collectProgress" style="width:0%"></div></div>
       </div>
-      <div class="section-title"><h2>Your Collection</h2><span class="hint" id="collectHint">Tap a toy you own to play with it!</span></div>
+      <div class="section-title"><h2>All the toys</h2><span class="hint" id="collectHint">Find them all! Tap one you own to play.</span></div>
       <div class="pillbar" id="collectionFilters"></div>
       <div class="item-grid" id="collectionGrid"></div>
+      </div>
     </section>
 
     <!-- GAMES -->
@@ -644,7 +710,7 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
     </section>
 
     <div class="bottomnav">
-      <button class="navbtn active" data-tab="collection"><span class="ic">🧸</span>Collection</button>
+      <button class="navbtn active" data-tab="collection"><span class="ic">🎒</span>Backpack</button>
       <button class="navbtn" data-tab="games"><span class="ic">🎮</span>Games</button>
       <button class="navbtn" data-tab="shop"><span class="ic">🎁</span>Packs</button>
       <button class="navbtn" data-tab="trade"><span class="ic">🤝</span>Trade</button>
@@ -1413,6 +1479,7 @@ function setTab(tab){
   if(tab==="trade") renderTrade();
 }
 $all(".navbtn").forEach(b=>b.addEventListener("click", ()=>setTab(b.dataset.tab)));
+$("#bookBack").addEventListener("click", ()=>{ collectionMode="backpack"; renderBackpack(); });
 
 /* ============================= RENDER: TOPBAR / COLLECTION ============================= */
 function renderTopbar(){
@@ -1472,6 +1539,196 @@ function renderCollection(){
 }
 
 
+
+/* ============================= BACKPACK =============================
+   Each kid's toys live in a backpack: tap it to unzip and see what's inside,
+   sorted into pockets. Kids pick the backpack's color and a favorite toy to
+   hang from the zipper as a keychain (saved as player.backpack). The full
+   28-toy album with silhouettes lives in the Collection Book. */
+const BACKPACK_COLORS = {
+  pink:   {name:"Bubblegum", c:["#ffd0e4","#ff7ab2","#d94a8c"]},
+  blue:   {name:"Sky",       c:["#c9ecff","#3aa8f0","#1f6fc0"]},
+  purple: {name:"Grape",     c:["#e2d4ff","#8b5cf6","#5b2fc0"]},
+  green:  {name:"Mint",      c:["#d2f8e3","#3ccf7e","#1e9a55"]},
+  galaxy: {name:"Galaxy",    c:["#7a6bf0","#2a1f6b","#120c38"]},
+  rainbow:{name:"Rainbow",   c:["#ffffff","#ff7ab2","#7b5cff"]},
+};
+const POCKETS = [
+  {id:"squishy", label:"Main pocket", sub:"Squishies", icon:"🧸"},
+  {id:"fidget", label:"Side pocket", sub:"Fidgets", icon:"🌀"},
+  {id:"scam", label:"Secret zipper", sub:"Scams", icon:"💩"},
+];
+function myBackpack(){ return (player && player.backpack) || {}; }
+function ownedItems(){ return ITEMS.concat(SCAM_ITEMS).filter(i=>getInventoryCount(i.id)>0); }
+
+function backpackSVG(colorKey){
+  const id = toyId("bp"), col = BACKPACK_COLORS[colorKey] || BACKPACK_COLORS.pink;
+  const [c0,c1,c2] = col.c;
+  let defs = lg(id+"b", c0, c1, 1, 1) + lg(id+"l", shade(c1,.15), c2) + lg(id+"p", shade(c1,.25), shade(c1,-.12));
+  let extra = "";
+  if(colorKey==="rainbow"){
+    defs += '<clipPath id="'+id+'c"><rect x="14" y="20" width="92" height="102" rx="28"/></clipPath>';
+    extra = '<g clip-path="url(#'+id+'c)" opacity=".9">'+TOY_RAINBOW.map((c,i)=>'<rect x="14" y="'+(20+i*15)+'" width="92" height="15.5" fill="'+c+'"/>').join("")+'</g>';
+  }
+  if(colorKey==="galaxy"){
+    extra = [[30,40],[80,34],[44,96],[86,88],[60,30],[26,70],[96,62]].map(([x,y],i)=>sparkle(x,y,i%2?.55:.8,"#fff")).join("")
+      + '<circle cx="70" cy="100" r="1.3" fill="#fff"/><circle cx="38" cy="54" r="1.1" fill="#fff"/><circle cx="92" cy="44" r="1" fill="#fff"/>';
+  }
+  return '<svg viewBox="0 0 120 130" class="toy-svg backpack-svg"><defs>'+defs+'</defs>'
+    +'<ellipse cx="60" cy="124" rx="44" ry="5" fill="rgba(0,0,0,.18)"/>'
+    +'<path d="M44 24 C44 6 76 6 76 24" fill="none" stroke="'+c2+'" stroke-width="7" stroke-linecap="round"/>'
+    +'<rect x="8" y="44" width="12" height="56" rx="6" fill="'+c2+'"/><rect x="100" y="44" width="12" height="56" rx="6" fill="'+c2+'"/>'
+    +'<rect x="14" y="20" width="92" height="102" rx="28" fill="url(#'+id+'b)"/>'+extra
+    +'<path d="M14 50 C14 30 30 20 48 20 L72 20 C90 20 106 30 106 50 L106 58 C80 64 40 64 14 58Z" fill="url(#'+id+'l)"/>'
+    +'<path d="M16 58 C40 64 80 64 104 58" fill="none" stroke="#fff" stroke-width="2.2" stroke-dasharray="3 2.5" opacity=".8"/>'
+    +'<rect x="30" y="74" width="60" height="38" rx="13" fill="url(#'+id+'p)" stroke="'+c2+'" stroke-width="1.5"/>'
+    +'<path d="M34 80 L86 80" stroke="#fff" stroke-width="2" stroke-dasharray="3 2.5" opacity=".75"/>'
+    +'<rect x="78" y="78" width="5" height="10" rx="2" fill="#f4f6fb" stroke="#9aa3b5"/>'
+    +'<rect x="92" y="56" width="6" height="12" rx="2.5" fill="#f4f6fb" stroke="#9aa3b5"/>'
+    +face(60,94,0.62)
+    +gloss(34,34,10,4)+'</svg>';
+}
+
+// The backpack with its keychain hanging from the zipper pull.
+function backpackEl(colorKey, keychainId, opts){
+  opts = opts||{};
+  const wrap = el("div",{class:"bp-wrap"+(opts.small?" small":"")});
+  wrap.innerHTML = backpackSVG(colorKey);
+  const kItem = keychainId && ITEM_MAP[keychainId];
+  if(kItem && (opts.forceKeychain || getInventoryCount(keychainId)>0)){
+    const kc = el("div",{class:"bp-keychain"},[el("div",{class:"ring"}), toyEl(kItem)]);
+    wrap.appendChild(kc);
+    kc.addEventListener("pointerdown", (e)=>{ e.stopPropagation(); kc.classList.remove("swing"); void kc.offsetWidth; kc.classList.add("swing"); sfx("click"); });
+  }
+  return wrap;
+}
+
+let collectionMode = "backpack", backpackOpen = false, backpackPocket = "squishy";
+function renderBackpack(){
+  const area = $("#backpackArea");
+  if(!area || !player) return;
+  $("#backpackArea").classList.toggle("hidden", collectionMode!=="backpack");
+  $("#bookArea").classList.toggle("hidden", collectionMode!=="book");
+  if(collectionMode!=="backpack") return;
+  area.innerHTML = "";
+  const bp = myBackpack();
+  const owned = ownedItems();
+  const head = el("div",{class:"bp-head"},[
+    el("h2",{text:(player.name||"My")+"'s Backpack"}),
+    el("span",{class:"hint", text: owned.length+" kind"+(owned.length===1?"":"s")+" of toys inside"})
+  ]);
+  area.appendChild(head);
+
+  if(!backpackOpen){
+    const big = backpackEl(bp.color||"pink", bp.keychain);
+    big.classList.add("closed");
+    const stage = el("div",{class:"bp-stage"},[big, el("p",{class:"bp-tap", text:"Tap your backpack to open it!"})]);
+    big.addEventListener("click", ()=>{
+      if(!bp.color){ openColorPicker(true); return; }
+      big.classList.add("unzipping"); sfx("whoosh");
+      setTimeout(()=>{ backpackOpen = true; renderBackpack(); }, 420);
+    });
+    area.appendChild(stage);
+  } else {
+    const top = el("div",{class:"bp-open-top"});
+    const mini = backpackEl(bp.color||"pink", bp.keychain, {small:true});
+    top.appendChild(mini);
+    top.appendChild(el("button",{class:"btn secondary small", type:"button", text:"Zip it up 🤐", onclick:()=>{ backpackOpen=false; renderBackpack(); }}));
+    area.appendChild(top);
+    area.appendChild(buildPocketView(owned, (item)=>openFidget(item), {showCounts:true}));
+  }
+
+  const tools = el("div",{class:"bp-tools"},[
+    el("button",{class:"btn ghost small", type:"button", text:"🎨 Color", onclick:()=>openColorPicker(false)}),
+    el("button",{class:"btn ghost small", type:"button", text:"🔑 Keychain", onclick:openKeychainPicker}),
+    el("button",{class:"btn ghost small", type:"button", text:"📖 Collection Book", onclick:()=>{ collectionMode="book"; renderBackpack(); renderCollection(); }}),
+  ]);
+  area.appendChild(tools);
+}
+
+// Pocket tabs + the toys in the chosen pocket. Shared by the Backpack tab and
+// the trading drawer; onPick decides what tapping a toy does.
+function buildPocketView(owned, onPick, opts){
+  opts = opts||{};
+  const box = el("div",{class:"bp-inside"});
+  const tabs = el("div",{class:"bp-pockets"});
+  POCKETS.forEach(p=>{
+    const n = owned.filter(i=>i.category===p.id).length;
+    if(p.id==="scam" && n===0) return;
+    tabs.appendChild(el("button",{class:"bp-pocket"+(backpackPocket===p.id?" active":""), type:"button", onclick:()=>{ backpackPocket=p.id; opts.rerender ? opts.rerender() : renderBackpack(); }},[
+      el("span",{class:"i", text:p.icon}), el("span",{class:"t", text:p.label}), el("span",{class:"s", text:p.sub+" · "+n})
+    ]));
+  });
+  if(backpackPocket==="scam" && !owned.some(i=>i.category==="scam")) backpackPocket = "squishy";
+  box.appendChild(tabs);
+  const grid = el("div",{class:"item-grid bp-grid"});
+  const inPocket = owned.filter(i=>i.category===backpackPocket);
+  inPocket.forEach(item=>{
+    const card = el("div",{class:"item-card pickable"});
+    styleRarity(card, item.rarity);
+    card.appendChild(toyEl(item, "emoji"));
+    card.appendChild(el("div",{class:"nm", text:item.name}));
+    const count = opts.countFor ? opts.countFor(item) : getInventoryCount(item.id);
+    card.appendChild(el("div",{class:"ct", text: opts.countLabel ? opts.countLabel(item) : "×"+count}));
+    if(opts.showValue) card.appendChild(el("div",{class:"val", text:"⭐"+itemValue(item.id)}));
+    if(opts.dim && opts.dim(item)) card.classList.add("locked");
+    card.addEventListener("click", ()=>onPick(item, card));
+    grid.appendChild(card);
+  });
+  if(!inPocket.length) grid.appendChild(el("p",{class:"bp-empty", text: owned.length ? "Nothing in this pocket yet." : "Your backpack is empty! Play mini-games and open packs to fill it."}));
+  box.appendChild(grid);
+  return box;
+}
+
+function openSheet(title, buildBody){
+  const overlay = el("div",{class:"reveal-overlay"});
+  const card = el("div",{class:"sheet-card"});
+  card.appendChild(el("h2",{text:title}));
+  const body = el("div");
+  card.appendChild(body);
+  buildBody(body, ()=>overlay.remove());
+  card.appendChild(el("button",{class:"btn ghost small", type:"button", text:"Close", onclick:()=>overlay.remove()}));
+  overlay.appendChild(card);
+  overlay.addEventListener("click", (e)=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+function openColorPicker(first){
+  openSheet(first ? "Pick your backpack!" : "Backpack color", (body, close)=>{
+    const grid = el("div",{class:"bp-colors"});
+    Object.entries(BACKPACK_COLORS).forEach(([key,c])=>{
+      const b = el("button",{class:"bp-color"+(myBackpack().color===key?" active":""), type:"button"},[backpackEl(key,null,{small:true}), el("span",{text:c.name})]);
+      b.addEventListener("click", async ()=>{
+        await savePlayerPatch({backpack:{color:key}});
+        close(); sfx("ding");
+        if(first){ backpackOpen = true; }
+        renderBackpack();
+      });
+      grid.appendChild(b);
+    });
+    body.appendChild(grid);
+  });
+}
+function openKeychainPicker(){
+  openSheet("Pick a keychain", (body, close)=>{
+    const owned = ownedItems();
+    body.appendChild(el("p",{class:"bp-sub", text:"Your favorite toy hangs from your backpack's zipper. Your trade buddy can see it too!"}));
+    const grid = el("div",{class:"item-grid"});
+    const none = el("div",{class:"item-card pickable"+(!myBackpack().keychain?" selected":"")},[el("div",{class:"emoji", text:"🚫"}), el("div",{class:"nm", text:"No keychain"})]);
+    none.addEventListener("click", async ()=>{ await savePlayerPatch({backpack:{keychain:null}}); close(); renderBackpack(); });
+    grid.appendChild(none);
+    owned.forEach(item=>{
+      const card = el("div",{class:"item-card pickable"+(myBackpack().keychain===item.id?" selected":"")});
+      styleRarity(card, item.rarity);
+      card.appendChild(toyEl(item, "emoji"));
+      card.appendChild(el("div",{class:"nm", text:item.name}));
+      card.addEventListener("click", async ()=>{ await savePlayerPatch({backpack:{keychain:item.id}}); close(); sfx("click"); renderBackpack(); });
+      grid.appendChild(card);
+    });
+    if(!owned.length) grid.appendChild(el("p",{class:"bp-empty", text:"Get some toys first!"}));
+    body.appendChild(grid);
+  });
+}
+
 /* ============================= FIDGET MODE =============================
    Tap a toy you own in the Collection to play with it. Purely for fun: no
    coins, nothing saved. Each kind of toy has its own interaction. Sounds are
@@ -1516,7 +1773,8 @@ function sfx(kind){
 }
 function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
-function openFidget(item){
+function openFidget(item, opts){
+  opts = opts||{};
   const kind = fidgetKind(item);
   const overlay = el("div",{class:"fidget-overlay"});
   const panel = el("div",{class:"fidget-panel"});
@@ -1527,7 +1785,9 @@ function openFidget(item){
   top.appendChild(soundBtn);
   top.appendChild(el("button",{class:"btn ghost small", type:"button", text:"Done ✕", onclick:()=>{ cleanup(); overlay.remove(); }}));
   panel.appendChild(top);
+  if(tradeCode && tradeData && tradeData.sideB) panel.appendChild(el("div",{class:"fidget-trade-strip", id:"fidgetTradeStrip"}));
   panel.appendChild(el("h2",{class:"fidget-name", text:item.name}));
+  if(opts.owner) panel.appendChild(el("div",{class:"fidget-owner", text:opts.owner+"'s toy · just looking 👀"}));
   const stage = el("div",{class:"fidget-stage kind-"+kind});
   const toy = el("div",{class:"fidget-toy"});
   stage.appendChild(toy);
@@ -1537,10 +1797,19 @@ function openFidget(item){
   overlay.appendChild(panel);
   document.body.appendChild(overlay);
 
+  updateFidgetStrip();
   if(kind==="pop") cleanup = setupPopFidget(item, toy, status);
   else if(kind==="spin") cleanup = setupSpinFidget(item, toy, status);
   else if(kind==="squish") cleanup = setupSquishFidget(item, toy, status);
   else cleanup = setupTapFidget(item, toy, kind);
+}
+
+// While fidgeting mid-trade, a strip at the top keeps showing what's
+// happening on the mat.
+function updateFidgetStrip(){
+  const strip = $("#fidgetTradeStrip");
+  if(!strip || !tradeData) return;
+  strip.textContent = "🤝 Trade: "+tradeMessage(tradeData).msg;
 }
 
 function setupPopFidget(item, toy, status){
@@ -2682,8 +2951,10 @@ function renderTrade(){
   }
   // A finished trade keeps showing its result, even when the swap itself
   // updates the inventory and triggers a re-render.
-  if(tradeData.status!=="open"){ renderTradeEndScreen(tradeData); return; }
+  if(tradeData.status!=="open"){ closeTradeDrawer(); renderTradeEndScreen(tradeData); updateFidgetStrip(); return; }
   area.appendChild(buildTradeTable());
+  renderTradeDrawer();
+  updateFidgetStrip();
 }
 
 function emptyState(ic,title,body){
@@ -2726,7 +2997,7 @@ async function createTable(){
     attempts++;
   } while(exists && attempts<6);
 
-  const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null };
+  const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null, bpColor: myBackpack().color||"pink", keychain: myBackpack().keychain||null };
   try{
     await db.doc("trades/"+code).set({ code, status:"open", sideA: sideData, sideB: null, addMoreTo: null, addMoreValue: null, createdAt: Date.now() });
     openTradeSession(code);
@@ -2745,7 +3016,7 @@ async function joinTable(code){
     if(t.sideA && t.sideA.playerId===PLAYER_ID){ openTradeSession(code); return; }
     if(t.sideB && t.sideB.playerId===PLAYER_ID){ openTradeSession(code); return; }
     if(t.sideB){ msg.textContent = "That table already has two traders."; return; }
-    const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null };
+    const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null, bpColor: myBackpack().color||"pink", keychain: myBackpack().keychain||null };
     await db.doc("trades/"+code).update({ sideB: sideData });
     openTradeSession(code);
   }catch(e){
@@ -2763,6 +3034,7 @@ function closeTradeSession(){
   if(tradeUnsub) tradeUnsub();
   tradeUnsub = null;
   tradeCode = null; tradeData = null; myOffer = [];
+  closeTradeDrawer();
   safeLocalRemove(tradeStorageKey());
   renderTrade();
 }
@@ -2777,6 +3049,7 @@ function subscribeTrade(code){
     tradeData = t;
     reactToTradeChange(prev, t);
     if(t.status!=="open"){
+      closeTradeDrawer(); updateFidgetStrip();
       renderTradeEndScreen(t);
       return;
     }
@@ -2824,6 +3097,28 @@ function tradePhase(t){
   return "negotiate";
 }
 
+// What step the trade is on and what to tell this kid to do next. Shared by
+// the banner above the mat and the strip shown while fidgeting mid-trade.
+function tradeMessage(t){
+  const mine = mySideKey(t), theirs = otherSideKey(t);
+  const theirName = (t[theirs] && t[theirs].name) || "Your buddy";
+  if(t.status==="completed") return {step:4, msg:"Trade complete! 🎉"};
+  if(t.status==="declined") return {step:4, msg:(t.declinedBy||"Someone")+" declined the trade."};
+  if(t.status!=="open") return {step:4, msg:"The table closed."};
+  if(!t.sideB) return {step:1, msg:"Waiting for your buddy to join…"};
+  const phase = tradePhase(t), iStarted = mine==="sideA";
+  const myAccepted = hasAccepted(t, mine), theirAccepted = hasAccepted(t, theirs);
+  const askedMe = t.addMoreTo===mine, iAsked = t.addMoreTo===theirs;
+  if(phase==="ante") return {step:1, msg: iStarted ? "Your ante! Put an item on your side of the board." : "Waiting for "+theirName+" to put down their ante…"};
+  if(phase==="counter") return {step:2, msg: iStarted ? "Waiting for "+theirName+"'s counter-offer…" : "Your counter-offer! Put down something you think matches "+theirName+"'s ante."};
+  const step = (myAccepted||theirAccepted||t.addMoreTo) ? 4 : 3;
+  if(askedMe) return {step, msg:theirName+" wants you to add more! ➕ Put down another item, or ❌ decline."};
+  if(iAsked) return {step, msg:"You asked "+theirName+" to add more. Waiting…"};
+  if(myAccepted && !theirAccepted) return {step, msg:"You accepted ✔️. Waiting for "+theirName+"…"};
+  if(theirAccepted && !myAccepted) return {step, msg:theirName+" accepted ✔️! Press ✔️ to swap, ➕ to ask for more, or ❌ to decline."};
+  return {step, msg:"Is it a fair trade? Check the scale, then press a button."};
+}
+
 function buildTradeTable(){
   const t = tradeData;
   const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
@@ -2850,22 +3145,7 @@ function buildTradeTable(){
   // Guided turns: the buddy can't place anything until the ante is down.
   const canPlace = !(phase==="ante" && !iStarted);
 
-  // Step tracker + what to do now
-  let step = 1, msg;
-  if(phase==="ante"){
-    step = 1;
-    msg = iStarted ? "Your ante! Put an item on your side of the board." : "Waiting for "+theirName+" to put down their ante…";
-  } else if(phase==="counter"){
-    step = 2;
-    msg = iStarted ? "Waiting for "+theirName+"'s counter-offer…" : "Your counter-offer! Put down something you think matches "+theirName+"'s ante.";
-  } else {
-    step = (myAccepted||theirAccepted||addMore) ? 4 : 3;
-    if(askedMe) msg = theirName+" wants you to add more! ➕ Put down another item, or ❌ decline.";
-    else if(iAsked) msg = "You asked "+theirName+" to add more. Waiting…";
-    else if(myAccepted && !theirAccepted) msg = "You accepted ✔️. Waiting for "+theirName+"…";
-    else if(theirAccepted && !myAccepted) msg = theirName+" accepted ✔️! Press ✔️ to swap, ➕ to ask for more, or ❌ to decline.";
-    else msg = "Is it a fair trade? Check the scale, then press a button.";
-  }
+  const {step, msg} = tradeMessage(t);
   const steps = el("div",{class:"trade-steps"});
   ["Ante","Counter","Evaluate","Decide"].forEach((label,i)=>{
     steps.appendChild(el("div",{class:"trade-step"+(i+1===step?" now":"")+(i+1<step?" done":"")},[
@@ -2890,32 +3170,22 @@ function buildTradeTable(){
   board.appendChild(el("div",{class:"mat-brand mine", text:"Squish Trade Club"}));
   wrap.appendChild(board);
 
-  // Your items to place on the board
-  const myItemsLeft = Object.entries(player.inventory||{}).filter(([id,c])=>c>0);
-  wrap.appendChild(el("div",{class:"section-title"},[el("h2",{style:"font-size:15px", text:"Your items"}),el("span",{class:"hint", text: canPlace ? "Tap to put on the board" : "Wait for the ante"})]));
-  const pickerGrid = el("div",{class:"item-grid"+(canPlace?"":" waiting")});
-  myItemsLeft.forEach(([id,count])=>{
-    const item = ITEM_MAP[id]; if(!item) return;
-    const remaining = count - myOffer.filter(x=>x===id).length;
-    const card = el("div",{class:"item-card pickable"+(remaining<=0?" locked":"")});
-    styleRarity(card, item.rarity);
-    card.appendChild(toyEl(item, "emoji"));
-    card.appendChild(el("div",{class:"nm", text:item.name}));
-    card.appendChild(el("div",{class:"ct", text:remaining+"/"+count}));
-    card.appendChild(el("div",{class:"val", text:"⭐"+itemValue(id)}));
-    card.addEventListener("click", ()=>{
-      if(!canPlace){ showToast("Wait for "+theirName+" to put down the ante first."); return; }
-      if(remaining<=0) return;
-      if(myOffer.length>=MAX_OFFER){ showToast("The board fits "+MAX_OFFER+" items per side."); return; }
-      myOffer.push(id);
-      sfx("pop");
-      writeMyOffer();
-    });
-    pickerGrid.appendChild(card);
-  });
-  if(myItemsLeft.length===0) pickerGrid.appendChild(el("p",{style:"color:var(--ink-dim);font-size:13px", text:"You don't have any items yet. Play mini-games or open a pack!"}));
-  wrap.appendChild(pickerGrid);
-  wrap.appendChild(el("p",{class:"trade-legend", text:"Item values: Common ⭐1 · Uncommon ⭐2 · Rare ⭐4 · Epic ⭐7 · Legendary ⭐10 · Scam 💩 ⭐0"}));
+  // Your backpack sits below your edge of the mat; tapping it opens a drawer
+  // to put toys on the mat or play with them.
+  const bp = myBackpack();
+  const row = el("div",{class:"trade-bp-row"});
+  const mini = backpackEl(bp.color||"pink", bp.keychain, {small:true});
+  row.appendChild(mini);
+  row.appendChild(el("div",{class:"trade-bp-text"},[
+    el("strong",{text:"Your backpack"}),
+    el("span",{text: canPlace ? "Open it to put toys on the mat, or play with them while you trade." : "Open it to play with your toys while "+theirName+" puts down the ante."})
+  ]));
+  const openBtn = el("button",{class:"btn small", type:"button", text:"🎒 Open"});
+  row.appendChild(openBtn);
+  const openIt = ()=>{ tradeDrawerOpen = true; sfx("whoosh"); renderTradeDrawer(); };
+  openBtn.addEventListener("click", openIt);
+  mini.addEventListener("click", openIt);
+  wrap.appendChild(row);
   return wrap;
 }
 
@@ -2926,6 +3196,7 @@ function buildBoardSide(isMe, side, accepted, beingAsked){
   boardSeen[sideKey] = items.length;
   const field = el("div",{class:"mat-field "+(isMe?"mine":"theirs")+(beingAsked?" asked":"")});
   const head = el("div",{class:"board-head"},[
+    isMe ? null : backpackEl(side.bpColor||"pink", side.keychain, {small:true, forceKeychain:true}),
     el("span",{class:"who", text:(side.avatar||"🙂")+" "+(isMe?"You":(side.name||"Trader"))}),
     el("span",{class:"board-val", text:"⭐ "+offerValue(items)}),
   ]);
@@ -2944,6 +3215,10 @@ function buildBoardSide(isMe, side, accepted, beingAsked){
       if(isMe){
         slot.classList.add("removable");
         slot.addEventListener("click", ()=>{ myOffer.splice(i,1); writeMyOffer(); });
+      } else if(TOY_ART[item.id]){
+        // Try before you trade: play with the buddy's toy, just looking.
+        slot.classList.add("inspectable");
+        slot.addEventListener("click", ()=>openFidget(item, {owner: side.name||"Your buddy"}));
       }
       slots.appendChild(slot);
     } else {
@@ -2952,7 +3227,7 @@ function buildBoardSide(isMe, side, accepted, beingAsked){
   }
   // Names sit on the outer edge of each half, items toward the center line.
   if(isMe){ field.appendChild(slots); field.appendChild(head); if(items.length) field.appendChild(el("div",{class:"board-tip", text:"Tap an item on the mat to take it back."})); }
-  else { field.appendChild(head); field.appendChild(slots); }
+  else { field.appendChild(head); field.appendChild(slots); if(items.length) field.appendChild(el("div",{class:"board-tip", text:"👀 Tap "+(side.name||"their")+"'s toys to try them out."})); }
   return field;
 }
 
@@ -3015,6 +3290,65 @@ function buildMatDivider(t, mine, theirs){
   return el("div",{class:"mat-divider"},[scale]);
 }
 
+
+
+/* ---- the backpack drawer during a trade ---- */
+let tradeDrawerOpen = false, drawerPick = null;
+function closeTradeDrawer(){ tradeDrawerOpen = false; drawerPick = null; const d = $("#tradeDrawer"); if(d) d.remove(); }
+function renderTradeDrawer(){
+  let d = $("#tradeDrawer");
+  const t = tradeData;
+  if(!tradeDrawerOpen || !t || t.status!=="open" || !t.sideB){ if(d) d.remove(); if(!t || t.status!=="open") tradeDrawerOpen = false; return; }
+  const fresh = !d;
+  if(!d){ d = el("div",{id:"tradeDrawer", class:"trade-drawer"}); document.body.appendChild(d); }
+  const oldBody = d.querySelector(".drawer-body");
+  const scroll = oldBody ? oldBody.scrollTop : 0;
+  d.innerHTML = "";
+  if(!fresh) d.classList.add("settled");
+  const mine = mySideKey(t), theirs = otherSideKey(t);
+  const theirName = t[theirs].name||"your buddy";
+  const canPlace = !(tradePhase(t)==="ante" && mine!=="sideA");
+  const counts = {}; myOffer.forEach(id=>counts[id]=(counts[id]||0)+1);
+  const remaining = (item)=> getInventoryCount(item.id) - (counts[item.id]||0);
+  const bp = myBackpack();
+  d.appendChild(el("div",{class:"drawer-head"},[
+    backpackEl(bp.color||"pink", bp.keychain, {small:true}),
+    el("strong",{text:"Your backpack"}),
+    el("button",{class:"btn ghost small", type:"button", text:"Close ✕", onclick:closeTradeDrawer})
+  ]));
+  const body = el("div",{class:"drawer-body"});
+  if(!canPlace) body.appendChild(el("p",{class:"drawer-note", text:"You can play with your toys now. Putting them on the mat unlocks after "+theirName+" puts down the ante."}));
+  body.appendChild(buildPocketView(ownedItems(), (item)=>{ drawerPick = item.id; renderTradeDrawer(); }, {
+    rerender: renderTradeDrawer, showValue:true,
+    countLabel: (item)=> remaining(item)+"/"+getInventoryCount(item.id),
+    dim: (item)=> remaining(item)<=0,
+  }));
+  body.appendChild(el("p",{class:"trade-legend", text:"Item values: Common ⭐1 · Uncommon ⭐2 · Rare ⭐4 · Epic ⭐7 · Legendary ⭐10 · Scam 💩 ⭐0"}));
+  d.appendChild(body);
+  body.scrollTop = scroll;
+
+  // Picked a toy: put it on the mat, or play with it.
+  const item = drawerPick && ITEM_MAP[drawerPick];
+  if(item && getInventoryCount(item.id)>0){
+    const left = remaining(item), full = myOffer.length>=MAX_OFFER;
+    const pop = el("div",{class:"drawer-pick"});
+    pop.appendChild(toyEl(item, "big"));
+    pop.appendChild(el("strong",{text:item.name+" · ⭐"+itemValue(item.id)}));
+    const putBtn = el("button",{class:"btn block", type:"button", text:"⬆️ Put on mat"});
+    const why = !canPlace ? "Wait for the ante first" : left<=0 ? "Already on the mat" : full ? "The mat is full" : "";
+    if(why){ putBtn.disabled = true; putBtn.textContent = "⬆️ "+why; }
+    else putBtn.addEventListener("click", ()=>{
+      myOffer.push(item.id); sfx("pop");
+      closeTradeDrawer();
+      writeMyOffer();
+    });
+    const actions = el("div",{class:"drawer-actions"},[putBtn]);
+    if(TOY_ART[item.id]) actions.appendChild(el("button",{class:"btn secondary block", type:"button", text:"▶️ Play", onclick:()=>{ drawerPick=null; renderTradeDrawer(); openFidget(item); }}));
+    actions.appendChild(el("button",{class:"btn ghost small", type:"button", text:"Back", onclick:()=>{ drawerPick=null; renderTradeDrawer(); }}));
+    pop.appendChild(actions);
+    d.appendChild(pop);
+  }
+}
 
 /* ---- trading flourishes: reaction bubbles, sounds, bounce-in toys ---- */
 let boardSeen = {sideA:0, sideB:0}; // items already shown, so only new ones bounce in
@@ -3175,6 +3509,7 @@ function renderAll(){
   renderTopbar();
   buildCollectionFilters();
   renderCollection();
+  renderBackpack();
   if(currentTab==="trade") renderTrade();
 }
 
