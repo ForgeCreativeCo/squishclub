@@ -83,7 +83,7 @@ The two learning games adapt to each kid. The first time, a kid picks a starting
 | Rare Pack | 120 🪙 | Common 30%, Uncommon 40%, Rare 25%, Epic 5% |
 | Legendary Pack | 300 🪙 | Uncommon 20%, Rare 45%, Epic 25%, Legendary 10% |
 
-Every pack wobbles before it opens. Epic and Legendary pulls get a shine and confetti.
+Every pack rattles and wobbles, then its wrapper crinkles open and the toy appears with a sparkle. Epic and Legendary pulls get a longer shimmer, a shine and confetti.
 
 **Scam packs.** About 1 pack in 12 (shown on every pack as "💩 Scam 8%") is a scam. A SCAMMED stamp slams down over a joke item: Scam Poo, Empty Box, Lost Sock, Not-So-Squishy Brick, Banana Peel or IOU Note. A kid's first pack is never a scam, and scams never come twice in a row. Joke items have their own "Scam" rarity, live in the backpack's secret zipper and the Collection Book's Scams filter, don't count toward the 28, and are worth ⭐0 when trading.
 
@@ -158,8 +158,12 @@ Recorded clips live in `sounds/`, trimmed from longer recordings and leveled. Ea
 | `spin.mp3` | A spinner is flicked in fidget mode; it gets quieter and lower as the spin slows, and fades out when it stops |
 | `squish1.mp3`, `squish2.mp3` | Squishing a squishy in fidget mode, and a scored squish in Stretch Zone (picked at random) |
 | `slap1.mp3`–`slap3.mp3` | A toy lands on the trading mat, or drops into the backpack in Squishy Catch (picked at random) |
+| `pack-rattle.mp3` | A mystery pack wobbles before it opens |
+| `pack-open.mp3` | The pack's wrapper crinkles open |
+| `reveal.mp3` | The toy appears (Common, Uncommon, Rare) |
+| `reveal-big.mp3` | The toy appears with a longer shimmer (Epic, Legendary). Scam packs get a sad "womp" instead. |
 
-Source recordings: "unzip-mid", "fidget-spinner1", "wet-slaps" and "wet-squishy-sound" from the freesound_community collection (per the original filenames, as distributed on Pixabay). Check each one's license before publishing the game anywhere public.
+Source recordings: "unzip-mid", "fidget-spinner1", "wet-slaps", "wet-squishy-sound", "paper-sound" and "rattling-box" from the freesound_community collection, and "magic-spell-03" (universfield) (per the original filenames, as distributed on Pixabay). Check each one's license before publishing the game anywhere public.
 
 ## Project files
 

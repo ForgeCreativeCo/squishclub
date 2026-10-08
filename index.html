@@ -1809,7 +1809,13 @@ const SOUND_FILES = {
   spin:   ["sounds/spin.mp3"],
   squish: ["sounds/squish1.mp3", "sounds/squish2.mp3"],
   slap:   ["sounds/slap1.mp3", "sounds/slap2.mp3", "sounds/slap3.mp3"],
+  packRattle: ["sounds/pack-rattle.mp3"],   // the pack wobbling before it opens
+  packOpen:   ["sounds/pack-open.mp3"],     // the wrapper crinkling open
+  reveal:     ["sounds/reveal.mp3"],        // the toy appears
+  revealBig:  ["sounds/reveal-big.mp3"],    // the toy appears: Epic or Legendary
 };
+// What to play if a clip isn't loaded yet (null = stay quiet).
+const SFX_FALLBACK = { slap:"pop", unzip:"whoosh", squish:"squish-synth", packRattle:null, packOpen:"whoosh", reveal:"ding", revealBig:"fanfare" };
 const soundBytes = {};   // url -> Promise<ArrayBuffer>
 const soundBuffers = {}; // url -> AudioBuffer
 function soundFileBytes(url){
@@ -1916,15 +1922,17 @@ function setupMusic(){
 
 function sfx(kind){
   if(!fidgetSoundOn) return;
-  if((kind==="squish" || kind==="slap" || kind==="unzip") && playSample(kind)) return;
-  if(kind==="slap") kind = "pop";
-  if(kind==="unzip") kind = "whoosh";
+  if(kind in SFX_FALLBACK){
+    if(playSample(kind)) return;
+    kind = SFX_FALLBACK[kind];
+    if(!kind) return;
+  }
   try{
     if(!ensureAudio()) return;
     const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
     if(kind==="pop"){ o.type="sine"; o.frequency.setValueAtTime(520+Math.random()*180,t); o.frequency.exponentialRampToValueAtTime(140,t+.09); g.gain.setValueAtTime(.5,t); g.gain.exponentialRampToValueAtTime(.001,t+.11); o.start(t); o.stop(t+.12); }
-    else if(kind==="squish"){ o.type="triangle"; o.frequency.setValueAtTime(240,t); o.frequency.exponentialRampToValueAtTime(90,t+.25); g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); o.start(t); o.stop(t+.32); }
+    else if(kind==="squish-synth"){ o.type="triangle"; o.frequency.setValueAtTime(240,t); o.frequency.exponentialRampToValueAtTime(90,t+.25); g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); o.start(t); o.stop(t+.32); }
     else if(kind==="flip"){ o.type="square"; o.frequency.setValueAtTime(320,t); o.frequency.exponentialRampToValueAtTime(880,t+.15); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.2); o.start(t); o.stop(t+.21); }
     else if(kind==="whoosh"){ o.type="sawtooth"; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(60,t+.4); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.45); o.start(t); o.stop(t+.46); }
     else if(kind==="ding"){ o.type="sine"; o.frequency.setValueAtTime(880,t); o.frequency.setValueAtTime(1320,t+.09); g.gain.setValueAtTime(.3,t); g.gain.exponentialRampToValueAtTime(.001,t+.4); o.start(t); o.stop(t+.42); }
@@ -3099,9 +3107,11 @@ function shakeBox(pack, then){
   const overlay = el("div",{class:"reveal-overlay"});
   overlay.appendChild(el("div",{class:"pack-shake", text:pack.emoji}));
   document.body.appendChild(overlay);
-  setTimeout(()=>{ overlay.remove(); then(); }, 1100);
+  sfx("packRattle");
+  setTimeout(()=>{ overlay.remove(); sfx("packOpen"); then(); }, 1100);
 }
 function revealScam(item){
+  setTimeout(()=>sfx("sad"), 600); // as the SCAMMED stamp slams down
   const overlay = el("div",{class:"reveal-overlay"});
   const card = el("div",{class:"reveal-card scam"});
   styleRarity(card, "scam");
@@ -3130,6 +3140,7 @@ function spawnConfetti(container, count){
 }
 function revealItem(item){
   const big = item.rarity==="epic" || item.rarity==="legendary";
+  setTimeout(()=>sfx(big ? "revealBig" : "reveal"), 120);
   const overlay = el("div",{class:"reveal-overlay"});
   const card = el("div",{class:"reveal-card"+(big?" shiny":"")});
   styleRarity(card, item.rarity);
