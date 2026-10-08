@@ -508,6 +508,29 @@ img{max-width:100%}
 .arena-pattern .pop-cell{border-radius:50%; background:radial-gradient(circle at 34% 26%, rgba(255,255,255,.7), transparent 42%), radial-gradient(circle at 50% 120%, rgba(0,0,0,.28), transparent 62%), var(--rc,var(--accent)); box-shadow:0 4px 0 rgba(0,0,0,.25), inset 0 -3px 5px rgba(0,0,0,.15); opacity:.5; filter:saturate(.75)}
 .arena-pattern .pop-cell.lit{opacity:1; filter:none; transform:translateY(-3px) scale(1.06); box-shadow:0 0 0 6px var(--rc-soft,var(--accent-soft)), 0 0 20px 6px var(--rc,var(--accent)), 0 4px 0 rgba(0,0,0,.25); animation:popPulse .3s ease}
 
+/* arena 9 — Spot the Fake: detective's display shelf under a spotlight */
+.arena-fake{background:radial-gradient(ellipse at 50% 0%, var(--coin-soft), transparent 70%), repeating-linear-gradient(0deg, transparent 0 46px, rgba(0,0,0,.04) 46px 48px), var(--surface-2); display:flex; flex-direction:column; gap:12px; align-items:center}
+.fake-tools{display:flex; justify-content:flex-end; width:100%}
+.fake-mag.on{background:var(--coin); color:#fff; border-color:var(--coin)}
+.fake-grid{display:grid; gap:10px; width:100%; max-width:380px}
+.fake-grid.n4{grid-template-columns:repeat(2,1fr); max-width:300px}
+.fake-grid.n6{grid-template-columns:repeat(3,1fr)}
+.fake-card{position:relative; border:2px solid var(--line); background:var(--surface); border-radius:16px; padding:8px 6px 6px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--ink); font:inherit; animation:blobFloat 4s ease-in-out infinite; transition:opacity .2s}
+.fake-card .toy-art{width:100%; aspect-ratio:1}
+.fake-card .toy-art svg{width:100%; height:100%; overflow:visible}
+.fake-tag{font-size:10.5px; font-weight:800; line-height:1.2; text-align:center; padding:2px 7px; border-radius:6px; background:var(--coin-soft); border:1px dashed var(--coin); max-width:100%; overflow-wrap:anywhere}
+.fake-card.real{opacity:.45; animation:mathShake .4s ease; cursor:default}
+.fake-card.real::after{content:"✓ Real"; position:absolute; top:6px; left:6px; font-size:10px; font-weight:800; background:var(--mint); color:#fff; padding:1px 6px; border-radius:999px}
+.fake-card.dim{opacity:.4; animation:none}
+.fake-card.busted{border-color:var(--danger); box-shadow:0 0 0 4px var(--danger); animation:popPulse .35s ease}
+.fake-card.busted::after{content:"FAKE!"; position:absolute; top:-10px; right:-6px; transform:rotate(12deg); font-family:var(--font-display); font-size:15px; color:var(--danger); border:3px solid var(--danger); border-radius:8px; padding:0 8px; background:var(--surface); opacity:.92}
+.fake-feedback{font-family:var(--font-display); font-size:17px; min-height:24px; text-align:center; line-height:1.25}
+.fake-feedback.good{color:var(--mint)}
+.fake-feedback.miss{color:var(--danger)}
+.fake-zoom{position:absolute; inset:0; background:rgba(20,14,36,.55); display:flex; align-items:center; justify-content:center; padding:12px; z-index:5}
+.fake-zoom-box{background:var(--surface-2); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; gap:12px; align-items:center; width:100%; max-width:320px}
+.fake-card.big{width:min(260px,70vw); animation:none; cursor:default}
+.fake-card.big .fake-tag{font-size:15px}
 .results-card{text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px}
 .results-card .big{font-size:40px}
 .results-card .coins-earned{font-family:var(--font-display); font-size:30px; color:var(--coin)}
@@ -2074,6 +2097,7 @@ const GAME_DEFS = [
   {id:"catch", name:"Squishy Catch", emoji:"🧺", art:"gummy_bear_sq", desc:"Catch squishies in your backpack, dodge the bombs."},
   {id:"stretch", name:"Stretch Zone", emoji:"📏", art:"sensory_putty", desc:"Time your tap inside the glowing zone."},
   {id:"sort", name:"Sort Rush", emoji:"🗂️", art:"infinity_cube", desc:"Squishy or fidget? Sort it before time's up."},
+  {id:"fake", name:"Spot the Fake", emoji:"🔍", art:"needoh_cube", desc:"One of these is a knockoff dupe. Can you spot it?"},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
   {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
   {id:"words", name:"Word Builder", emoji:"🔤", art:"knitten", desc:"Pop the letters in order to spell the word.", edu:true},
@@ -2086,7 +2110,7 @@ function gameIcon(g){
   else wrap.textContent = g.emoji;
   return wrap;
 }
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", fake:"--rarity-legendary", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -2120,6 +2144,7 @@ function startGame(id){
   else if(id==="catch") initCatchGame(stage);
   else if(id==="stretch") initStretchGame(stage);
   else if(id==="sort") initSortGame(stage);
+  else if(id==="fake") initFakeGame(stage);
   else if(id==="pattern") initPatternGame(stage);
   else if(id==="mathpop") initMathPopGame(stage);
   else if(id==="words") initWordGame(stage);
@@ -3056,6 +3081,255 @@ function runWordRound(stage, level){
   }
 
   nextWord();
+}
+
+/* ---- Spot the Fake (find the knockoff "dupe") ---- */
+// Every toy in a round is the same, except one knockoff with a single tell:
+// a wrong color shade, a missing detail, a misspelled tag, or a squashed
+// shape. Tells get smaller each round.
+const FAKE_ROUNDS = 8;
+const FAKE_TELL_TEXT = {color:"Wrong color shade!", missing:"It's missing a detail!", tag:"Misspelled tag!", squash:"Wrong shape!"};
+function hexToHsl(hex){
+  const n=parseInt(hex.slice(1),16), r=(n>>16)/255, g=(n>>8&255)/255, b=(n&255)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), l=(mx+mn)/2, d=mx-mn;
+  if(!d) return [0,0,l];
+  const s = d/(1-Math.abs(2*l-1));
+  const h = mx===r ? ((g-b)/d+6)%6 : mx===g ? (b-r)/d+2 : (r-g)/d+4;
+  return [h*60, s, l];
+}
+function hslToHex(h,s,l){
+  const c=(1-Math.abs(2*l-1))*s, x=c*(1-Math.abs((h/60)%2-1)), m=l-c/2;
+  const [r,g,b] = h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];
+  return "#"+[r,g,b].map(v=>Math.round((v+m)*255).toString(16).padStart(2,"0")).join("");
+}
+// The colors a fake can shift: the toy's own colored paint, not the white
+// highlights or the dark eyes and outlines.
+function fakeTintable(hex){ const [,s,l]=hexToHsl(hex); return s>.2 && l>.12 && l<.94; }
+function fakeRecolor(svg, deg){
+  return svg.replace(/#[0-9a-fA-F]{6}\b/g, hex=>{
+    if(!fakeTintable(hex)) return hex;
+    const [h,s,l] = hexToHsl(hex);
+    return hslToHex((h+deg+360)%360, s, l);
+  });
+}
+// Swaps one letter of a name. Early rounds use an obviously wrong letter;
+// later rounds use a look-alike one.
+const FAKE_LOOKALIKE = {a:"o",o:"a",e:"c",c:"e",i:"l",l:"i",n:"m",m:"n",u:"v",v:"u",b:"d",d:"b",h:"n",r:"n",t:"f",f:"t",s:"z",y:"v",k:"h",p:"q",g:"q"};
+function fakeMisspell(name, level){
+  const spots = [];
+  for(let i=1;i<name.length;i++) if(/[a-z]/.test(name[i])) spots.push(i);
+  for(let tries=0; tries<20; tries++){
+    const i = spots[Math.floor(Math.random()*spots.length)], ch = name[i];
+    let rep;
+    if(level<=3) rep = "xzqwkj".replace(ch,"")[Math.floor(Math.random()*5)];
+    else rep = FAKE_LOOKALIKE[ch];
+    if(rep && rep!==ch) return name.slice(0,i)+rep+name.slice(i+1);
+  }
+  return name.replace(/[a-z](?=[a-z]*$)/, "x");
+}
+// Draws a toy to a small canvas so the fake can be compared with the real
+// one, pixel by pixel. That keeps every tell visible but sized for the round.
+const FAKE_PX = 120;
+let fakeCanvas = null;
+async function fakePixels(svg){
+  if(!fakeCanvas){ fakeCanvas = document.createElement("canvas"); fakeCanvas.width = fakeCanvas.height = FAKE_PX; }
+  const img = new Image();
+  img.src = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="'+FAKE_PX+'" height="'+FAKE_PX+'" '));
+  await img.decode();
+  const cx = fakeCanvas.getContext("2d");
+  cx.clearRect(0,0,FAKE_PX,FAKE_PX); cx.drawImage(img,0,0,FAKE_PX,FAKE_PX);
+  return cx.getImageData(0,0,FAKE_PX,FAKE_PX).data;
+}
+function fakeDiff(a,b){
+  let n=0;
+  for(let i=0;i<a.length;i+=4) if(Math.abs(a[i]-b[i])+Math.abs(a[i+1]-b[i+1])+Math.abs(a[i+2]-b[i+2])+Math.abs(a[i+3]-b[i+3])>48) n++;
+  return n;
+}
+// How many pixels (of 120×120) a tell may change: lots early, a little later.
+function fakeBand(level){ return level<=3 ? [150, 1e9] : level<=6 ? [60, 900] : [28, 350]; }
+// Draws the fake for a "color" or "missing" tell, or returns null when this
+// toy can't show that tell clearly enough.
+async function fakeArtFor(item, tell, level){
+  const real = TOY_ART[item.id]();
+  const [lo, hi] = fakeBand(level);
+  let realPx = null;
+  try{ realPx = await fakePixels(real); }catch(e){}
+  const changed = async svg=>{ if(!realPx) return lo; try{ return fakeDiff(realPx, await fakePixels(svg)); }catch(e){ return lo; } };
+  if(tell==="color"){
+    const sign = Math.random()<.5 ? -1 : 1;
+    const base = level<=3 ? 100 : level<=6 ? 45 : 22;
+    for(const deg of [base, base*1.6, base*2.5]){
+      const svg = fakeRecolor(real, sign*deg);
+      if(await changed(svg) >= Math.max(lo, 400)) return svg; // the body, not just a blush
+    }
+    return null;
+  }
+  // "missing": hide one drawn detail (an eye shine, a blush, a bubble, a sprinkle).
+  // The toy goes on the page off-screen so its shapes can be measured.
+  const host = el("div",{style:"position:fixed;left:-400px;top:0;width:120px;height:120px;pointer-events:none"});
+  host.innerHTML = real;
+  document.body.appendChild(host);
+  try{
+    const shapes = Array.from(host.querySelectorAll("circle,ellipse,path,rect,polygon")).filter(n=>{
+      if(n.closest("defs,clipPath")) return false;
+      const fill = (n.getAttribute("fill")||"").replace(/\s/g,"").toLowerCase();
+      if(fill.startsWith("rgba(0,0,0")) return false; // shadows
+      if(fill==="none" && !n.getAttribute("stroke")) return false;
+      let a = 0; try{ const b = n.getBBox(); a = b.width*b.height; }catch(e){}
+      return a>=6 && a<=1800;
+    }).sort(()=>Math.random()-.5).slice(0, 10);
+    let best = null, bestN = 1e9;
+    for(const n of shapes){
+      n.setAttribute("visibility","hidden");
+      const d = await changed(host.innerHTML);
+      if(d>=lo && d<=hi) return host.innerHTML;
+      if(d>=lo && d<bestN){ best = host.innerHTML; bestN = d; }
+      n.removeAttribute("visibility");
+    }
+    return best;
+  } finally { host.remove(); }
+}
+
+function initFakeGame(stage){
+  id_cache = "fake";
+  let running = true, round = 0, score = 0, firstTry = 0, nextTimer = null;
+  const hud = el("div",{class:"game-hud"});
+  const hFound = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Spotted"})]);
+  const hRound = el("div",{class:"hud-item"},[el("div",{class:"v",text:"1/"+FAKE_ROUNDS}),el("div",{class:"k",text:"Round"})]);
+  hud.appendChild(hFound); hud.appendChild(hRound);
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; clearTimeout(nextTimer); exitGame();}}));
+  stage.appendChild(hud);
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"One of these is a fake dupe. Look closely and tap it!"}));
+
+  const arena = el("div",{class:"arena arena-fake"});
+  const tools = el("div",{class:"fake-tools"});
+  const magBtn = el("button",{class:"btn small secondary fake-mag", type:"button", text:"🔍 Magnifier: off"});
+  tools.appendChild(magBtn);
+  const grid = el("div",{class:"fake-grid"});
+  const feedback = el("div",{class:"fake-feedback", text:" "});
+  const nextBtn = el("button",{class:"btn hidden", type:"button", text:"Next ▶"});
+  arena.appendChild(tools); arena.appendChild(grid); arena.appendChild(feedback); arena.appendChild(nextBtn);
+  stage.appendChild(arena);
+
+  let magOn = false;
+  magBtn.addEventListener("click", ()=>{ magOn=!magOn; magBtn.textContent = "🔍 Magnifier: "+(magOn?"on":"off"); magBtn.classList.toggle("on", magOn); sfx("boop"); });
+
+  // Each round picks a different toy and cycles through the kinds of tell.
+  const toyPool = ITEMS.slice().sort(()=>Math.random()-.5);
+  let tellBag = [];
+  function nextTell(){
+    if(!tellBag.length) tellBag = ["color","missing","tag","squash"].sort(()=>Math.random()-.5);
+    return tellBag.shift();
+  }
+
+  let cards = [], fakeIdx = -1, misses = 0, done = false, tell = "", fakeName = "";
+
+  async function newRound(){
+    if(!running) return;
+    if(round>=FAKE_ROUNDS){ finish(); return; }
+    round++;
+    hRound.querySelector(".v").textContent = round+"/"+FAKE_ROUNDS;
+    feedback.textContent = " "; feedback.className = "fake-feedback";
+    nextBtn.classList.add("hidden");
+    misses = 0;
+    const level = round, count = round<=3 ? 4 : 6;
+    const item = toyPool[(round-1) % toyPool.length];
+    tell = nextTell();
+    fakeIdx = Math.floor(Math.random()*count);
+    grid.className = "fake-grid n"+count;
+    grid.innerHTML = "";
+    cards = [];
+    done = true; // no taps until the toys are on the shelf
+    const myRound = round;
+    let fakeSvg = null;
+    if(tell==="color" || tell==="missing") fakeSvg = await fakeArtFor(item, tell, level);
+    if(!running || myRound!==round) return;
+    if((tell==="color" || tell==="missing") && !fakeSvg) tell = Math.random()<.5 ? "tag" : "squash";
+    fakeName = tell==="tag" ? fakeMisspell(item.name, level) : item.name;
+    for(let i=0;i<count;i++){
+      const isFake = i===fakeIdx;
+      const card = el("button",{class:"fake-card", type:"button"});
+      card.style.animationDelay = (-i*.7)+"s";
+      const art = el("div",{class:"toy-art"});
+      art.innerHTML = isFake && fakeSvg ? fakeSvg : TOY_ART[item.id]();
+      card.appendChild(art);
+      card.appendChild(el("div",{class:"fake-tag", text: isFake ? fakeName : item.name}));
+      card.addEventListener("click", ()=>onPick(i));
+      grid.appendChild(card);
+      cards.push(card);
+    }
+    if(tell==="squash"){
+      const fakeArt = cards[fakeIdx].querySelector("svg"), k = Math.max(.07, .26-level*.025);
+      fakeArt.style.transform = "scale("+(1+k*.6).toFixed(3)+","+(1-k).toFixed(3)+")";
+      fakeArt.style.transformOrigin = "50% 92%";
+    }
+    done = false;
+  }
+
+  function onPick(i){
+    if(!running || done) return;
+    if(magOn){ openZoom(i); return; }
+    choose(i);
+  }
+  function choose(i){
+    if(done || cards[i].classList.contains("real")) return;
+    if(i===fakeIdx){
+      done = true;
+      const pts = misses===0 ? 10 : misses===1 ? 5 : 2;
+      score += pts; if(misses===0) firstTry++;
+      hFound.querySelector(".v").textContent = firstTry;
+      sfx("ding"); buzz(30);
+      reveal(true, pts);
+    } else {
+      misses++;
+      cards[i].classList.add("real");
+      sfx("click"); buzz(15);
+      if(misses>=2){ done = true; sfx("sad"); reveal(false, 0); }
+      else feedback.textContent = "That one's the real deal. Keep looking! 👀";
+    }
+  }
+  function reveal(found, pts){
+    cards[fakeIdx].classList.add("busted");
+    cards.forEach((c,i)=>{ if(i!==fakeIdx) c.classList.add("dim"); });
+    let why = FAKE_TELL_TEXT[tell];
+    if(tell==="tag") why = "Misspelled tag: “"+fakeName+"”";
+    feedback.className = "fake-feedback "+(found?"good":"miss");
+    feedback.textContent = (found ? "Busted! +"+pts+" 🕵️ " : "Here's the fake. ") + why;
+    nextBtn.textContent = round>=FAKE_ROUNDS ? "See results ▶" : "Next ▶";
+    nextBtn.classList.remove("hidden");
+  }
+  nextBtn.addEventListener("click", ()=>{ sfx("click"); newRound(); });
+
+  // Magnifier: shows one toy big, then the kid decides.
+  function openZoom(i){
+    const card = cards[i];
+    const shade = el("div",{class:"fake-zoom"});
+    const box = el("div",{class:"fake-zoom-box"});
+    const big = card.cloneNode(true);
+    big.className = "fake-card big";
+    big.style.animationDelay = "";
+    box.appendChild(big);
+    const row = el("div",{style:"display:flex;gap:8px;flex-wrap:wrap;justify-content:center"});
+    const close = ()=>shade.remove();
+    row.appendChild(el("button",{class:"btn", type:"button", text:"It's the fake! 🕵️", onclick:()=>{ close(); choose(i); }}));
+    row.appendChild(el("button",{class:"btn secondary", type:"button", text:"Keep looking", onclick:close}));
+    box.appendChild(row);
+    shade.appendChild(box);
+    shade.addEventListener("click", e=>{ if(e.target===shade) close(); });
+    arena.appendChild(shade);
+    sfx("boop");
+  }
+
+  function finish(){
+    if(!running) return;
+    running = false;
+    const perfect = firstTry===FAKE_ROUNDS;
+    const coins = Math.max(10, Math.min(90, score + (perfect ? 10 : 0)));
+    const lines = ["You spotted "+firstTry+" of "+FAKE_ROUNDS+" fakes on the first try."];
+    if(perfect) lines.push("Perfect eye! +10 bonus 🪙");
+    gameResultsScreen(stage, coins, lines);
+  }
+  newRound();
 }
 
 /* ============================= SHOP ============================= */

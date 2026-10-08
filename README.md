@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Eight mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Nine mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -50,17 +50,19 @@ Eight mini-games earn Squish Coins. Each round ends with a results screen, and t
 | Squishy Catch | Catch falling squishies in your backpack, dodge bombs |
 | Stretch Zone | Time your tap inside the glowing zone |
 | Sort Rush | Squishy or fidget? Sort it before time runs out |
+| Spot the Fake 🔍 | Find the knockoff dupe hiding among the real toys |
 | Pattern Pop | Watch the pattern, then repeat it |
 | **Pop-It Math** 📚 | Pop the bubble with the right answer |
 | **Word Builder** 📚 | Pop letters in order to spell the word |
 
-All the games use the same toy art as the rest of the game: real toys on the match cards, falling into your own backpack in Squishy Catch, and in Sort Rush, plus glossy pop-it bubbles in Pop Rush and Pattern Pop.
+All the games use the same toy art as the rest of the game: real toys on the match cards, falling into your own backpack in Squishy Catch, and in Sort Rush and Spot the Fake, plus glossy pop-it bubbles in Pop Rush and Pattern Pop.
+
+**Spot the Fake** shows a shelf of the same toy, and one of them is a knockoff. Each fake has one tell: a wrong color shade, a missing detail (an eye shine, a blush, a bubble), a misspelled name tag, or a squashed shape. There are 8 rounds: 4 toys in rounds 1–3 and 6 toys after that, and the tells get smaller each round. There's no timer. A wrong tap marks that toy ✓ Real; after two wrong taps the fake is shown. Every round ends by naming the tell, so kids learn what to look for on real toys. The 🔍 Magnifier button opens a tapped toy big before the kid decides. Scoring: 10 coins for a first-try find, 5 for a second try, 2 for a third, plus 10 for a perfect game (up to 90). Before a round starts, the game draws the fake and the real toy to a small hidden canvas and checks how many pixels differ, so a fake is never invisible and never too obvious for its round; toys that can't show a tell clearly get a different one.
 
 #### Planned mini-games
 
 Next up for the Games tab (not built yet):
 
-- **Spot the Fake** 🔍 *(build first; cheapest, and fits the theme best).* Show 4–6 near-identical squishies where one is a knockoff "dupe". The tells are subtle: a slightly wrong color shade, a missing detail, a misspelled tag. Tells get smaller as levels rise. A tap-to-zoom magnifying glass helps younger kids, and it teaches kids to look closely at real toys.
 - **Squish Sorter** (an upgrade of Sort Rush, or a replacement for it). Squishies ride a conveyor belt that speeds up, and kids swipe each into the right bin (by type, color or rarity). "Trap" items like broken or knockoff toys must go in the trash bin, and combo streaks earn bonus coins.
 - **Squishy Stacker.** Drop squishies onto a wobbly tower; soft or round ones are harder to balance than flat ones. Height sets the reward. A fallen tower should be funny, not punishing. Keep the physics light (simple tilt and wobble, no full physics engine) so older Fire tablets run it smoothly.
 
