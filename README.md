@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Fourteen mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Fifteen mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -52,6 +52,7 @@ Fourteen mini-games earn Squish Coins. Each round ends with a results screen, an
 | Squish Sorter 🗂️ | Toys ride a conveyor belt. Drag each into the right bin before it falls off |
 | Puzzles 🧩 | Build a jigsaw of toy art, alone or with a buddy on another tablet |
 | Squishy Bowling 🎳 | Flick a squishy down the lane and knock down the pins |
+| Squish Slingshot 🎯 | Pull back a squishy and fling it at towers to pop the grumpy gloops |
 | Squishy Racers 🏎 | Kart-race around a track with power-ups and projectiles, alone or with a buddy |
 | Squishy Crane 🏗️ | Steer a claw over a pile of toys and grab one. Rarer toys are slipperier but pay more |
 | Squishy Stacker 🗼 | Drop squishies onto a wobbly tower. Round toys wobble more |
@@ -69,6 +70,8 @@ All the games use the same toy art as the rest of the game: real toys on the mat
 **Squishy Stacker.** A toy swings across the top; tap to drop it onto the tower. Line it up over the toy below: a "Perfect!" lands within a few pixels and calms the tower, while a sloppy drop kicks it. The tower sways on a simple damped spring (no physics engine), with a Wobble bar that goes green, yellow and red. Flat toys (Pop-It, cubes) are steady and round, soft ones (Fuzz Ball, Mochi Panda) are wobbly, and each toy is tagged Steady, Squishy or Wobbly as it swings. Too much wobble means TIMBER! and the tower tumbles. A drop that misses the tower slides off and costs one of three hearts. The round has 14 toys. Coins are 5 per toy stacked, +2 per perfect, +10 for finishing the tower, capped at 90, and a tumbled tower still pays for its height. Per-toy width and wobble live in `STACK_TRAITS`, and the feel is tuned in `STACK_TUNE`.
 
 **Squishy Bowling.** A squishy rolls down a lane at a rack of 10 cute pins. Kids slide the ball sideways along the foul line with a finger, then flick it up the lane; the flick's direction and speed set the aim and power (there's also a "Roll it straight" button). The ball is a random squishy each throw, tagged Heavy (smashes through), Medium or Light (bounces off). It's simple 2D circle physics, with no physics engine. Pins that get hit hard enough fall and are swept away, and pins in the gutter are out. There are 5 frames of up to 2 balls, and a strike or spare ends the frame. Coins are 1 per pin, +6 per strike and +3 per spare, capped at 90. The lane and pin sizes, ball weights and flick speeds are in `BWL` and the knock thresholds are in the physics step.
+
+**Squish Slingshot.** Pull a squishy back on a wooden slingshot (a dotted line previews the first part of the flight) and let go to fling it at a tower of blocks with grumpy green **gloops** hiding in it. There are 3 levels and 4 shots per level. Each shot is a random squishy, tagged Heavy, Medium or Light like in Bowling, so heavy ones shove blocks harder. A gloop pops when a squishy hits it, when a falling block lands on it, or when it falls from a height, so knocking out the planks under a gloop works too. Blocks are wood, pink jelly (light) and stone (heavy). The physics is simple axis-aligned boxes with gravity (no rotation, no physics engine), which keeps towers steady until they're hit. Coins are 5 per gloop, +10 for clearing a level and +4 for each shot left over, +10 if all 3 levels are cleared, capped at 90 with an 8-coin minimum. Levels are the `SLG_LEVELS` data (kind, left, height, width, height) and the feel is tuned in `SLG`.
 
 **Squishy Racers.** Top-down kart racing for four: pick any squishy you own as your driver (Heavy toys are faster with wide turns, Light ones are nimble with a lower top speed, Medium is balanced), pick one of three tracks (Meadow Loop, Wiggle Wave, Candy Twist) and race 4 laps. The kart drives itself forward; hold ◀ ▶ (or touch the left/right half of the track) to steer. Driving through a rainbow **?** box gives a power-up, and trailing karts get stronger ones: **Turbo**, **Shield**, **Bubble Pop** (straight shot), **Triple Pop**, **Homing Jelly**, **Boing Ball** (bounces off the track edges), **Goo Puddle** (dropped behind you, slows whoever drives through) and **Mochi Meteor** (drops on whoever is in the lead). A hit spins a kart out for about a second (Goo just slows it); a Shield soaks up one hit. 1st place pays 40 coins, 2nd 25, 3rd 12 and 4th 5.
 - **Alone:** you and three computer racers. They follow the track, use their own items, and speed up a little when far behind or ease off when far ahead.
