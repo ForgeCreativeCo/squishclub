@@ -54,7 +54,7 @@ import base64
 def _inline(m):
     path = os.path.join(ROOT, m.group(1))
     return '"data:audio/mpeg;base64,' + base64.b64encode(open(path, "rb").read()).decode() + '"'
-s, n_sounds = re.subn(r'"(sounds/[a-z0-9_]+\.mp3)"', _inline, s)
+s, n_sounds = re.subn(r'"(sounds/[a-z0-9_-]+\.mp3)"', _inline, s)
 # 6. Test panel styles.
 s = s.replace('</style>', open(os.path.join(HERE, "sandbox.css"), encoding="utf-8").read() + '\n</style>', 1)
 

@@ -158,6 +158,14 @@ img{max-width:100%}
 .topbar .brand{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:700; font-size:17px; color:var(--accent)}
 .topbar .brand .logo{font-size:22px}
 .topbar .spacer{flex:1}
+/* Narrow phones: the logo stands in for the name so the 🎵 button, coins and
+   player chip all fit on one line. */
+@media (max-width:420px){
+  .topbar .brand{font-size:0; gap:0}
+  .topbar .brand .logo{font-size:26px}
+  .player-chip .name{max-width:56px}
+  .music-btn{margin-right:2px}
+}
 .player-chip{display:flex; align-items:center; gap:8px; background:var(--surface-2); border-radius:999px; padding:4px 10px 4px 4px}
 .player-chip .avatar{width:28px; height:28px; border-radius:50%; background:var(--surface-3); display:flex; align-items:center; justify-content:center; font-size:16px}
 .player-chip .name{font-weight:800; font-size:13px; max-width:72px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -465,6 +473,9 @@ img{max-width:100%}
 .fidget-trade-strip{width:100%; text-align:center; font-weight:800; font-size:12.5px; background:#0b1633; color:#fff; border-radius:12px; padding:7px 10px}
 .fidget-owner{font-size:12.5px; font-weight:800; color:var(--ink-dim)}
 
+.music-btn{border:1.5px solid var(--line); background:var(--surface); border-radius:999px; width:38px; height:38px; font-size:18px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; margin-right:6px}
+.music-btn.off{opacity:.6}
+.music-btn:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
 /* fidget mode */
 .fidget-overlay{position:fixed; inset:0; z-index:85; background:rgba(20,14,36,.55); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:16px}
 .fidget-panel{width:min(520px,100%); background:var(--surface); border-radius:28px; padding:16px 18px 22px; box-shadow:0 30px 60px -20px rgba(0,0,0,.5); display:flex; flex-direction:column; align-items:center; gap:6px; animation:revealPop .35s cubic-bezier(.2,1.4,.4,1)}
@@ -690,6 +701,7 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
     <div class="topbar">
       <div class="brand"><span class="logo">🫧</span>Squish Trade</div>
       <div class="spacer"></div>
+      <button class="music-btn" id="musicBtn" type="button" aria-label="Music on" aria-pressed="true">🎵</button>
       <div class="coin-pill"><span class="ic">🪙</span><span id="coinCount">0</span></div>
       <div class="player-chip"><span class="avatar" id="chipAvatar">🦊</span><span class="name" id="chipName">You</span></div>
     </div>
@@ -1850,6 +1862,58 @@ function playSample(kind, opts){
   return {src, gain};
 }
 
+// Background music: calm "home" music around the app, the upbeat cartoon
+// tune during mini-games. Plain <audio> elements stream the loops (lighter
+// on tablets than decoding them), crossfading when the scene changes. The
+// 🎵 button in the top bar turns music on/off separately from sound effects,
+// and each tablet remembers it. Music starts on the first tap and pauses
+// while the game is in the background.
+const MUSIC = { home:"sounds/music-home.mp3", games:"sounds/music-games.mp3" };
+const MUSIC_VOLUME = 0.32;
+let musicOn = safeLocalGet("squish_music")!=="off";
+let musicScene = "home", musicStarted = false;
+const musicEls = {}, musicFades = {};
+function musicEl(scene){
+  if(!musicEls[scene]){ const a = new Audio(MUSIC[scene]); a.loop = true; a.preload = "auto"; a.volume = 0; musicEls[scene] = a; }
+  return musicEls[scene];
+}
+function fadeMusic(scene, target, ms){
+  const a = musicEl(scene);
+  clearInterval(musicFades[scene]);
+  if(target>0 && a.paused){ const p = a.play(); if(p && p.catch) p.catch(()=>{}); }
+  const start = a.volume, t0 = performance.now();
+  musicFades[scene] = setInterval(()=>{
+    const k = Math.min(1, (performance.now()-t0)/ms);
+    try{ a.volume = Math.max(0, Math.min(1, start + (target-start)*k)); }catch(e){}
+    if(k>=1){ clearInterval(musicFades[scene]); if(target===0) a.pause(); }
+  }, 40);
+}
+function applyMusic(){
+  if(!musicStarted) return;
+  Object.keys(MUSIC).forEach(scene=>{
+    const want = musicOn && scene===musicScene && !document.hidden;
+    if(want) fadeMusic(scene, MUSIC_VOLUME, 700);
+    else if(musicEls[scene]) fadeMusic(scene, 0, 450);
+  });
+}
+function setMusicScene(scene){ if(scene===musicScene) return; musicScene = scene; applyMusic(); }
+function renderMusicBtn(){
+  const b = $("#musicBtn"); if(!b) return;
+  b.textContent = musicOn ? "🎵" : "🔇";
+  b.classList.toggle("off", !musicOn);
+  b.setAttribute("aria-pressed", String(musicOn));
+  b.setAttribute("aria-label", musicOn ? "Music on" : "Music off");
+}
+function setupMusic(){
+  renderMusicBtn();
+  $("#musicBtn").addEventListener("click", ()=>{
+    musicOn = !musicOn; safeLocalSet("squish_music", musicOn ? "on" : "off");
+    musicStarted = true; renderMusicBtn(); applyMusic();
+  });
+  window.addEventListener("pointerdown", ()=>{ if(!musicStarted){ musicStarted = true; applyMusic(); } }, {capture:true});
+  document.addEventListener("visibilitychange", applyMusic);
+}
+
 function sfx(kind){
   if(!fidgetSoundOn) return;
   if((kind==="squish" || kind==="slap" || kind==="unzip") && playSample(kind)) return;
@@ -2036,9 +2100,10 @@ function showGameStage(show){
   $("#gamePicker").classList.toggle("hidden", show);
   $("#gameStage").classList.toggle("hidden", !show);
 }
-function exitGame(){ showGameStage(false); $("#gameStage").innerHTML=""; }
+function exitGame(){ showGameStage(false); $("#gameStage").innerHTML=""; setMusicScene("home"); }
 
 function startGame(id){
+  setMusicScene("games");
   showGameStage(true);
   const stage = $("#gameStage");
   stage.innerHTML = "";
@@ -3669,6 +3734,7 @@ function renderAll(){
 /* ============================= BOOTSTRAP ============================= */
 function startApp(){
   preloadSounds();
+  setupMusic();
   buildGamePicker();
   buildShop();
   initIdentity().then(()=>{

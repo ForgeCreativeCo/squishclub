@@ -135,6 +135,19 @@ Each tablet signs in to [Firebase](https://firebase.google.com) anonymously (no 
 
 `firestore.rules` holds the security rules (paste them into Firebase Console → Firestore → Rules). Any signed-in device can read and write both collections, because a trade must update both kids' inventories in one transaction. That's fine for a private family app; the file explains the next step if it ever gets a wider audience.
 
+## Music
+
+Two looping tracks play quietly under the sound effects:
+
+| Track | Plays |
+|---|---|
+| `sounds/music-home.mp3` (calm kid music, 51 s loop) | Around the app: Backpack, Packs, Trade, fidget mode |
+| `sounds/music-games.mp3` (upbeat cartoon tune, 14.5 s loop) | During mini-games, crossfading in when a game starts and back out when the kid leaves |
+
+The 🎵 button in the top bar turns music on or off, separately from sound effects, and each tablet remembers the choice. Music starts on the first tap (tablets don't allow sound before that) and pauses while the game is in the background. It streams instead of being cached offline, so music is skipped when the tablet is offline.
+
+Source recordings: "cartoon-music-version-3" (bombinsound) and "free-background-kid-music" (oceanframemusic), per the original filenames. Both were leveled to match, and the cartoon tune's trailing silence was trimmed so it loops cleanly. Check each one's license before publishing the game anywhere public.
+
 ## Sound effects
 
 Recorded clips live in `sounds/`, trimmed from longer recordings and leveled. Each kind has a synthesized fallback that plays until the clip has loaded. All sounds share the 🔊 mute toggle.
@@ -155,7 +168,7 @@ Source recordings: "unzip-mid", "fidget-spinner1", "wet-slaps" and "wet-squishy-
 | `index.html` | The whole game: HTML, CSS and JavaScript, including the toy art |
 | `sw.js` | Service worker that caches the game for fast, offline-capable loading (never caches Firebase traffic) |
 | `manifest.json`, `icons/` | Installable-app (PWA) metadata and icons |
-| `sounds/` | Short recorded sound effects (unzip, spinner whir, squishes, slaps) |
+| `sounds/` | Recorded sound effects (unzip, spinner whir, squishes, slaps) and the two music loops |
 | `scripts_gen_icons.py` | Regenerates the app icons |
 | `firestore.rules` | Firestore security rules |
 | `_redirects` | Netlify rules that keep `tools/` and `CLAUDE.md` off the public site |

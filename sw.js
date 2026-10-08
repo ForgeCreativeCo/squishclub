@@ -3,7 +3,7 @@
 // Firebase (auth + firestore) calls are never intercepted here — they
 // always go to the network so saves and trades stay live and correct.
 
-const CACHE_VERSION = "v19";
+const CACHE_VERSION = "v20";
 const SHELL_CACHE = "squish-shell-" + CACHE_VERSION;
 const FONT_CACHE = "squish-fonts-" + CACHE_VERSION;
 
@@ -72,6 +72,10 @@ self.addEventListener("fetch", (event) => {
 
   // Always let Firebase traffic go straight to the network.
   if (isFirebaseRequest(url)) return;
+
+  // Background music streams with range requests; let the network handle it
+  // rather than caching partial responses.
+  if (url.pathname.includes("/sounds/music-")) return;
 
   // Fonts: stale-while-revalidate so they still render offline after first load.
   if (isFontRequest(url)) {
