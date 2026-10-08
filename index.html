@@ -52,6 +52,8 @@
   --rarity-epic-soft: #EFE0FD;
   --rarity-legendary: #C9890A;
   --rarity-legendary-soft: #FBEBC7;
+  --rarity-scam: #8A5A3B;
+  --rarity-scam-soft: #F3E6DA;
   --shadow: 0 10px 24px -14px rgba(42,33,66,.35);
   --radius: 20px;
   --radius-sm: 12px;
@@ -86,6 +88,10 @@
     --rarity-epic-soft: #332050;
     --rarity-legendary: #F4C85A;
     --rarity-legendary-soft: #403210;
+  --rarity-scam: #C99A74;
+  --rarity-scam-soft: #3A2A20;
+    --rarity-scam: #C99A74;
+    --rarity-scam-soft: #3A2A20;
     --shadow: 0 10px 28px -14px rgba(0,0,0,.6);
     color-scheme: dark;
   }
@@ -398,6 +404,15 @@ img{max-width:100%}
 .reveal-card{width:min(280px,80vw); background:var(--surface); border-radius:24px; padding:28px 20px; text-align:center; box-shadow:0 30px 60px -20px rgba(0,0,0,.5); border:3px solid var(--rc,var(--line)); animation:revealPop .45s cubic-bezier(.2,1.4,.4,1); position:relative; overflow:hidden}
 @keyframes revealPop{from{transform:scale(.55) rotate(-6deg); opacity:0} to{transform:scale(1) rotate(0); opacity:1}}
 .reveal-card .emoji{font-size:70px; position:relative; z-index:1}
+.pack-shake{font-size:110px; animation:packShake .55s ease-in-out 2; filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))}
+@keyframes packShake{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-14deg) scale(1.05)}40%{transform:rotate(12deg) scale(1.1)}60%{transform:rotate(-9deg) scale(1.08)}80%{transform:rotate(6deg) scale(1.12)}}
+.reveal-card.scam{animation:revealPop .45s cubic-bezier(.2,1.4,.4,1), scamShake .4s ease .75s}
+@keyframes scamShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px) rotate(-2deg)}40%{transform:translateX(9px) rotate(2deg)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.scam-stamp{position:absolute; z-index:3; top:34%; left:50%; font-family:var(--font-display); font-size:44px; letter-spacing:.04em; color:#E5241B; border:5px solid #E5241B; border-radius:10px; padding:2px 14px; background:rgba(255,255,255,.55);
+  transform:translate(-50%,-50%) rotate(-18deg) scale(3); opacity:0; animation:stampIn .35s cubic-bezier(.3,1.5,.5,1) .55s forwards; pointer-events:none; text-shadow:0 1px 0 rgba(255,255,255,.6)}
+@keyframes stampIn{to{transform:translate(-50%,-50%) rotate(-18deg) scale(1); opacity:.95}}
+.scam-sub{margin:10px 0 0; font-size:13px; color:var(--ink-dim); position:relative; z-index:1}
+.scam-note{grid-column:1/-1; margin:0 0 4px; font-size:13px; color:var(--ink-dim); background:var(--rarity-scam-soft); border-radius:14px; padding:10px 12px}
 .reveal-card .rn{font-family:var(--font-display); font-size:19px; margin-top:6px; position:relative; z-index:1}
 .reveal-card .rr{margin-top:4px; position:relative; z-index:1}
 .reveal-card.shiny::before{
@@ -726,9 +741,21 @@ const ITEMS = [
   {id:"golden_squish", name:"Golden Mini Plush", emoji:"🌟", category:"squishy", rarity:"legendary"},
   {id:"golden_spinner", name:"Golden Fidget Spinner", emoji:"✨", category:"fidget", rarity:"legendary"},
 ];
-const ITEM_MAP = Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+// Joke items from scam packs: their own "scam" rarity, worth ⭐0 on the
+// trading mat, and collected separately from the main 28.
+const SCAM_ITEMS = [
+  {id:"scam_poo", name:"Scam Poo", emoji:"💩", category:"scam", rarity:"scam"},
+  {id:"scam_box", name:"Empty Box", emoji:"📦", category:"scam", rarity:"scam"},
+  {id:"scam_sock", name:"Lost Sock", emoji:"🧦", category:"scam", rarity:"scam"},
+  {id:"scam_brick", name:"Not-So-Squishy Brick", emoji:"🧱", category:"scam", rarity:"scam"},
+  {id:"scam_peel", name:"Banana Peel", emoji:"🍌", category:"scam", rarity:"scam"},
+  {id:"scam_iou", name:"IOU Note", emoji:"📝", category:"scam", rarity:"scam"},
+];
+const ITEM_MAP = Object.fromEntries(ITEMS.concat(SCAM_ITEMS).map(i=>[i.id,i]));
 const RARITY_ORDER = ["common","uncommon","rare","epic","legendary"];
-const RARITY_LABEL = {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary"};
+const RARITY_LABEL = {common:"Common",uncommon:"Uncommon",rare:"Rare",epic:"Epic",legendary:"Legendary",scam:"Scam!"};
+// About 1 in 12 packs is a scam, but never a kid's first pack and never two in a row.
+const SCAM_CHANCE = 1/12;
 
 const PACKS = [
   {id:"starter", name:"Starter Pack", emoji:"🎁", cost:40, odds:{common:.65,uncommon:.30,rare:.05,epic:0,legendary:0}},
@@ -874,7 +901,7 @@ function getInventoryCount(itemId){
 }
 function getOwnedCount(){
   if(!player || !player.inventory) return 0;
-  return Object.values(player.inventory).filter(c=>c>0).length;
+  return ITEMS.filter(i=>(player.inventory[i.id]||0)>0).length;
 }
 
 async function addItemsAndCoins(itemCounts, coinDelta){
@@ -951,7 +978,7 @@ let collectionFilter = "all";
 function buildCollectionFilters(){
   const wrap = $("#collectionFilters");
   wrap.innerHTML = "";
-  const opts = [["all","All"],["squishy","Squishies"],["fidget","Fidgets"],["owned","Owned"]];
+  const opts = [["all","All"],["squishy","Squishies"],["fidget","Fidgets"],["owned","Owned"],["scam","Scams 💩"]];
   opts.forEach(([val,label])=>{
     const b = el("button",{class:"pillbtn"+(collectionFilter===val?" active":""), type:"button", text:label, onclick:()=>{
       collectionFilter = val;
@@ -976,7 +1003,12 @@ function renderCollection(){
   let items = ITEMS;
   if(collectionFilter==="squishy") items = items.filter(i=>i.category==="squishy");
   if(collectionFilter==="fidget") items = items.filter(i=>i.category==="fidget");
-  if(collectionFilter==="owned") items = items.filter(i=>getInventoryCount(i.id)>0);
+  if(collectionFilter==="owned") items = ITEMS.concat(SCAM_ITEMS).filter(i=>getInventoryCount(i.id)>0);
+  if(collectionFilter==="scam"){
+    items = SCAM_ITEMS;
+    const got = SCAM_ITEMS.filter(i=>getInventoryCount(i.id)>0).length;
+    grid.appendChild(el("p",{class:"scam-note", text:"Scam Collection: "+got+"/"+SCAM_ITEMS.length+". Sometimes a mystery pack is a scam! These joke items are worth ⭐0, but you can still trade them… if anyone falls for it. 😏"}));
+  }
 
   items.forEach(item=>{
     const count = getInventoryCount(item.id);
@@ -1956,6 +1988,9 @@ function buildShop(){
         odds.appendChild(chip);
       }
     });
+    const scamChip = el("span",{class:"odds-chip", text:"💩 Scam "+Math.round(SCAM_CHANCE*100)+"%"});
+    styleRarity(scamChip, "scam");
+    odds.appendChild(scamChip);
     meta.appendChild(odds);
     card.appendChild(meta);
     if(p.id==="legend") card.classList.add("foil");
@@ -1965,12 +2000,41 @@ function buildShop(){
     wrap.appendChild(card);
   });
 }
+let packOpening = false;
 async function openPack(pack){
-  if(!player) return;
+  if(!player || packOpening) return;
   if((player.coins||0) < pack.cost){ showToast("Not enough Squish Coins yet — play a mini-game!"); return; }
-  const item = rollItem(pack.odds);
-  const ok = await addItemsAndCoins({[item.id]:1}, -pack.cost);
-  if(ok) revealItem(item);
+  const opened = player.packsOpened||0;
+  const scam = opened>0 && !player.lastPackScam && Math.random()<SCAM_CHANCE;
+  const item = scam ? SCAM_ITEMS[Math.floor(Math.random()*SCAM_ITEMS.length)] : rollItem(pack.odds);
+  const inv = Object.assign({}, player.inventory||{});
+  inv[item.id] = (inv[item.id]||0) + 1;
+  packOpening = true;
+  const ok = await savePlayerPatch({ coins: Math.max(0,(player.coins||0)-pack.cost), inventory: inv, packsOpened: opened+1, lastPackScam: scam });
+  if(!ok){ packOpening = false; return; }
+  shakeBox(pack, ()=>{ packOpening = false; scam ? revealScam(item) : revealItem(item); });
+}
+// A moment of suspense: the pack wobbles before it opens.
+function shakeBox(pack, then){
+  const overlay = el("div",{class:"reveal-overlay"});
+  overlay.appendChild(el("div",{class:"pack-shake", text:pack.emoji}));
+  document.body.appendChild(overlay);
+  setTimeout(()=>{ overlay.remove(); then(); }, 1100);
+}
+function revealScam(item){
+  const overlay = el("div",{class:"reveal-overlay"});
+  const card = el("div",{class:"reveal-card scam"});
+  styleRarity(card, "scam");
+  card.appendChild(el("div",{class:"emoji", text:item.emoji}));
+  card.appendChild(el("div",{class:"rn", text:item.name}));
+  const tag = el("div",{class:"rr rarity-tag", text:"Scam! ⭐0"});
+  tag.style.setProperty("--rc", "var(--rarity-scam)");
+  card.appendChild(tag);
+  card.appendChild(el("p",{class:"scam-sub", text:"This pack was a scam! It's going in your Scam Collection."}));
+  card.appendChild(el("div",{class:"scam-stamp", text:"SCAMMED"}));
+  card.appendChild(el("button",{class:"btn block", text:"Ugh, fine 😤", style:"margin-top:14px", onclick:()=>overlay.remove()}));
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
 }
 const CONFETTI_COLORS = ["var(--accent)","var(--mint)","var(--coin)","var(--rarity-rare)","var(--rarity-epic)"];
 function spawnConfetti(container, count){
@@ -2148,7 +2212,7 @@ function otherSideKey(t){
    An accept is tied to the exact deal on the board when it was pressed
    (side.accepted = dealKey), so if either side changes anything afterward the
    old accept silently stops counting, even if two taps race each other. */
-const RARITY_VALUE = {common:1, uncommon:2, rare:4, epic:7, legendary:10};
+const RARITY_VALUE = {common:1, uncommon:2, rare:4, epic:7, legendary:10, scam:0};
 const MAX_OFFER = 6;
 
 function itemValue(id){ const it = ITEM_MAP[id]; return it ? (RARITY_VALUE[it.rarity]||0) : 0; }
@@ -2254,7 +2318,7 @@ function buildTradeTable(){
   });
   if(myItemsLeft.length===0) pickerGrid.appendChild(el("p",{style:"color:var(--ink-dim);font-size:13px", text:"You don't have any items yet. Play mini-games or open a pack!"}));
   wrap.appendChild(pickerGrid);
-  wrap.appendChild(el("p",{class:"trade-legend", text:"Item values: Common ⭐1 · Uncommon ⭐2 · Rare ⭐4 · Epic ⭐7 · Legendary ⭐10"}));
+  wrap.appendChild(el("p",{class:"trade-legend", text:"Item values: Common ⭐1 · Uncommon ⭐2 · Rare ⭐4 · Epic ⭐7 · Legendary ⭐10 · Scam 💩 ⭐0"}));
   return wrap;
 }
 
