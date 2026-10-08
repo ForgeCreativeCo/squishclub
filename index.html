@@ -346,20 +346,47 @@ img{max-width:100%}
 .squish-btn{box-shadow:0 6px 0 rgba(0,0,0,.22), var(--shadow); transition:transform .08s, box-shadow .08s}
 .squish-btn:active{transform:translateY(5px); box-shadow:0 1px 0 rgba(0,0,0,.22)}
 
-/* arena 5 — Sort Rush: conveyor belt */
-.arena-sort{background:var(--surface-2)}
-.sort-stage{display:flex; flex-direction:column; align-items:center; gap:16px}
-.sort-timerbar{width:100%; max-width:300px; height:14px; border-radius:7px; background:repeating-linear-gradient(90deg, var(--surface-3) 0 10px, var(--surface) 10px 20px); background-size:40px 100%; animation:conveyorMove .55s linear infinite}
-.sort-timerbar .progress-fill{background:var(--accent); border-radius:7px}
-.sort-display{font-size:54px; min-height:92px; background:var(--surface); border-radius:16px; padding:10px 24px; box-shadow:var(--shadow)}
-.sort-display .nm{font-family:var(--font-display); font-size:16px; margin-top:4px; color:var(--ink-dim)}
-.sort-bins{display:flex; gap:12px; width:100%; max-width:360px}
-.sort-bin{flex:1; padding:20px 8px 16px; border-radius:8px 8px 18px 18px; border:2px solid var(--line); background:linear-gradient(180deg,var(--surface),var(--surface-2)); font-weight:800; text-align:center; cursor:pointer; font-size:14px; display:flex; flex-direction:column; gap:4px; align-items:center; position:relative}
-.sort-bin::before{content:""; position:absolute; top:-8px; left:8%; right:8%; height:9px; background:var(--line); border-radius:4px}
-.sort-bin:active{transform:translateY(1px)}
-.sort-bin .ic{font-size:26px; width:40px; height:40px}
-.sort-display{display:flex; flex-direction:column; align-items:center}
-.sort-display .sort-toy{width:96px; height:96px; animation:dropIn .35s cubic-bezier(.3,1.6,.5,1)}
+/* arena 5 — Squish Sorter: conveyor belt, three rules, trash traps */
+.arena-sorter{background:var(--surface-2); padding:12px}
+.sorter-rule{font-family:var(--font-display); font-size:15px; text-align:center; margin:0 0 8px}
+.sorter-rule b{color:var(--accent)}
+.sorter-field{position:relative; touch-action:none; user-select:none; -webkit-user-select:none; min-height:262px}
+.sorter-belt{position:absolute; left:0; right:0; top:0; height:112px; border-radius:14px; background:repeating-linear-gradient(90deg,#4B5163 0 22px,#3D4252 22px 48px); background-size:48px 100%; box-shadow:inset 0 6px 10px rgba(0,0,0,.35), inset 0 -4px 0 rgba(0,0,0,.25); animation:sorterBelt 1s linear infinite; animation-duration:var(--belt-dur,.7s)}
+.sorter-belt.paused{animation-play-state:paused}
+.sorter-belt::after{content:"▶ ▶ ▶"; position:absolute; right:8px; bottom:4px; font-size:10px; letter-spacing:3px; color:rgba(255,255,255,.35)}
+@keyframes sorterBelt{from{background-position:0 0}to{background-position:48px 0}}
+.sorter-toy{position:absolute; left:0; top:0; width:76px; padding:3px 3px 4px; border-radius:16px; background:var(--surface); border:3px solid var(--line); box-shadow:0 3px 6px rgba(0,0,0,.28); cursor:grab; touch-action:none; will-change:transform; z-index:2; text-align:center}
+.sorter-toy .toy-art{width:62px; height:62px; margin:0 auto; pointer-events:none}
+.sorter-toy .nm{font-size:9.5px; font-weight:800; line-height:1.15; height:22px; display:flex; align-items:center; justify-content:center; pointer-events:none; color:var(--ink)}
+.sorter-toy.dragging{z-index:6; cursor:grabbing; box-shadow:0 10px 18px rgba(0,0,0,.35); filter:brightness(1.04)}
+.sorter-toy.r-common{border-color:var(--rarity-common)}
+.sorter-toy.r-uncommon{border-color:var(--rarity-uncommon)}
+.sorter-toy.r-rare{border-color:var(--rarity-rare)}
+.sorter-toy.r-epic{border-color:var(--rarity-epic)}
+.sorter-toy.r-legendary{border-color:var(--rarity-legendary)}
+.sorter-toy.r-scam{border-color:var(--rarity-scam)}
+.sorter-toy.flying{transition:transform .28s ease-in, opacity .28s ease-in; opacity:0; pointer-events:none}
+.sorter-toy.dropping{transition:transform .35s ease-in, opacity .35s ease-in; opacity:0; pointer-events:none}
+.sorter-bins{position:absolute; left:0; right:0; top:134px; display:flex; gap:8px}
+.sorter-bin{flex:1; min-width:0; padding:16px 4px 10px; border-radius:8px 8px 16px 16px; border:2px solid var(--bc,var(--line)); background:linear-gradient(180deg,var(--surface),var(--surface-2)); font-weight:800; text-align:center; cursor:pointer; font-size:12.5px; display:flex; flex-direction:column; gap:4px; align-items:center; position:relative; transition:transform .12s}
+.sorter-bin::before{content:""; position:absolute; top:-8px; left:8%; right:8%; height:9px; background:var(--bc,var(--line)); border-radius:4px}
+.sorter-bin:active{transform:translateY(1px)}
+.sorter-bin .ic{width:38px; height:38px; font-size:26px; display:flex; align-items:center; justify-content:center}
+.sorter-bin .dot{width:30px; height:30px; border-radius:50%; background:var(--bc); box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
+.sorter-bin.ok{animation:sorterOk .35s ease}
+.sorter-bin.bad{animation:sorterBad .4s ease}
+@keyframes sorterOk{0%,100%{transform:none}40%{transform:scale(1.1,.92); box-shadow:0 0 0 4px var(--mint)}}
+@keyframes sorterBad{0%,100%{transform:none}25%{transform:translateX(-5px); box-shadow:0 0 0 4px var(--danger)}60%{transform:translateX(5px)}}
+.sorter-bin.drop-hint{transform:scale(1.05); box-shadow:0 0 0 3px var(--accent)}
+.sorter-msg{position:absolute; left:0; right:0; top:236px; text-align:center; font-weight:800; font-size:13px; min-height:20px; color:var(--ink-dim)}
+.sorter-msg.good{color:var(--mint)}
+.sorter-msg.oops{color:var(--danger)}
+.sorter-intro{position:absolute; inset:-4px; z-index:10; border-radius:14px; background:rgba(20,22,40,.82); display:flex; align-items:center; justify-content:center; padding:12px}
+.sorter-intro .card{max-width:320px; text-align:center; display:flex; flex-direction:column; gap:8px; align-items:center}
+.sorter-intro h2{margin:0; font-size:20px}
+.sorter-intro p{margin:0; font-size:13px; color:var(--ink-dim)}
+.sorter-chips{display:flex; flex-wrap:wrap; gap:6px; justify-content:center}
+.sorter-chip{font-size:12px; font-weight:800; padding:4px 10px; border-radius:999px; border:2px solid var(--bc,var(--line)); background:var(--surface)}
 
 /* arena 6 — Pattern Pop: silicone pad */
 .arena-pattern{background:radial-gradient(circle at 10px 10px, rgba(0,0,0,.05) 0 2px, transparent 3px) 0 0/20px 20px, var(--surface-2)}
@@ -2096,7 +2123,7 @@ const GAME_DEFS = [
   {id:"pop", name:"Pop Rush", emoji:"🫧", art:"pop_it", desc:"Tap the glowing bubble before it's gone."},
   {id:"catch", name:"Squishy Catch", emoji:"🧺", art:"gummy_bear_sq", desc:"Catch squishies in your backpack, dodge the bombs."},
   {id:"stretch", name:"Stretch Zone", emoji:"📏", art:"sensory_putty", desc:"Time your tap inside the glowing zone."},
-  {id:"sort", name:"Sort Rush", emoji:"🗂️", art:"infinity_cube", desc:"Squishy or fidget? Sort it before time's up."},
+  {id:"sorter", name:"Squish Sorter", emoji:"🗂️", art:"infinity_cube", desc:"Sort toys on the conveyor belt. Watch out for junk!"},
   {id:"fake", name:"Spot the Fake", emoji:"🔍", art:"needoh_cube", desc:"One of these is a knockoff dupe. Can you spot it?"},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
   {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
@@ -2110,7 +2137,7 @@ function gameIcon(g){
   else wrap.textContent = g.emoji;
   return wrap;
 }
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", fake:"--rarity-legendary", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -2143,7 +2170,7 @@ function startGame(id){
   else if(id==="pop") initPopGame(stage);
   else if(id==="catch") initCatchGame(stage);
   else if(id==="stretch") initStretchGame(stage);
-  else if(id==="sort") initSortGame(stage);
+  else if(id==="sorter") initSorterGame(stage);
   else if(id==="fake") initFakeGame(stage);
   else if(id==="pattern") initPatternGame(stage);
   else if(id==="mathpop") initMathPopGame(stage);
@@ -2491,76 +2518,263 @@ function initStretchGame(stage){
   }
 }
 
-/* ---- Sort Rush (squishy vs fidget) ---- */
-function initSortGame(stage){
-  id_cache = "sort";
+/* ---- Squish Sorter (conveyor belt, three rules, trash traps, combos) ---- */
+const SORTER_BINS = {
+  squishy:  {label:"Squishy",  icon:"mochi_panda",     color:"--accent"},
+  fidget:   {label:"Fidget",   icon:"golden_spinner",  color:"--accent"},
+  trash:    {label:"Trash",    emoji:"🗑️",             color:"--rarity-scam"},
+  common:   {label:"Common",   color:"--rarity-common"},
+  uncommon: {label:"Uncommon", color:"--rarity-uncommon"},
+  rare:     {label:"Rare+",    color:"--rarity-rare"},
+  treasure: {label:"Treasure", emoji:"💎",             color:"--rarity-legendary"},
+};
+const SORTER_RULES = [
+  {title:"Sort by TYPE", bins:["squishy","fidget","trash"], rings:false, speed:70,
+   tip:"Squishy or fidget? Junk (like socks and bananas) goes in the trash!"},
+  {title:"Sort by RARITY", bins:["common","uncommon","rare","trash"], rings:true, speed:88,
+   tip:"Look at the color around each toy. Rare, Epic and Legendary all go in Rare+. Junk still goes in the trash!"},
+  {title:"TREASURE hunt", bins:["squishy","fidget","treasure","trash"], rings:true, speed:104,
+   tip:"Rare, Epic and Legendary toys go in Treasure. Everything else: squishy or fidget. Junk goes in the trash!"},
+];
+const SORTER_PER_RULE = 8;
+function sorterAnswer(item, ruleIdx){
+  if(item.category==="scam") return "trash";
+  const treasure = RARITY_ORDER.indexOf(item.rarity) >= 2;
+  if(ruleIdx===0) return item.category;
+  if(ruleIdx===1) return treasure ? "rare" : item.rarity;
+  return treasure ? "treasure" : item.category;
+}
+function sorterWhy(item, ruleIdx){
+  const ans = sorterAnswer(item, ruleIdx);
+  if(ans==="trash") return item.name+" is junk. Trash it!";
+  if(ruleIdx===0) return item.name+" is a "+SORTER_BINS[ans].label.toLowerCase()+".";
+  if(ruleIdx===1) return item.name+" is "+RARITY_LABEL[item.rarity]+".";
+  return item.name+(ans==="treasure" ? " is "+RARITY_LABEL[item.rarity]+": Treasure!" : " is a "+item.category+" (not rare).");
+}
+function sorterDeal(ruleIdx){
+  const shuf = a=>a.slice().sort(()=>Math.random()-.5);
+  const take = (list, n)=>shuf(list).slice(0,n);
+  const rarityIn = (...r)=>ITEMS.filter(i=>r.includes(i.rarity));
+  let list;
+  const junk = take(SCAM_ITEMS, 2);
+  if(ruleIdx===0) list = take(ITEMS.filter(i=>i.category==="squishy"),3).concat(take(ITEMS.filter(i=>i.category==="fidget"),3));
+  else if(ruleIdx===1) list = take(rarityIn("common"),2).concat(take(rarityIn("uncommon"),2), take(rarityIn("rare","epic","legendary"),2));
+  else {
+    const low = ITEMS.filter(i=>i.rarity==="common"||i.rarity==="uncommon");
+    list = take(low.filter(i=>i.category==="squishy"),2).concat(take(low.filter(i=>i.category==="fidget"),2), take(rarityIn("rare","epic","legendary"),2));
+  }
+  return shuf(list.concat(junk));
+}
+
+function initSorterGame(stage){
+  id_cache = "sorter";
   const hud = el("div",{class:"game-hud"});
-  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Correct"})]);
-  const hStreak = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Streak"})]);
-  hud.appendChild(hScore); hud.appendChild(hStreak);
-  let running = true, roundTimer=null, rafId=null;
-  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; clearTimeout(roundTimer); cancelAnimationFrame(rafId); exitGame();}}));
+  const hScore = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Sorted"})]);
+  const hCombo = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Combo"})]);
+  const hCoins = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Coins"})]);
+  hud.appendChild(hScore); hud.appendChild(hCombo); hud.appendChild(hCoins);
+  let running = true, rafId = null;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{ running=false; cancelAnimationFrame(rafId); exitGame(); }}));
   stage.appendChild(hud);
-  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Sort each toy into the right bin before time's up!"}));
 
-  const stageWrap = el("div",{class:"sort-stage arena arena-sort"});
-  const timerTrack = el("div",{class:"progress-track sort-timerbar"});
-  const timerFill = el("div",{class:"progress-fill"});
-  timerTrack.appendChild(timerFill);
-  stageWrap.appendChild(timerTrack);
-  const display = el("div",{class:"sort-display"});
-  stageWrap.appendChild(display);
-  const bins = el("div",{class:"sort-bins"});
-  const squishyBin = el("div",{class:"sort-bin"},[toyEl(ITEM_MAP.mochi_panda, "ic"),el("div",{text:"Squishy"})]);
-  const fidgetBin = el("div",{class:"sort-bin"},[toyEl(ITEM_MAP.golden_spinner, "ic"),el("div",{text:"Fidget"})]);
-  bins.appendChild(squishyBin); bins.appendChild(fidgetBin);
-  stageWrap.appendChild(bins);
-  stage.appendChild(stageWrap);
+  const arena = el("div",{class:"arena arena-sorter"});
+  const ruleLine = el("p",{class:"sorter-rule"});
+  const field = el("div",{class:"sorter-field"});
+  const belt = el("div",{class:"sorter-belt paused"});
+  const binsRow = el("div",{class:"sorter-bins"});
+  const msg = el("div",{class:"sorter-msg"});
+  field.appendChild(belt); field.appendChild(binsRow); field.appendChild(msg);
+  arena.appendChild(ruleLine); arena.appendChild(field);
+  stage.appendChild(arena);
 
-  let score=0, streak=0, round=0, totalRounds=16, roundMs=1700, current=null, roundStart=0;
-  const pool = ITEMS.slice();
+  const TW = 76, BELT_Y = 8;
+  let ruleIdx = -1, queue = [], toys = [], lastSpawned = null, paused = true, fieldW = 300, lastTs = 0;
+  let correct = 0, total = 0, streak = 0, bestStreak = 0, coins = 0, spawnedInRule = 0;
+  let binEls = {};
 
-  function nextRound(){
-    if(!running) return;
-    if(round>=totalRounds){ finish(); return; }
-    round++;
-    current = pool[Math.floor(Math.random()*pool.length)];
-    display.innerHTML = "";
-    display.appendChild(toyEl(current, "sort-toy"));
-    display.appendChild(el("div",{class:"nm", text:current.name}));
-    roundMs = Math.max(900, 1700 - round*40);
-    roundStart = performance.now();
-    clearTimeout(roundTimer);
-    roundTimer = setTimeout(()=>answer(null), roundMs);
-    animateTimer();
+  function setMsg(text, cls){ msg.textContent = text; msg.className = "sorter-msg"+(cls?" "+cls:""); }
+  function binEl(key){
+    const d = SORTER_BINS[key];
+    const b = el("div",{class:"sorter-bin"});
+    b.style.setProperty("--bc", "var("+d.color+")");
+    const ic = el("div",{class:"ic"});
+    if(d.icon) ic.appendChild(toyEl(ITEM_MAP[d.icon], "ic"));
+    else if(d.emoji) ic.textContent = d.emoji;
+    else ic.appendChild(el("div",{class:"dot"}));
+    b.appendChild(ic); b.appendChild(el("div",{text:d.label}));
+    b.addEventListener("click", ()=>{ if(!paused) sendFront(key); });
+    return b;
   }
-  function animateTimer(){
-    if(!running || !current) return;
-    const elapsed = performance.now()-roundStart;
-    const pct = Math.max(0, 1-elapsed/roundMs);
-    timerFill.style.width = (pct*100)+"%";
-    if(elapsed < roundMs) rafId = requestAnimationFrame(animateTimer);
+  function buildBins(){
+    binsRow.innerHTML = ""; binEls = {};
+    SORTER_RULES[ruleIdx].bins.forEach(k=>{ binEls[k] = binEl(k); binsRow.appendChild(binEls[k]); });
   }
-  function answer(pick){
-    if(!running || !current) return;
-    clearTimeout(roundTimer);
-    cancelAnimationFrame(rafId);
-    if(pick===current.category){ score++; streak++; } else { streak=0; }
-    hScore.querySelector(".v").textContent = score;
-    hStreak.querySelector(".v").textContent = streak;
-    current = null;
-    setTimeout(nextRound, 120);
+  function place(t){ t.node.style.transform = "translate("+Math.round(t.x)+"px,"+Math.round(t.y)+"px)"; }
+
+  function showIntro(){
+    paused = true; belt.classList.add("paused");
+    ruleIdx++;
+    if(ruleIdx>=SORTER_RULES.length){ finish(); return; }
+    const R = SORTER_RULES[ruleIdx];
+    ruleLine.innerHTML = "";
+    ruleLine.appendChild(document.createTextNode("Rule "+(ruleIdx+1)+" of "+SORTER_RULES.length+": "));
+    ruleLine.appendChild(el("b",{text:R.title}));
+    buildBins(); setMsg("");
+    const chips = el("div",{class:"sorter-chips"});
+    R.bins.forEach(k=>{ const c = el("span",{class:"sorter-chip", text:(SORTER_BINS[k].emoji||"")+" "+SORTER_BINS[k].label}); c.style.setProperty("--bc","var("+SORTER_BINS[k].color+")"); chips.appendChild(c); });
+    const card = el("div",{class:"card"},[
+      el("h2",{text:"Rule "+(ruleIdx+1)+": "+R.title}),
+      chips,
+      el("p",{text:R.tip}),
+      el("p",{text: ruleIdx===0 ? "Drag each toy into its bin, or tap a bin to send the toy at the front. Don't let them fall off the end!" : "The rule changed, so check the bins!"}),
+      el("button",{class:"btn", text:"Start sorting!", onclick:()=>{ ov.remove(); startRule(); }}),
+    ]);
+    const ov = el("div",{class:"sorter-intro"},[card]);
+    field.appendChild(ov);
   }
-  squishyBin.addEventListener("click", ()=>answer("squishy"));
-  fidgetBin.addEventListener("click", ()=>answer("fidget"));
+  function startRule(){
+    queue = sorterDeal(ruleIdx); spawnedInRule = 0; lastSpawned = null; lastTs = 0;
+    belt.style.setProperty("--belt-dur", (48/SORTER_RULES[ruleIdx].speed)+"s");
+    belt.classList.remove("paused"); paused = false;
+  }
+  function spawn(){
+    const item = queue.shift();
+    const R = SORTER_RULES[ruleIdx];
+    const node = el("div",{class:"sorter-toy"+(R.rings ? " r-"+item.rarity : "")});
+    node.appendChild(toyEl(item));
+    node.appendChild(el("div",{class:"nm", text:item.name}));
+    const t = {item, node, x:-TW, y:BELT_Y, state:"belt", speed: R.speed + spawnedInRule*3};
+    spawnedInRule++;
+    field.appendChild(node); place(t);
+    attachDrag(t);
+    toys.push(t); lastSpawned = t;
+  }
+
+  function attachDrag(t){
+    let offX=0, offY=0;
+    t.node.addEventListener("pointerdown",(e)=>{
+      if(paused || t.state!=="belt") return;
+      e.preventDefault();
+      t.state = "drag";
+      const r = field.getBoundingClientRect();
+      offX = e.clientX - r.left - t.x; offY = e.clientY - r.top - t.y;
+      try{ t.node.setPointerCapture(e.pointerId); }catch(_){}
+      t.node.classList.add("dragging");
+    });
+    t.node.addEventListener("pointermove",(e)=>{
+      if(t.state!=="drag") return;
+      const r = field.getBoundingClientRect();
+      t.x = e.clientX - r.left - offX; t.y = e.clientY - r.top - offY;
+      place(t);
+      const over = binAt(e.clientX, e.clientY);
+      Object.keys(binEls).forEach(k=>binEls[k].classList.toggle("drop-hint", k===over));
+    });
+    const end = (e, cancelled)=>{
+      if(t.state!=="drag") return;
+      Object.keys(binEls).forEach(k=>binEls[k].classList.remove("drop-hint"));
+      t.node.classList.remove("dragging");
+      const key = cancelled ? null : binAt(e.clientX, e.clientY);
+      if(key) sortToy(t, key);
+      else { t.state = "belt"; t.y = BELT_Y; t.x = Math.max(-TW+10, Math.min(fieldW-TW, t.x)); place(t); }
+    };
+    t.node.addEventListener("pointerup",(e)=>end(e,false));
+    t.node.addEventListener("pointercancel",(e)=>end(e,true));
+  }
+  // Which bin is under this point? Anywhere below the belt counts, snapped to the nearest column.
+  function binAt(cx, cy){
+    const keys = Object.keys(binEls);
+    if(!keys.length) return null;
+    const rows = binsRow.getBoundingClientRect();
+    if(cy < rows.top - 36) return null;
+    let best = null, bestD = 1e9;
+    keys.forEach(k=>{
+      const r = binEls[k].getBoundingClientRect();
+      const d = cx<r.left ? r.left-cx : cx>r.right ? cx-r.right : 0;
+      if(d<bestD){ bestD=d; best=k; }
+    });
+    return bestD<=24 ? best : null;
+  }
+  function sendFront(key){
+    let front = null;
+    toys.forEach(t=>{ if(t.state==="belt" && t.x>-TW/2 && (!front || t.x>front.x)) front = t; });
+    if(front) sortToy(front, key);
+  }
+
+  function resolve(t){
+    t.state = "gone";
+    toys = toys.filter(o=>o!==t);
+  }
+  function sortToy(t, key){
+    resolve(t);
+    total++;
+    const ok = key===sorterAnswer(t.item, ruleIdx);
+    const b = binEls[key];
+    if(b){ b.classList.remove("ok","bad"); void b.offsetWidth; b.classList.add(ok?"ok":"bad"); }
+    if(ok){
+      correct++; streak++; bestStreak = Math.max(bestStreak, streak);
+      coins += 2 + Math.min(3, Math.floor(streak/3));
+      setMsg(streak>=3 ? "🔥 Combo x"+streak+"!" : "Nice!", "good");
+      sfx(streak>=3 ? "ding" : "pop"); buzz(12);
+    } else {
+      streak = 0;
+      setMsg("Oops! "+sorterWhy(t.item, ruleIdx), "oops");
+      sfx("sad"); buzz(40);
+    }
+    hScore.querySelector(".v").textContent = correct;
+    hCombo.querySelector(".v").textContent = streak;
+    hCoins.querySelector(".v").textContent = Math.min(90, coins);
+    if(b){
+      const fr = field.getBoundingClientRect(), br = b.getBoundingClientRect();
+      t.x = br.left - fr.left + br.width/2 - TW/2; t.y = br.top - fr.top + 8;
+    }
+    t.node.classList.add("flying");
+    t.node.style.transform = "translate("+Math.round(t.x)+"px,"+Math.round(t.y)+"px) scale(.3)";
+    setTimeout(()=>t.node.remove(), 320);
+  }
+  function missed(t){
+    resolve(t);
+    total++; streak = 0;
+    hCombo.querySelector(".v").textContent = 0;
+    setMsg("Missed one! "+t.item.name+" fell off the belt.", "oops");
+    sfx("sad");
+    t.node.classList.add("dropping");
+    t.node.style.transform = "translate("+Math.round(fieldW)+"px,"+(BELT_Y+60)+"px) rotate(40deg)";
+    setTimeout(()=>t.node.remove(), 380);
+  }
+
+  function ruleDone(){
+    paused = true;
+    setTimeout(()=>{ if(running) showIntro(); }, 900);
+  }
+  function tick(ts){
+    if(!running || !field.isConnected){ running = false; return; }
+    const dt = lastTs ? Math.min(0.05, (ts-lastTs)/1000) : 0;
+    lastTs = ts;
+    if(!paused){
+      if(queue.length && (!lastSpawned || lastSpawned.state!=="belt" || lastSpawned.x >= 34)) spawn();
+      toys.slice().forEach(t=>{
+        if(t.state!=="belt") return;
+        t.x += t.speed*dt;
+        place(t);
+        if(t.x > fieldW) missed(t);
+      });
+      if(!queue.length && !toys.length) ruleDone();
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+  function measure(){ fieldW = field.clientWidth || 300; }
+  window.addEventListener("resize", measure);
 
   function finish(){
-    if(!running) return;
-    running=false;
-    const coins = Math.max(10, Math.min(90, score*5));
-    gameResultsScreen(stage, coins, ["You sorted "+score+"/"+totalRounds+" correctly."]);
+    if(!running && ruleIdx<SORTER_RULES.length) return;
+    running = false;
+    cancelAnimationFrame(rafId);
+    window.removeEventListener("resize", measure);
+    const earned = Math.max(10, Math.min(90, coins));
+    gameResultsScreen(stage, earned, ["You sorted "+correct+"/"+total+" correctly.", "Best combo: "+bestStreak+" in a row."]);
   }
-  nextRound();
+
+  requestAnimationFrame(()=>{ measure(); showIntro(); rafId = requestAnimationFrame(tick); });
 }
 
 /* ---- Pattern Pop (Simon-says sequence memory) ---- */
