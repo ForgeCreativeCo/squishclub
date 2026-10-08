@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Nine mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Ten mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -50,6 +50,7 @@ Nine mini-games earn Squish Coins. Each round ends with a results screen, and th
 | Squishy Catch | Catch falling squishies in your backpack, dodge bombs |
 | Stretch Zone | Time your tap inside the glowing zone |
 | Squish Sorter 🗂️ | Toys ride a conveyor belt. Drag each into the right bin before it falls off |
+| Squishy Stacker 🗼 | Drop squishies onto a wobbly tower. Round toys wobble more |
 | Spot the Fake 🔍 | Find the knockoff dupe hiding among the real toys |
 | Pattern Pop | Watch the pattern, then repeat it |
 | **Pop-It Math** 📚 | Pop the bubble with the right answer |
@@ -61,11 +62,9 @@ All the games use the same toy art as the rest of the game: real toys on the mat
 
 **Squish Sorter** replaced Sort Rush. Toys ride a belt that speeds up, and kids drag each one into a bin (or tap a bin to send the toy at the front). Three rules of 8 toys each, announced before each starts: **sort by type** (squishy / fidget / trash), **sort by rarity** (Common / Uncommon / Rare+ / trash; toys get a rarity-colored border), and a **treasure hunt** (Rare+ toys go in Treasure, the rest by type). Joke scam items are the traps and belong in the 🗑️ trash. A toy that falls off the end counts as a miss. Each correct sort pays 2 🪙, plus a combo bonus (+1 at a streak of 3, +2 at 6, +3 from 9), capped at 90. A wrong bin explains why ("Pop-It is a Fidget").
 
+**Squishy Stacker.** A toy swings across the top; tap to drop it onto the tower. Line it up over the toy below: a "Perfect!" lands within a few pixels and calms the tower, while a sloppy drop kicks it. The tower sways on a simple damped spring (no physics engine), with a Wobble bar that goes green, yellow and red. Flat toys (Pop-It, cubes) are steady and round, soft ones (Fuzz Ball, Mochi Panda) are wobbly, and each toy is tagged Steady, Squishy or Wobbly as it swings. Too much wobble means TIMBER! and the tower tumbles. A drop that misses the tower slides off and costs one of three hearts. The round has 14 toys. Coins are 5 per toy stacked, +2 per perfect, +10 for finishing the tower, capped at 90, and a tumbled tower still pays for its height. Per-toy width and wobble live in `STACK_TRAITS`, and the feel is tuned in `STACK_TUNE`.
+
 #### Planned mini-games
-
-Next up for the Games tab (not built yet):
-
-- **Squishy Stacker.** Drop squishies onto a wobbly tower; soft or round ones are harder to balance than flat ones. Height sets the reward. A fallen tower should be funny, not punishing. Keep the physics light (simple tilt and wobble, no full physics engine) so older Fire tablets run it smoothly.
 
 Other ideas parked for later: **Squeeze Meter** (hold to squish, release in the green zone), **Bubble Pop Rescue** (tap floating squishies before they escape), **Mystery Capsule** (crank a capsule machine and solve a mini lock to reveal the prize), and a **Daily Challenge** (one rotating goal per day for a bonus capsule). A **co-op mini-game at the trading table**, where both kids work together and split the prize, could make the shared table feel like more than a swap screen.
 
