@@ -2902,10 +2902,10 @@ function initStackerGame(stage){
     const o = fall; fall = null;
     const topNx = blocks.length ? blocks[blocks.length-1].nx : 0;
     const nx = topNx + dx;
-    const step = o.tr.w*0.84;
+    const step = o.tr.w*0.72;
     o.node.remove();
     const node = el("div",{class:"stk-block land"}); node.style.width = o.tr.w+"px"; node.style.height = o.tr.w+"px";
-    node.style.left = Math.round(nx - o.tr.w/2)+"px"; node.style.top = Math.round(-(stackH+step)-o.tr.w*0.16)+"px";
+    node.style.left = Math.round(nx - o.tr.w/2)+"px"; node.style.top = Math.round(-(stackH+o.tr.w))+"px";
     node.appendChild(toyEl(o.item));
     tower.appendChild(node);
     stackH += step;
@@ -2969,7 +2969,7 @@ function initStackerGame(stage){
       fall.vy += 1500*dt; fall.y += fall.vy*dt; placeFly(fall);
       if(!fall.decided){
         const top = topSurface();
-        if(fall.y + fall.tr.w*0.84 >= top.y){
+        if(fall.y + fall.tr.w >= top.y){
           fall.decided = true;
           const topW = blocks.length ? blocks[blocks.length-1].w : 170;
           const dx = fall.x - top.x;
