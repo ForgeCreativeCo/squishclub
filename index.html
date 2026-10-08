@@ -560,6 +560,27 @@ img{max-width:100%}
 .stk-msg{position:absolute; left:12px; right:12px; top:46px; z-index:4; text-align:left; font-weight:800; font-size:13px; color:var(--ink-dim); pointer-events:none}
 .stk-msg.good{color:var(--mint)} .stk-msg.oops{color:var(--danger)}
 
+/* arena 13 — Squishy Crane: claw machine with a pile of toys */
+.arena-crane{padding:0; background:#2B2F45}
+.crn-field{position:relative; height:440px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; background:linear-gradient(180deg,#3A3F66,#262A45)}
+.crn-rail{position:absolute; left:0; right:0; top:0; height:14px; background:linear-gradient(180deg,#9AA3C7,#5C6490)}
+.crn-rope{position:absolute; top:12px; width:4px; margin-left:-2px; background:#C9CEE8; z-index:2}
+.crn-claw{position:absolute; left:0; top:0; width:48px; height:52px; z-index:4; pointer-events:none; will-change:transform}
+.crn-claw svg{width:100%; height:100%; display:block; overflow:visible}
+.crn-toy{position:absolute; left:0; top:0; will-change:transform; pointer-events:none; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+.crn-toy .toy-art{width:100%; height:100%}
+.crn-toy.under{filter:drop-shadow(0 0 7px #FFE066) drop-shadow(0 0 3px #fff)}
+.crn-toy.carried{z-index:3}
+.crn-floor{position:absolute; left:0; right:0; bottom:0; height:52px; background:linear-gradient(180deg,#59607F,#3A3F5C)}
+.crn-chute{position:absolute; left:0; bottom:0; width:66px; height:92px; z-index:5; background:linear-gradient(180deg,#1C1F36,#0F1124); border-right:4px solid #E0485C; border-top:4px solid #E0485C; border-radius:0 12px 0 0; color:#fff; font-weight:800; font-size:10.5px; text-align:center; padding-top:6px; letter-spacing:.06em}
+.crn-glass{position:absolute; inset:0; z-index:6; pointer-events:none; background:linear-gradient(115deg,rgba(255,255,255,.14),rgba(255,255,255,0) 30%,rgba(255,255,255,0) 70%,rgba(255,255,255,.08))}
+.crn-msg{position:absolute; left:0; right:0; top:20px; z-index:7; text-align:center; font-weight:800; font-size:12.5px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.7); pointer-events:none}
+.crn-under{position:absolute; left:0; right:0; top:40px; z-index:7; text-align:center; font-weight:800; font-size:11.5px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.7); pointer-events:none}
+.crn-under .tag{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; font-size:10.5px; border:2px solid #fff; background:rgba(0,0,0,.3)}
+.crn-ctl{display:flex; gap:8px; align-items:stretch; margin-top:2px}
+.crn-ctl .btn{flex:1; min-height:52px; font-size:18px; touch-action:none; user-select:none; -webkit-user-select:none}
+.crn-ctl .crn-go{flex:2}
+
 /* arena 11 — Squishy Bowling: lane, gutters and a rack of cute pins */
 .arena-bowling{padding:0; background:#2B2F45}
 .bwl-field{position:relative; height:440px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none}
@@ -2218,6 +2239,7 @@ const GAME_DEFS = [
   {id:"fake", name:"Spot the Fake", emoji:"🔍", art:"needoh_cube", desc:"One of these is a knockoff dupe. Can you spot it?"},
   {id:"stacker", name:"Squishy Stacker", emoji:"🗼", art:"cake_sq", desc:"Stack squishies into a wobbly tower. Round ones wobble!"},
   {id:"bowling", name:"Squishy Bowling", emoji:"🎳", art:"fuzz_ball", desc:"Flick a squishy down the lane and knock down the pins!"},
+  {id:"crane", name:"Squishy Crane", emoji:"🏗️", art:"mochi_panda", desc:"Steer the claw and grab a squishy from the pile!"},
   {id:"puzzle", name:"Puzzles", emoji:"🧩", art:"taba_sq", desc:"Build a jigsaw of toy art, alone or with a buddy on another tablet."},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
   {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
@@ -2231,7 +2253,7 @@ function gameIcon(g){
   else wrap.textContent = g.emoji;
   return wrap;
 }
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", bowling:"--danger", puzzle:"--accent", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", bowling:"--danger", crane:"--coin", puzzle:"--accent", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -2268,6 +2290,7 @@ function startGame(id){
   else if(id==="fake") initFakeGame(stage);
   else if(id==="stacker") initStackerGame(stage);
   else if(id==="bowling") initBowlingGame(stage);
+  else if(id==="crane") initCraneGame(stage);
   else if(id==="puzzle") initPuzzleGame(stage);
   else if(id==="pattern") initPatternGame(stage);
   else if(id==="mathpop") initMathPopGame(stage);
@@ -3380,6 +3403,270 @@ function initBowlingGame(stage){
       el("p",{text:"Slide the squishy left or right along the line, then flick it up the lane to knock down the pins!"}),
       el("p",{text:"Heavy squishies smash through. Light ones bounce off. Strikes and spares earn bonus coins."}),
       el("button",{class:"btn", text:"Start bowling!", onclick:()=>{ ov.remove(); lastTs = 0; loadBall(); }}),
+    ]);
+    const ov = el("div",{class:"sorter-intro"},[card]);
+    field.appendChild(ov);
+    rafId = requestAnimationFrame(tick);
+  });
+}
+
+/* ---- Squishy Crane (steer a claw, grab a toy from the pile, drop it in the chute) ---- */
+const CRN = {tries:6, toy:52, clawHalf:30, restY:30, tipOff:44, chuteX:34,
+             moveSpeed:190, downSpeed:230, upSpeed:200, carrySpeed:210,
+             pay:{common:4, uncommon:7, rare:12, epic:18, legendary:25},
+             slip:{common:0, uncommon:.08, rare:.18, epic:.28, legendary:.38}};
+function craneClawSVG(){
+  return '<svg viewBox="0 0 48 52"><rect x="14" y="0" width="20" height="12" rx="4" fill="#C9CEE8" stroke="#6C7399" stroke-width="1.5"/>'
+    +'<circle cx="24" cy="14" r="5" fill="#E0485C" stroke="#8E2638" stroke-width="1.5"/>'
+    +'<g class="armL"><path d="M24 14 L10 34 Q8 42 15 46" fill="none" stroke="#DDE1F5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>'
+    +'<g class="armR"><path d="M24 14 L38 34 Q40 42 33 46" fill="none" stroke="#DDE1F5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g></svg>';
+}
+function initCraneGame(stage){
+  id_cache = "crane";
+  const C = CRN;
+  const hud = el("div",{class:"game-hud"});
+  const hTries = el("div",{class:"hud-item"},[el("div",{class:"v",text:String(C.tries)}),el("div",{class:"k",text:"Tries"})]);
+  const hPrizes = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Prizes"})]);
+  const hCoins = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Coins"})]);
+  hud.appendChild(hTries); hud.appendChild(hPrizes); hud.appendChild(hCoins);
+  let running = true, rafId = null;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{ running=false; cancelAnimationFrame(rafId); window.removeEventListener("resize", measure); exitGame(); }}));
+  stage.appendChild(hud);
+
+  const arena = el("div",{class:"arena arena-crane"});
+  const field = el("div",{class:"crn-field"});
+  arena.appendChild(field); stage.appendChild(arena);
+  const btnL = el("button",{class:"btn secondary", text:"◀", type:"button"});
+  const btnR = el("button",{class:"btn secondary", text:"▶", type:"button"});
+  const btnGo = el("button",{class:"btn crn-go", text:"GRAB!", type:"button"});
+  stage.appendChild(el("div",{class:"crn-ctl"},[btnL, btnGo, btnR]));
+
+  const rope = el("div",{class:"crn-rope"});
+  const claw = el("div",{class:"crn-claw"}); claw.innerHTML = craneClawSVG();
+  const armL = claw.querySelector(".armL"), armR = claw.querySelector(".armR");
+  const msg = el("div",{class:"crn-msg"});
+  const underLine = el("div",{class:"crn-under"});
+  const chute = el("div",{class:"crn-chute", text:"PRIZE"});
+  [el("div",{class:"crn-rail"}), el("div",{class:"crn-floor"}), rope, claw, chute, msg, underLine, el("div",{class:"crn-glass"})].forEach(n=>field.appendChild(n));
+
+  let W = 340, H = 440, floorY = 388;
+  let toys = [], cx = 190, cy = C.restY, phase = "intro", dir = 0, lastTs = 0;
+  let tries = C.tries, prizes = 0, coins = 0, grabbed = null, slipAt = -1, openAmt = 1;
+
+  function setMsg(t){ msg.textContent = t; }
+  function setArms(open){
+    openAmt = open;
+    const a = 6 + 26*open;
+    armL.setAttribute("transform","rotate("+(a)+" 24 14)");
+    armR.setAttribute("transform","rotate("+(-a)+" 24 14)");
+  }
+  function placeToy(t){ t.node.style.transform = "translate("+Math.round(t.x - C.toy/2)+"px,"+Math.round(t.y - C.toy/2)+"px)"; }
+  function placeClaw(){
+    claw.style.transform = "translate("+Math.round(cx-24)+"px,"+Math.round(cy)+"px)";
+    rope.style.left = cx+"px"; rope.style.height = Math.max(0,cy-4)+"px";
+    if(grabbed){ grabbed.x = cx; grabbed.y = cy + C.tipOff - C.toy*0.3; placeToy(grabbed); }
+  }
+  function topOf(t){ return t.y - C.toy/2; }
+  // Highest toy the claw would close on from where it hangs now.
+  function target(x){
+    let best = null;
+    toys.forEach(t=>{
+      if(t.gone || t===grabbed) return;
+      const dx = Math.abs(t.x - x);
+      if(dx > C.clawHalf) return;
+      if(!best || topOf(t) < topOf(best) - 4 || (Math.abs(topOf(t)-topOf(best))<=4 && dx < Math.abs(best.x-x))) best = t;
+    });
+    return best;
+  }
+  function surfaceAt(x, skip){
+    let y = floorY;
+    toys.forEach(t=>{ if(t.gone || t===skip) return; if(Math.abs(t.x-x) < C.toy*0.8) y = Math.min(y, topOf(t)); });
+    return y;
+  }
+  function pileUp(){
+    toys.forEach(t=>{ if(t.node) t.node.remove(); });
+    toys = [];
+    const pool = ITEMS.filter(i=>i.rarity!=="scam");
+    const take = (r,n)=>pool.filter(i=>i.rarity===r).sort(()=>Math.random()-.5).slice(0,n);
+    const picks = [].concat(take("common",4), take("uncommon",3), take("rare",2), take("epic",1), take("legendary",Math.random()<.5?1:0));
+    while(picks.length < 12){ const i = pool[Math.floor(Math.random()*pool.length)]; if(!picks.includes(i)) picks.push(i); }
+    picks.length = 12; picks.sort(()=>Math.random()-.5);
+    const x0 = 66 + C.toy/2, span = W - 10 - C.toy/2 - x0, step = span/4;
+    const rows = [5,4,3]; let k = 0;
+    rows.forEach((n,r)=>{
+      for(let c=0;c<n;c++,k++){
+        const item = picks[k];
+        const x = x0 + (r*step/2) + c*step + (Math.random()-.5)*6;
+        const y = floorY - C.toy/2 - r*C.toy*0.86;
+        const node = el("div",{class:"crn-toy"}); node.style.width = C.toy+"px"; node.style.height = C.toy+"px";
+        node.appendChild(toyEl(item)); field.insertBefore(node, rope);
+        const t = {item, node, x, y, gone:false}; placeToy(t); toys.push(t);
+      }
+    });
+  }
+  function measure(){
+    W = field.clientWidth || 340; H = field.clientHeight || 440;
+    floorY = H - 52;
+  }
+  function refreshUnder(){
+    toys.forEach(t=>t.node.classList.remove("under"));
+    underLine.innerHTML = "";
+    if(phase!=="aim") return;
+    const t = target(cx);
+    if(t){
+      t.node.classList.add("under");
+      underLine.appendChild(document.createTextNode(t.item.name));
+      underLine.appendChild(el("span",{class:"tag", style:"border-color:var(--rarity-"+t.item.rarity+")", text:RARITY_LABEL[t.item.rarity]}));
+    }
+  }
+  function popText(text, x, y){
+    const p = el("div",{class:"stk-pop", text}); p.style.left = x+"px"; p.style.top = y+"px"; p.style.zIndex = 8;
+    field.appendChild(p); setTimeout(()=>p.remove(), 950);
+  }
+
+  /* one try: aim -> down -> close -> up -> carry -> release */
+  let tgt = null, tipStop = 0, upStartY = 0, carryStart = 0;
+  function startGrab(){
+    if(phase!=="aim") return;
+    phase = "down"; dir = 0; tgt = target(cx);
+    tipStop = tgt ? topOf(tgt) + 8 : floorY - 4;
+    underLine.innerHTML = ""; setMsg("Going down..."); sfx("whoosh");
+    toys.forEach(t=>t.node.classList.remove("under"));
+  }
+  function closeClaw(){
+    phase = "close"; closeT = 0; setArms(openAmt);
+  }
+  let closeT = 0;
+  function decideGrip(){
+    if(!tgt){ setMsg("Nothing there!"); sfx("sad"); upStartY = cy; carryStart = cx; phase = "up"; grabbed = null; slipAt = -1; return; }
+    const q = Math.max(0, 1 - Math.abs(tgt.x - cx)/C.clawHalf);
+    const p = Math.max(.12, Math.min(.98, .35 + .65*q - C.slip[tgt.item.rarity]));
+    const ok = Math.random() < p;
+    grabbed = tgt; tgt.node.classList.add("carried");
+    if(ok){ slipAt = -1; setMsg(q>.85 ? "Perfect grip!" : "Got it!"); sfx("ding"); buzz(20); }
+    else { slipAt = .25 + Math.random()*.5; setMsg("Wobbly grip..."); sfx("boop"); }
+    upStartY = cy; carryStart = cx; phase = "up";
+  }
+  function loseGrip(){
+    const t = grabbed; grabbed = null; slipAt = -1;
+    t.node.classList.remove("carried");
+    t.vy = 0; t.falling = true; sfx("sad"); setMsg("Oh no, it slipped!");
+  }
+  function drop(){
+    const t = grabbed; grabbed = null;
+    t.fallToChute = true; t.vy = 0; t.falling = true; t.node.classList.remove("carried");
+    setArms(1);
+  }
+  function scorePrize(t){
+    const c = C.pay[t.item.rarity] || 4;
+    prizes++; coins += c; t.gone = true;
+    hPrizes.querySelector(".v").textContent = prizes; hCoins.querySelector(".v").textContent = coins;
+    popText("+"+c+" 🪙 "+t.item.name, Math.max(70,Math.min(W-70,t.x)), floorY-70);
+    sfx("fanfare"); buzz(40);
+    t.node.style.opacity = 0; setTimeout(()=>t.node.remove(), 300);
+  }
+  function endTry(){
+    tries--; hTries.querySelector(".v").textContent = tries;
+    if(tries<=0){ setTimeout(finish, 700); phase = "over"; return; }
+    phase = "aim"; setMsg("Steer the claw, then GRAB!"); refreshUnder();
+  }
+
+  function tick(ts){
+    if(!running || !field.isConnected){ running = false; return; }
+    const dt = lastTs ? Math.min(0.05,(ts-lastTs)/1000) : 0; lastTs = ts;
+    const minX = 40, maxX = W - 28;
+    if(phase==="aim"){
+      if(dir){ cx = Math.max(minX, Math.min(maxX, cx + dir*C.moveSpeed*dt)); refreshUnder(); }
+      setArms(1); placeClaw();
+    } else if(phase==="down"){
+      cy += C.downSpeed*dt;
+      if(cy + C.tipOff >= tipStop){ cy = tipStop - C.tipOff; closeClaw(); }
+      placeClaw();
+    } else if(phase==="close"){
+      closeT += dt;
+      setArms(Math.max(0, 1 - closeT/0.35));
+      if(closeT >= 0.45){ setArms(0); decideGrip(); }
+      placeClaw();
+    } else if(phase==="up"){
+      cy -= C.upSpeed*dt;
+      const total = (upStartY-C.restY) + (carryStart-C.chuteX);
+      if(grabbed && slipAt>=0 && (upStartY-cy)/total > slipAt) loseGrip();
+      if(cy <= C.restY){ cy = C.restY; phase = grabbed ? "carry" : "return"; }
+      placeClaw();
+    } else if(phase==="carry"){
+      cx = Math.max(C.chuteX, cx - C.carrySpeed*dt);
+      const total = (upStartY-C.restY) + (carryStart-C.chuteX);
+      if(slipAt>=0 && ((upStartY-C.restY)+(carryStart-cx))/total > slipAt) loseGrip();
+      if(!grabbed) phase = "return";
+      else if(cx <= C.chuteX){ drop(); phase = "release"; }
+      placeClaw();
+    } else if(phase==="return"){
+      // claw drifts back over the pile after a miss or a slip
+      const home = (W+66)/2;
+      cx += Math.sign(home-cx)*Math.min(Math.abs(home-cx), C.carrySpeed*dt);
+      setArms(Math.min(1, openAmt + dt*3));
+      if(Math.abs(home-cx)<1 && !toys.some(t=>t.falling)){ endTry(); }
+      placeClaw();
+    } else if(phase==="release"){
+      setArms(Math.min(1, openAmt + dt*3));
+      cy = Math.min(cy, C.restY);
+      placeClaw();
+    }
+    // falling toys (slipped back into the pile, or into the chute)
+    toys.forEach(t=>{
+      if(!t.falling || t.gone) return;
+      t.vy += 900*dt; t.y += t.vy*dt;
+      if(t.fallToChute){
+        t.x += (C.chuteX - t.x)*Math.min(1, dt*10);
+        if(t.y >= floorY - C.toy*0.8){ t.falling = false; scorePrize(t); if(phase==="release") endTry(); }
+      } else {
+        const rest = surfaceAt(t.x, t) - C.toy/2;
+        if(t.y >= rest){ t.y = rest; t.falling = false; t.vy = 0; sfx("squish-synth"); }
+      }
+      placeToy(t);
+    });
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function finish(){
+    if(!running) return;
+    running = false; cancelAnimationFrame(rafId);
+    window.removeEventListener("resize", measure);
+    const pay = Math.max(5, Math.min(90, coins));
+    const lines = ["You grabbed "+prizes+" of "+C.tries+" tries."];
+    const best = toys.filter(t=>t.gone).sort((a,b)=>RARITY_ORDER.indexOf(b.item.rarity)-RARITY_ORDER.indexOf(a.item.rarity))[0];
+    if(best) lines.push("Best prize: "+best.item.name+" ("+RARITY_LABEL[best.item.rarity]+").");
+    gameResultsScreen(stage, pay, lines);
+  }
+
+  // Controls: hold ◀ / ▶, or drag a finger across the machine; GRAB! drops the claw.
+  const hold = (btn,d)=>{
+    const on = e=>{ e.preventDefault(); if(phase==="aim") dir = d; };
+    const off = ()=>{ if(dir===d) dir = 0; };
+    btn.addEventListener("pointerdown", on);
+    ["pointerup","pointercancel","pointerleave"].forEach(ev=>btn.addEventListener(ev, off));
+  };
+  hold(btnL,-1); hold(btnR,1);
+  btnGo.addEventListener("click", startGrab);
+  field.addEventListener("pointermove", e=>{
+    if(phase!=="aim" || !(e.buttons || e.pointerType==="touch")) return;
+    const r = field.getBoundingClientRect();
+    cx = Math.max(40, Math.min(W-28, e.clientX - r.left)); refreshUnder();
+  });
+  field.addEventListener("pointerdown", e=>{
+    if(phase!=="aim") return;
+    const r = field.getBoundingClientRect();
+    cx = Math.max(40, Math.min(W-28, e.clientX - r.left)); refreshUnder();
+  });
+
+  window.addEventListener("resize", measure);
+  requestAnimationFrame(()=>{
+    measure(); cx = (W+66)/2; pileUp(); setArms(1); placeClaw();
+    const card = el("div",{class:"card"},[
+      el("h2",{text:"Squishy Crane"}),
+      el("p",{text:"Steer the claw over a squishy (hold ◀ ▶ or drag your finger), then press GRAB!"}),
+      el("p",{text:"Line it up right over the toy for a strong grip. Rarer toys are slippery but pay more. You get "+C.tries+" tries."}),
+      el("button",{class:"btn", text:"Start playing!", onclick:()=>{ ov.remove(); lastTs = 0; phase = "aim"; setMsg("Steer the claw, then GRAB!"); refreshUnder(); }}),
     ]);
     const ov = el("div",{class:"sorter-intro"},[card]);
     field.appendChild(ov);

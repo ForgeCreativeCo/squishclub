@@ -41,7 +41,7 @@ The game has four tabs along the bottom: **Backpack, Games, Packs, Trade**.
 
 ### 🎮 Games
 
-Twelve mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
+Thirteen mini-games earn Squish Coins. Each round ends with a results screen, and the coins are added when the kid taps **Claim & Play Again** or **Done**. Leaving a game early with **Exit** earns nothing.
 
 | Game | What you do |
 |---|---|
@@ -52,6 +52,7 @@ Twelve mini-games earn Squish Coins. Each round ends with a results screen, and 
 | Squish Sorter 🗂️ | Toys ride a conveyor belt. Drag each into the right bin before it falls off |
 | Puzzles 🧩 | Build a jigsaw of toy art, alone or with a buddy on another tablet |
 | Squishy Bowling 🎳 | Flick a squishy down the lane and knock down the pins |
+| Squishy Crane 🏗️ | Steer a claw over a pile of toys and grab one. Rarer toys are slipperier but pay more |
 | Squishy Stacker 🗼 | Drop squishies onto a wobbly tower. Round toys wobble more |
 | Spot the Fake 🔍 | Find the knockoff dupe hiding among the real toys |
 | Pattern Pop | Watch the pattern, then repeat it |
@@ -67,6 +68,8 @@ All the games use the same toy art as the rest of the game: real toys on the mat
 **Squishy Stacker.** A toy swings across the top; tap to drop it onto the tower. Line it up over the toy below: a "Perfect!" lands within a few pixels and calms the tower, while a sloppy drop kicks it. The tower sways on a simple damped spring (no physics engine), with a Wobble bar that goes green, yellow and red. Flat toys (Pop-It, cubes) are steady and round, soft ones (Fuzz Ball, Mochi Panda) are wobbly, and each toy is tagged Steady, Squishy or Wobbly as it swings. Too much wobble means TIMBER! and the tower tumbles. A drop that misses the tower slides off and costs one of three hearts. The round has 14 toys. Coins are 5 per toy stacked, +2 per perfect, +10 for finishing the tower, capped at 90, and a tumbled tower still pays for its height. Per-toy width and wobble live in `STACK_TRAITS`, and the feel is tuned in `STACK_TUNE`.
 
 **Squishy Bowling.** A squishy rolls down a lane at a rack of 10 cute pins. Kids slide the ball sideways along the foul line with a finger, then flick it up the lane; the flick's direction and speed set the aim and power (there's also a "Roll it straight" button). The ball is a random squishy each throw, tagged Heavy (smashes through), Medium or Light (bounces off). It's simple 2D circle physics, with no physics engine. Pins that get hit hard enough fall and are swept away, and pins in the gutter are out. There are 5 frames of up to 2 balls, and a strike or spare ends the frame. Coins are 1 per pin, +6 per strike and +3 per spare, capped at 90. The lane and pin sizes, ball weights and flick speeds are in `BWL` and the knock thresholds are in the physics step.
+
+**Squishy Crane.** A claw machine with a pyramid of 12 toys (mostly common, with a rare, an epic and sometimes a legendary mixed in). Kids steer the claw by holding ◀ ▶ or dragging a finger across the machine, and the toy under the claw glows with its name and rarity. **GRAB!** lowers the claw onto the highest toy within reach. How well the claw is lined up sets the grip: a centred claw almost always holds, an off-centre one may drop the toy back onto the pile partway to the chute. Each rarity slips a bit more (`CRN.slip`) and pays more (`CRN.pay`: 4, 7, 12, 18, 25 coins). There are 6 tries, a toy that reaches the chute pays its coins, and the round is capped at 90 coins with a 5-coin minimum. Claw speeds, toy size and the grip odds are in `CRN`.
 
 **Puzzles.** A jigsaw cut from a scene of the game's own toy art, with real tabbed piece shapes. Kids drag pieces onto the board, where they snap into place (👁 Peek shows the whole picture for a moment, 🔀 Spread out re-lays the table). Three sizes: Easy (6 pieces), Medium (12) and Hard (20).
 - **Play alone.** Coins are 15 / 35 / 60 by size, plus up to +20 for finishing under a par time, and every finished puzzle wins a **sticker**.
