@@ -535,6 +535,31 @@ img{max-width:100%}
 .arena-pattern .pop-cell{border-radius:50%; background:radial-gradient(circle at 34% 26%, rgba(255,255,255,.7), transparent 42%), radial-gradient(circle at 50% 120%, rgba(0,0,0,.28), transparent 62%), var(--rc,var(--accent)); box-shadow:0 4px 0 rgba(0,0,0,.25), inset 0 -3px 5px rgba(0,0,0,.15); opacity:.5; filter:saturate(.75)}
 .arena-pattern .pop-cell.lit{opacity:1; filter:none; transform:translateY(-3px) scale(1.06); box-shadow:0 0 0 6px var(--rc-soft,var(--accent-soft)), 0 0 20px 6px var(--rc,var(--accent)), 0 4px 0 rgba(0,0,0,.25); animation:popPulse .3s ease}
 
+/* arena 10 — Squishy Stacker: wobbly tower on a shelf */
+.arena-stacker{padding:0; background:linear-gradient(180deg,var(--accent-soft),var(--surface-2) 70%)}
+.stk-field{position:relative; height:min(440px,58vh); min-height:340px; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; cursor:pointer}
+.stk-wobble{position:absolute; left:12px; right:12px; top:8px; z-index:4; display:flex; align-items:center; gap:8px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-dim)}
+.stk-wobble .progress-track{flex:1; height:10px}
+.stk-wobble .progress-fill{background:var(--mint); transition:width .08s linear, background .2s}
+.stk-wobble .progress-fill.warn{background:var(--coin)}
+.stk-wobble .progress-fill.bad{background:var(--danger)}
+.stk-next{position:absolute; left:12px; top:26px; z-index:4; font-size:11.5px; font-weight:800; color:var(--ink)}
+.stk-next .tag{display:inline-block; margin-left:6px; padding:1px 8px; border-radius:999px; font-size:10.5px; border:2px solid var(--line); background:var(--surface)}
+.stk-next .tag.steady{border-color:var(--mint); color:var(--mint)}
+.stk-next .tag.wobbly{border-color:var(--danger); color:var(--danger)}
+.stk-rope{position:absolute; top:0; width:2px; background:var(--ink-dim); opacity:.55; z-index:1; pointer-events:none}
+.stk-fly{position:absolute; left:0; top:0; z-index:3; pointer-events:none; will-change:transform; filter:drop-shadow(0 4px 4px rgba(0,0,0,.22))}
+.stk-fly .toy-art, .stk-block .toy-art{width:100%; height:100%}
+.stk-shelf{position:absolute; left:50%; width:170px; margin-left:-85px; height:60px; border-radius:10px 10px 0 0; background:linear-gradient(180deg,#C98F5B,#A8703F); box-shadow:inset 0 5px 0 #E2B382, 0 6px 0 rgba(0,0,0,.15); z-index:2}
+.stk-tower{position:absolute; left:50%; width:0; height:0; transform-origin:0 0; z-index:2}
+.stk-block{position:absolute; filter:drop-shadow(0 2px 2px rgba(0,0,0,.2)); transform-origin:50% 100%}
+.stk-block.land{animation:stkLand .42s ease-out}
+@keyframes stkLand{0%{transform:scale(1.18,.7)}45%{transform:scale(.92,1.1)}100%{transform:none}}
+.stk-pop{position:absolute; z-index:5; font-family:var(--font-display); font-size:20px; color:var(--coin); text-shadow:0 2px 0 rgba(0,0,0,.25); pointer-events:none; animation:stkPop .9s ease-out forwards; transform:translateX(-50%)}
+@keyframes stkPop{from{opacity:1; margin-top:0}to{opacity:0; margin-top:-46px}}
+.stk-msg{position:absolute; left:12px; right:12px; top:46px; z-index:4; text-align:left; font-weight:800; font-size:13px; color:var(--ink-dim); pointer-events:none}
+.stk-msg.good{color:var(--mint)} .stk-msg.oops{color:var(--danger)}
+
 /* arena 9 — Spot the Fake: detective's display shelf under a spotlight */
 .arena-fake{background:radial-gradient(ellipse at 50% 0%, var(--coin-soft), transparent 70%), repeating-linear-gradient(0deg, transparent 0 46px, rgba(0,0,0,.04) 46px 48px), var(--surface-2); display:flex; flex-direction:column; gap:12px; align-items:center}
 .fake-tools{display:flex; justify-content:flex-end; width:100%}
@@ -2125,6 +2150,7 @@ const GAME_DEFS = [
   {id:"stretch", name:"Stretch Zone", emoji:"📏", art:"sensory_putty", desc:"Time your tap inside the glowing zone."},
   {id:"sorter", name:"Squish Sorter", emoji:"🗂️", art:"infinity_cube", desc:"Sort toys on the conveyor belt. Watch out for junk!"},
   {id:"fake", name:"Spot the Fake", emoji:"🔍", art:"needoh_cube", desc:"One of these is a knockoff dupe. Can you spot it?"},
+  {id:"stacker", name:"Squishy Stacker", emoji:"🗼", art:"cake_sq", desc:"Stack squishies into a wobbly tower. Round ones wobble!"},
   {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
   {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
   {id:"words", name:"Word Builder", emoji:"🔤", art:"knitten", desc:"Pop the letters in order to spell the word.", edu:true},
@@ -2137,7 +2163,7 @@ function gameIcon(g){
   else wrap.textContent = g.emoji;
   return wrap;
 }
-const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
+const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sorter:"--rarity-epic", fake:"--rarity-legendary", stacker:"--rarity-uncommon", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
   wrap.innerHTML = "";
@@ -2172,6 +2198,7 @@ function startGame(id){
   else if(id==="stretch") initStretchGame(stage);
   else if(id==="sorter") initSorterGame(stage);
   else if(id==="fake") initFakeGame(stage);
+  else if(id==="stacker") initStackerGame(stage);
   else if(id==="pattern") initPatternGame(stage);
   else if(id==="mathpop") initMathPopGame(stage);
   else if(id==="words") initWordGame(stage);
@@ -2775,6 +2802,212 @@ function initSorterGame(stage){
   }
 
   requestAnimationFrame(()=>{ measure(); showIntro(); rafId = requestAnimationFrame(tick); });
+}
+
+/* ---- Squishy Stacker (drop squishies onto a wobbly tower) ---- */
+// Per-toy stacking traits: w = width in px, soft = how much it wobbles the tower
+// (flat, boxy toys are steady; round, squishy ones are wobbly). Others use the default.
+const STACK_DEFAULT = {w:58, soft:1.0};
+const STACK_TRAITS = {
+  pop_it:{w:68,soft:.45}, simple_dimple:{w:68,soft:.45}, needoh_cube:{w:58,soft:.6}, infinity_cube:{w:56,soft:.5},
+  butter_stick:{w:66,soft:.6}, cake_sq:{w:62,soft:.7}, nice_berg:{w:66,soft:.8}, fidget_dodeca:{w:58,soft:.6}, marble_mesh:{w:58,soft:.8},
+  cheese_sq:{w:62,soft:.9},
+  fuzz_ball:{w:52,soft:1.6}, speks_magnets:{w:50,soft:1.7}, golden_spinner:{w:58,soft:1.4}, sensory_putty:{w:58,soft:1.5},
+  mochi_panda:{w:58,soft:1.4}, dream_drop:{w:54,soft:1.4}, jelly_squish:{w:56,soft:1.3}, gummy_bear_sq:{w:54,soft:1.3},
+  dumpling_sq:{w:58,soft:1.3}, fidget_ring:{w:56,soft:1.4}, nice_cream:{w:46,soft:1.3}, water_vortex:{w:44,soft:1.2},
+  golden_squish:{w:58,soft:1.3},
+};
+const STACK_TUNE = {toys:14, strikes:3, topple:13, kick:4, kickOff:20, perfectPx:7, missFrac:.7, k:30, c:2.5};
+function stackTraits(item){ return Object.assign({}, STACK_DEFAULT, STACK_TRAITS[item.id]); }
+function stackTag(soft){ return soft<=.8 ? ["Steady","steady"] : soft>=1.3 ? ["Wobbly","wobbly"] : ["Squishy",""]; }
+
+function initStackerGame(stage){
+  id_cache = "stacker";
+  const T = STACK_TUNE;
+  const hud = el("div",{class:"game-hud"});
+  const hHeight = el("div",{class:"hud-item"},[el("div",{class:"v",text:"0"}),el("div",{class:"k",text:"Tower"})]);
+  const hLives = el("div",{class:"hud-item"},[el("div",{class:"v",text:"❤️❤️❤️"}),el("div",{class:"k",text:"Oops"})]);
+  const hLeft = el("div",{class:"hud-item"},[el("div",{class:"v",text:String(T.toys)}),el("div",{class:"k",text:"Left"})]);
+  hud.appendChild(hHeight); hud.appendChild(hLives); hud.appendChild(hLeft);
+  let running = true, rafId = null;
+  hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{ running=false; cancelAnimationFrame(rafId); exitGame(); }}));
+  stage.appendChild(hud);
+
+  const arena = el("div",{class:"arena arena-stacker"});
+  const field = el("div",{class:"stk-field"});
+  const wobFill = el("div",{class:"progress-fill"});
+  field.appendChild(el("div",{class:"stk-wobble"},[el("span",{text:"Wobble"}), el("div",{class:"progress-track"},[wobFill])]));
+  const nextLine = el("div",{class:"stk-next"});
+  const shelf = el("div",{class:"stk-shelf"});
+  const tower = el("div",{class:"stk-tower"});
+  const rope = el("div",{class:"stk-rope"});
+  const msg = el("div",{class:"stk-msg"});
+  [rope, nextLine, shelf, tower, msg].forEach(n=>field.appendChild(n));
+  arena.appendChild(field); stage.appendChild(arena);
+
+  let W = 320, H = 400, groundY = 370, pivotX = 160;
+  let blocks = [], stackH = 0, angle = 0, vel = 0, cam = 0, camT = 0;
+  let queue = ITEMS.slice().sort(()=>Math.random()-.5).slice(0, T.toys);
+  let hold = null, fall = null, phase = "intro", swingT = 0, swingSpeed = 1.5, lastTs = 0;
+  let strikes = 0, perfect = 0, dropped = 0;
+  const rad = d=>d*Math.PI/180;
+  function setMsg(t, cls){ msg.textContent = t; msg.className = "stk-msg"+(cls?" "+cls:""); }
+  function measure(){
+    W = field.clientWidth || 320; H = field.clientHeight || 400;
+    groundY = H - 60; pivotX = W/2;
+    shelf.style.top = groundY+"px"; tower.style.top = groundY+"px";
+  }
+  function popText(text, x, y){
+    const p = el("div",{class:"stk-pop", text}); p.style.left = x+"px"; p.style.top = y+"px";
+    field.appendChild(p); setTimeout(()=>p.remove(), 950);
+  }
+  function applyTower(){
+    const t = "translateY("+cam.toFixed(1)+"px) rotate("+angle.toFixed(2)+"deg)";
+    tower.style.transform = t;
+    shelf.style.transform = "translateY("+cam.toFixed(1)+"px)";
+  }
+
+  function loadNext(){
+    if(!queue.length){ finish(true); return; }
+    const item = queue.shift();
+    const tr = stackTraits(item);
+    const node = el("div",{class:"stk-fly"}); node.style.width = tr.w+"px"; node.style.height = tr.w+"px";
+    node.appendChild(toyEl(item));
+    field.appendChild(node);
+    hold = {item, tr, node, x:W/2, y:34};
+    swingT = Math.random()*6; swingSpeed = 1.4 + dropped*0.07;
+    const [label, cls] = stackTag(tr.soft);
+    nextLine.innerHTML = "";
+    nextLine.appendChild(document.createTextNode(item.name));
+    nextLine.appendChild(el("span",{class:"tag "+cls, text:label}));
+    hLeft.querySelector(".v").textContent = queue.length+1;
+    phase = "swing";
+    setMsg("Tap to drop!");
+  }
+  function placeFly(o){ o.node.style.transform = "translate("+Math.round(o.x - o.tr.w/2)+"px,"+Math.round(o.y)+"px)"; }
+
+  function drop(){
+    if(phase!=="swing" || !hold) return;
+    fall = hold; hold = null; fall.vy = 0; fall.decided = false; fall.miss = false;
+    dropped++; phase = "fall"; sfx("flip");
+    rope.style.height = "0";
+  }
+  function topSurface(){
+    // The top block's center in screen x, and the screen y of its top edge, including sway.
+    const nx = blocks.length ? blocks[blocks.length-1].nx : 0;
+    const a = rad(angle);
+    return {nx, x: pivotX + nx*Math.cos(a) + stackH*Math.sin(a), y: groundY + cam - stackH*Math.cos(a)};
+  }
+  function land(dx, topW){
+    const o = fall; fall = null;
+    const topNx = blocks.length ? blocks[blocks.length-1].nx : 0;
+    const nx = topNx + dx;
+    const step = o.tr.w*0.84;
+    o.node.remove();
+    const node = el("div",{class:"stk-block land"}); node.style.width = o.tr.w+"px"; node.style.height = o.tr.w+"px";
+    node.style.left = Math.round(nx - o.tr.w/2)+"px"; node.style.top = Math.round(-(stackH+step)-o.tr.w*0.16)+"px";
+    node.appendChild(toyEl(o.item));
+    tower.appendChild(node);
+    stackH += step;
+    blocks.push({nx, w:o.tr.w, node});
+    hHeight.querySelector(".v").textContent = blocks.length;
+    const off = Math.min(1.2, Math.abs(dx)/(topW/2));
+    const isPerfect = Math.abs(dx) <= T.perfectPx;
+    const kick = (T.kick + T.kickOff*off) * o.tr.soft * (1 + 0.05*blocks.length);
+    vel += (dx===0 ? (Math.random()<.5?-1:1) : Math.sign(dx)) * kick;
+    const sx = pivotX + nx, sy = groundY + cam - stackH;
+    if(isPerfect){ vel *= 0.35; perfect++; popText("PERFECT!", sx, sy-20); sfx("ding"); setMsg("Perfect stack!","good"); buzz(20); }
+    else { sfx("slap"); buzz(10); setMsg(o.tr.soft>=1.3 && off>.4 ? "Whoa, wobbly!" : "Stacked!", ""); }
+    camT = Math.max(0, stackH - (groundY - 150));
+    if(!queue.length){ phase = "wait"; setTimeout(()=>{ if(running && phase!=="over") finish(true); }, 1100); return; }
+    phase = "wait";
+    setTimeout(()=>{ if(running && phase==="wait") loadNext(); }, 450);
+  }
+  function whiff(){
+    fall = null; strikes++; sfx("sad"); buzz(40);
+    hLives.querySelector(".v").textContent = "❤️".repeat(Math.max(0,T.strikes-strikes))+"🖤".repeat(Math.min(T.strikes,strikes));
+    setMsg("Missed! It slid off the tower.", "oops");
+    if(strikes>=T.strikes){ phase = "over"; setTimeout(()=>{ if(running) finish(false); }, 700); return; }
+    if(!queue.length){ phase = "wait"; setTimeout(()=>{ if(running) finish(true); }, 600); return; }
+    phase = "wait"; setTimeout(()=>{ if(running && phase==="wait") loadNext(); }, 450);
+  }
+  function topple(){
+    phase = "over"; fall && fall.node.remove(); hold && hold.node.remove(); fall = hold = null;
+    sfx("sad"); setTimeout(()=>sfx("slap"),180); setTimeout(()=>sfx("slap"),380); buzz(80);
+    setMsg("TIMBER! The tower tumbled! 🌲", "oops");
+    const dir = angle>=0 ? 1 : -1;
+    tower.style.transition = "transform 1.4s cubic-bezier(.5,0,.9,.6), opacity 1.4s ease-in";
+    blocks.forEach((b,i)=>{
+      b.node.style.transition = "transform 1.2s ease-in "+(i*0.03)+"s";
+      b.node.style.transform = "translate("+(dir*(30+Math.random()*90))+"px,"+(20+Math.random()*60)+"px) rotate("+(dir*(60+Math.random()*200))+"deg)";
+    });
+    tower.style.transform = "translateY("+(cam+120)+"px) rotate("+(dir*40)+"deg)";
+    tower.style.opacity = "0";
+    setTimeout(()=>{ if(running) finish(false); }, 1700);
+  }
+
+  function tick(ts){
+    if(!running || !field.isConnected){ running = false; return; }
+    const dt = lastTs ? Math.min(0.05,(ts-lastTs)/1000) : 0; lastTs = ts;
+    if(phase!=="intro" && phase!=="over"){
+      // tower sway: a damped spring around upright
+      vel += (-T.k*angle - T.c*vel)*dt; angle += vel*dt;
+      cam += (camT-cam)*Math.min(1,dt*4);
+      applyTower();
+      const m = Math.min(1, Math.abs(angle)/T.topple);
+      wobFill.style.width = (m*100)+"%"; wobFill.className = "progress-fill"+(m>.8?" bad":m>.5?" warn":"");
+      if(blocks.length>=2 && Math.abs(angle) > T.topple){ topple(); }
+    }
+    if(phase==="swing" && hold){
+      swingT += dt*swingSpeed;
+      const amp = W/2 - hold.tr.w/2 - 8;
+      hold.x = W/2 + amp*Math.sin(swingT);
+      placeFly(hold);
+      rope.style.left = Math.round(hold.x)+"px"; rope.style.height = Math.round(hold.y)+"px";
+    }
+    if(phase==="fall" && fall){
+      fall.vy += 1500*dt; fall.y += fall.vy*dt; placeFly(fall);
+      if(!fall.decided){
+        const top = topSurface();
+        if(fall.y + fall.tr.w*0.84 >= top.y){
+          fall.decided = true;
+          const topW = blocks.length ? blocks[blocks.length-1].w : 170;
+          const dx = fall.x - top.x;
+          if(Math.abs(dx) > (topW + fall.tr.w)/2*T.missFrac) fall.miss = true;
+          else { land(dx, topW); }
+        }
+      } else if(fall.miss){
+        fall.x += (fall.x>=pivotX ? 1 : -1)*70*dt;
+        if(fall.y > H+40){ fall.node.remove(); whiff(); }
+      }
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function finish(complete){
+    if(!running) return;
+    running = false; cancelAnimationFrame(rafId);
+    window.removeEventListener("resize", measure);
+    const n = blocks.length;
+    const coins = Math.max(8, Math.min(90, n*5 + perfect*2 + (complete && n>=T.toys-strikes ? 10 : 0)));
+    const lines = [complete ? "You stacked "+n+" toys. Tower complete!" : "Your tower got "+n+" toys high before it tumbled.", perfect+" perfect stack"+(perfect===1?"":"s")+"."];
+    gameResultsScreen(stage, coins, lines);
+  }
+
+  field.addEventListener("pointerdown", (e)=>{ e.preventDefault(); drop(); });
+  window.addEventListener("resize", measure);
+  requestAnimationFrame(()=>{
+    measure(); applyTower();
+    const card = el("div",{class:"card"},[
+      el("h2",{text:"Squishy Stacker"}),
+      el("p",{text:"Tap to drop each toy on the tower. Line it up over the toy below!"}),
+      el("p",{text:"Round, soft toys make the tower wobble. Wait for the wobble bar to calm down. If it gets too wobbly, TIMBER!"}),
+      el("button",{class:"btn", text:"Start stacking!", onclick:()=>{ ov.remove(); lastTs = 0; loadNext(); }}),
+    ]);
+    const ov = el("div",{class:"sorter-intro"},[card]);
+    field.appendChild(ov);
+    rafId = requestAnimationFrame(tick);
+  });
 }
 
 /* ---- Pattern Pop (Simon-says sequence memory) ---- */
