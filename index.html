@@ -499,7 +499,16 @@ img{max-width:100%}
 .board-slots{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
 @media (max-width:420px){ .board-slots{grid-template-columns:repeat(3,1fr)} }
 .board-slot{aspect-ratio:1; border:2px dashed rgba(147,180,255,.35); border-radius:12px; background:rgba(255,255,255,.04); display:flex; flex-direction:column; align-items:center; justify-content:center}
-.board-slot.filled{border-style:solid; border-color:var(--rc); background:radial-gradient(circle at 50% 40%, var(--rc-soft), rgba(255,255,255,.1) 75%); animation:popPulse .25s ease}
+.board-slot.filled{border-style:solid; border-color:var(--rc); background:radial-gradient(circle at 50% 40%, var(--rc-soft), rgba(255,255,255,.1) 75%)}
+.board-slot.drop-in{animation:dropIn .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes dropIn{0%{transform:translateY(-30px) scale(.4) rotate(-12deg); opacity:0}60%{transform:translateY(4px) scale(1.1) rotate(4deg); opacity:1}100%{transform:none}}
+.trade-reaction{position:fixed; left:50%; top:38%; z-index:90; transform:translate(-50%,-50%); background:#fff; color:#1f1a3a; border:5px solid #ff9f1c; border-radius:26px; padding:14px 26px 12px; text-align:center; box-shadow:0 18px 40px -12px rgba(0,0,0,.45); animation:reactIn .45s cubic-bezier(.3,1.6,.5,1); pointer-events:none}
+.trade-reaction::after{content:""; position:absolute; left:50%; bottom:-16px; margin-left:-14px; border:14px solid transparent; border-top-color:#ff9f1c; border-bottom:0}
+.trade-reaction .face{font-size:64px; line-height:1}
+.trade-reaction .say{font-family:var(--font-display); font-size:28px; letter-spacing:.02em}
+.trade-reaction .who{font-size:12px; font-weight:800; color:#6b6185}
+.trade-reaction.out{transition:opacity .35s, transform .35s; opacity:0; transform:translate(-50%,-70%) scale(.9)}
+@keyframes reactIn{0%{transform:translate(-50%,-50%) scale(.3) rotate(-8deg); opacity:0}100%{transform:translate(-50%,-50%) scale(1); opacity:1}}
 .board-slot .e{width:74%; height:62%; font-size:26px}
 .board-slot .v{font-size:10px; font-weight:800; margin-top:2px; color:#fff}
 .board-slot.removable{cursor:pointer}
@@ -513,7 +522,9 @@ img{max-width:100%}
 .trade-legend{margin:0; font-size:11px; color:var(--ink-dim); text-align:center}
 .swap-row{display:flex; align-items:center; gap:10px; font-size:26px}
 .swap-toys{display:flex; gap:6px; flex-wrap:wrap}
-.swap-toys .toy-art{width:46px; height:46px}
+.swap-toys .toy-art{width:46px; height:46px; animation:dropIn .6s cubic-bezier(.3,1.6,.5,1) both}
+.swap-toys .toy-art:nth-child(2){animation-delay:.1s}.swap-toys .toy-art:nth-child(3){animation-delay:.2s}.swap-toys .toy-art:nth-child(n+4){animation-delay:.3s}
+.results-card{position:relative; overflow:hidden}
 .swap-row .k{font-size:12px; font-weight:800; color:var(--ink-dim); text-transform:uppercase; width:70px; text-align:right}
 .swap-anim{animation:popPulse .6s ease 3}
 
@@ -1496,6 +1507,10 @@ function sfx(kind){
     else if(kind==="squish"){ o.type="triangle"; o.frequency.setValueAtTime(240,t); o.frequency.exponentialRampToValueAtTime(90,t+.25); g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); o.start(t); o.stop(t+.32); }
     else if(kind==="flip"){ o.type="square"; o.frequency.setValueAtTime(320,t); o.frequency.exponentialRampToValueAtTime(880,t+.15); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.2); o.start(t); o.stop(t+.21); }
     else if(kind==="whoosh"){ o.type="sawtooth"; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(60,t+.4); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.45); o.start(t); o.stop(t+.46); }
+    else if(kind==="ding"){ o.type="sine"; o.frequency.setValueAtTime(880,t); o.frequency.setValueAtTime(1320,t+.09); g.gain.setValueAtTime(.3,t); g.gain.exponentialRampToValueAtTime(.001,t+.4); o.start(t); o.stop(t+.42); }
+    else if(kind==="fanfare"){ o.type="triangle"; [523,659,784,1047].forEach((f,i)=>o.frequency.setValueAtTime(f,t+i*.1)); g.gain.setValueAtTime(.3,t); g.gain.setValueAtTime(.3,t+.35); g.gain.exponentialRampToValueAtTime(.001,t+.7); o.start(t); o.stop(t+.72); }
+    else if(kind==="sad"){ o.type="sawtooth"; o.frequency.setValueAtTime(300,t); o.frequency.exponentialRampToValueAtTime(110,t+.6); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.65); o.start(t); o.stop(t+.66); }
+    else if(kind==="boop"){ o.type="sine"; o.frequency.setValueAtTime(660,t); o.frequency.exponentialRampToValueAtTime(990,t+.08); g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.16); o.start(t); o.stop(t+.17); }
     else { o.type="square"; o.frequency.setValueAtTime(1200,t); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.04); o.start(t); o.stop(t+.05); }
   }catch(e){}
 }
@@ -2740,6 +2755,7 @@ async function joinTable(code){
 
 function openTradeSession(code){
   tradeCode = code;
+  boardSeen = {sideA:0, sideB:0};
   safeLocalSet(tradeStorageKey(), code);
   subscribeTrade(code);
 }
@@ -2757,7 +2773,9 @@ function subscribeTrade(code){
   tradeUnsub = db.doc("trades/"+code).onSnapshot((snap)=>{
     if(!snap.exists){ tradeData = null; closeTradeSession(); return; }
     const t = snap.data();
+    const prev = tradeData;
     tradeData = t;
+    reactToTradeChange(prev, t);
     if(t.status!=="open"){
       renderTradeEndScreen(t);
       return;
@@ -2890,6 +2908,7 @@ function buildTradeTable(){
       if(remaining<=0) return;
       if(myOffer.length>=MAX_OFFER){ showToast("The board fits "+MAX_OFFER+" items per side."); return; }
       myOffer.push(id);
+      sfx("pop");
       writeMyOffer();
     });
     pickerGrid.appendChild(card);
@@ -2902,6 +2921,9 @@ function buildTradeTable(){
 
 function buildBoardSide(isMe, side, accepted, beingAsked){
   const items = side.items||[];
+  const sideKey = isMe ? mySideKey(tradeData) : otherSideKey(tradeData);
+  const seen = boardSeen[sideKey]||0;
+  boardSeen[sideKey] = items.length;
   const field = el("div",{class:"mat-field "+(isMe?"mine":"theirs")+(beingAsked?" asked":"")});
   const head = el("div",{class:"board-head"},[
     el("span",{class:"who", text:(side.avatar||"🙂")+" "+(isMe?"You":(side.name||"Trader"))}),
@@ -2918,6 +2940,7 @@ function buildBoardSide(isMe, side, accepted, beingAsked){
         toyEl(item, "e"), el("span",{class:"v", text:"⭐"+itemValue(id)})
       ]);
       styleRarity(slot,item.rarity);
+      if(i >= seen) slot.classList.add("drop-in");
       if(isMe){
         slot.classList.add("removable");
         slot.addEventListener("click", ()=>{ myOffer.splice(i,1); writeMyOffer(); });
@@ -2990,6 +3013,36 @@ function buildMatDivider(t, mine, theirs){
     el("span",{class:"verdict", style:"opacity:.85", text:verdict}),
   ]);
   return el("div",{class:"mat-divider"},[scale]);
+}
+
+
+/* ---- trading flourishes: reaction bubbles, sounds, bounce-in toys ---- */
+let boardSeen = {sideA:0, sideB:0}; // items already shown, so only new ones bounce in
+function reactToTradeChange(prev, t){
+  if(!prev || !t || !t.sideB || !prev.sideB) return;
+  const mine = mySideKey(t), theirs = otherSideKey(t);
+  if(!mine) return;
+  const them = t[theirs], theirName = them.name||"Your buddy";
+  if(t.status!=="open" && prev.status==="open"){
+    if(t.status==="completed") sfx("fanfare");
+    else if(t.status==="declined") sfx("sad");
+    return;
+  }
+  const before = (prev[theirs].items||[]).length, after = (them.items||[]).length;
+  if(after > before) sfx("pop");
+  if(t.addMoreTo===mine && prev.addMoreTo!==mine){ showReaction("😆", "ADD MORE!", theirName); sfx("boop"); buzz(30); }
+  if(hasAccepted(t, theirs) && !hasAccepted(prev, theirs)){ showReaction("😄", "I ACCEPT!", theirName); sfx("ding"); buzz(20); }
+}
+// A big speech bubble from the buddy, layered above the page so board
+// re-renders don't cut it short.
+function showReaction(face, text, who){
+  $all(".trade-reaction").forEach(r=>r.remove());
+  const r = el("div",{class:"trade-reaction"},[
+    el("div",{class:"face", text:face}), el("div",{class:"say", text:text}), el("div",{class:"who", text:"— "+who})
+  ]);
+  document.body.appendChild(r);
+  setTimeout(()=>r.classList.add("out"), 1900);
+  setTimeout(()=>r.remove(), 2300);
 }
 
 let offerWritePending = false, offerWriteQueued = false;
@@ -3088,6 +3141,7 @@ function renderTradeEndScreen(t){
   if(t.status==="completed"){
     const mySide = t[mine], theirSide = t[mine==="sideA"?"sideB":"sideA"];
     card.appendChild(el("div",{class:"big swap-anim", text:"🤝"}));
+    setTimeout(()=>spawnConfetti(card, 22), 50);
     card.appendChild(el("h2",{text:"Trade complete!"}));
     card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You got"}), emojis(theirSide.items)]));
     card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You gave"}), emojis(mySide.items)]));
