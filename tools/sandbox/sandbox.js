@@ -90,8 +90,20 @@
   const PUZ_TOTAL = {easy:6, medium:12, hard:20};
   const STICKER_IDS = __STICKER_IDS__;
   const roboSide = ()=>({playerId:ROBO, name:"Robo", avatar:"🤖", items:[], accepted:null, bpColor:"galaxy", keychain:"golden_spinner", seenAt:9e15});   // seenAt far in the future: Robo never nods off
+const isTable = p => /^trades\/(lobby-|puzzle-t|race-t)\d$/.test(p);
 const starterOf = t => (t.round||0)%2===0 ? "sideA" : "sideB";
 const resetPatch = (t, extra)=>{ const p = {addMoreTo:null, addMoreValue:null, round:(t.round||0)+1}; ["sideA","sideB"].forEach(k=>{ if(t[k]) p[k] = {items:[], accepted:null}; }); return Object.assign(p, extra||{}); };
+const resetFor = (t, extra)=>{
+  if(t.kind==="lobby") return resetPatch(t, extra);
+  const p = {round:(t.round||0)+1, status:"lobby", startedAt:null};
+  if(t.kind==="puzzle"){ p.placed = null; p.winner = null; p.progress = {A:0,B:0}; }
+  if(t.kind==="race") ["sideA","sideB"].forEach(k=>{ if(t[k]) p[k] = {doneRd:null}; });
+  return Object.assign(p, extra||{});
+};
+const seatRobo = (kind)=>Object.assign({playerId:ROBO, name:"Robo", avatar:"🤖", seenAt:9e15}, kind==="race" ? {item:"golden_spinner", doneRd:null} : {});
+const newTable = (kind, n)=>Object.assign({kind, code:"t"+n, table:n, round:1, sideA:null, sideB:null, createdAt:Date.now()},
+  kind==="puzzle" ? {status:"lobby", mode:"coop", size:"medium", seed:0, startedAt:null, placed:null, progress:{A:0,B:0}, winner:null}
+                  : {status:"lobby", trackId:"meadow", seed:0, startedAt:null});
 const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)+1, type:"declined", by:"Robo", swap:null}}));
   const dealKey = t => JSON.stringify([(t.sideA&&t.sideA.items)||[], (t.sideB&&t.sideB.items)||[]]);
   const roboStock = (t, side)=>{ const inv = Object.assign({}, store["players/"+ROBO].inventory||{}); (t[side].items||[]).forEach(id=>inv[id]--); return inv; };
@@ -165,10 +177,11 @@ const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)
       const t = store[path]; if(!t || t.kind!=="puzzle") return;
       const key = t.sideA && t.sideA.playerId===ROBO ? "A" : t.sideB && t.sideB.playerId===ROBO ? "B" : null;
       if(!key) return;
-      const m = puzMem[path] = puzMem[path] || {timer:null, started:false};
-      if(t.status==="lobby" && key==="A" && t.sideB && !m.started){
-        m.started = true;
-        setTimeout(()=>{ const c = store[path]; if(c && c.status==="lobby") db.doc(path).update({status:"playing", startedAt:Date.now()}); }, 1800);
+      const m = puzMem[path] = puzMem[path] || {timer:null, startedRound:-1};
+      // Robo starts the first puzzle once you've both sat down; after that, you press Start.
+      if(t.status==="lobby" && t.sideA && t.sideB && m.startedRound!==t.round){
+        m.startedRound = t.round;
+        setTimeout(()=>{ const c = store[path]; if(c && c.status==="lobby" && c.sideA && c.sideB) db.doc(path).update({status:"playing", seed:Math.floor(realRandom()*1e9), startedAt:Date.now(), placed:null, winner:null, progress:{A:0,B:0}}); }, 1800);
       }
       if(t.status==="playing" && !m.timer){
         const total = PUZ_TOTAL[t.size] || 12, pace = {easy:3600, medium:3000, hard:2600}[t.size] || 3000;
@@ -190,42 +203,37 @@ const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)
     },
     // ---- racing: Robo joins the table; the game drives Robo's kart itself once no position updates arrive ----
     onRace(path){
-      const t = store[path]; if(!t || t.kind!=="race" || t.status!=="lobby") return;
-      if(t.sideA && t.sideA.playerId===ROBO && t.sideB && !robo.raceStarted[path]){
-        robo.raceStarted[path] = true;
-        setTimeout(()=>{ const c = store[path]; if(c && c.status==="lobby") db.doc(path).update({status:"playing", startedAt:Date.now()}); }, 1800);
+      const t = store[path]; if(!t || t.kind!=="race") return;
+      const key = t.sideA && t.sideA.playerId===ROBO ? "sideA" : t.sideB && t.sideB.playerId===ROBO ? "sideB" : null;
+      if(!key) return;
+      const m = puzMem[path] = puzMem[path] || {timer:null, startedRound:-1};
+      // Robo starts the first race once you've both sat down; after that, you press Start.
+      if(t.status==="lobby" && t.sideA && t.sideB && m.startedRound!==t.round){
+        m.startedRound = t.round;
+        setTimeout(()=>{ const c = store[path]; if(c && c.status==="lobby" && c.sideA && c.sideB) db.doc(path).update({status:"playing", seed:Math.floor(realRandom()*1e9), startedAt:Date.now()}); }, 1800);
       }
+      // His kart is driven by the computer, so he counts as finished straight away (the table frees up when you finish).
+      if(t.status==="playing" && t[key].doneRd!==t.startedAt) db.doc(path).update({[key]:{doneRd:t.startedAt}});
     },
     raceStarted:{},
-    inviteRace(){
-      const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/race-") && t.kind==="race" && t.status==="lobby" && t.sideA && t.sideA.playerId===ME && !t.sideB);
-      if(!entry){ panelLog("Create a race table first (Games → Squishy Racers → Create), then invite Robo."); return false; }
-      db.doc(entry[0]).update({sideB:{playerId:ROBO, name:"Robo", avatar:"🤖", item:"golden_spinner"}});
-      panelLog("🤖 Robo joined race table "+entry[1].code+". Tap Start the race! (Robo's kart is driven by the computer.)");
+    // Robo sits at the other seat of the puzzle/race table I'm sitting at.
+    inviteTable(prefix, label){
+      const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/"+prefix) && /\d$/.test(p) && ((t.sideA||{}).playerId===ME || (t.sideB||{}).playerId===ME));
+      if(!entry){ panelLog("Sit down at a "+label+" table first, then invite Robo."); return false; }
+      const [path, t] = entry, free = !t.sideA ? "sideA" : !t.sideB ? "sideB" : null;
+      if(!free){ panelLog("Both seats at table "+t.table+" are taken."); return false; }
+      db.doc(path).update(resetFor(t, {[free]: seatRobo(t.kind)}));
+      panelLog("🤖 Robo sat down at "+label+" table "+t.table+". He'll start the first one in a moment.");
       return true;
     },
-    hostRace(){
-      let code; do{ code = String(Math.floor(1000+realRandom()*9000)); }while(store["trades/race-"+code] && ["lobby","playing"].includes(store["trades/race-"+code].status));
-      db.doc("trades/race-"+code).set({kind:"race", code, status:"lobby", trackId:"wave", seed:Math.floor(realRandom()*1e9),
-        sideA:{playerId:ROBO, name:"Robo", avatar:"🤖", item:"golden_spinner"}, sideB:null, createdAt:Date.now()});
-      panelLog("🤖 Robo opened race table "+code+". Games → Squishy Racers → Join a race table, then type "+code+". Robo starts the race.");
-      const input = document.getElementById("rcJoinInput"); if(input) input.value = code;
-      return code;
-    },
-    invitePuzzle(){
-      const entry = Object.entries(store).find(([p,t])=>p.startsWith("trades/puzzle-") && t.status==="lobby" && t.sideA && t.sideA.playerId===ME && !t.sideB);
-      if(!entry){ panelLog("Create a puzzle table first (Games → Puzzles → Create), then invite Robo."); return false; }
-      db.doc(entry[0]).update({sideB:{playerId:ROBO, name:"Robo", avatar:"🤖"}});
-      panelLog("🤖 Robo joined puzzle table "+entry[1].code+". Tap Start the puzzle!");
+    // Robo sits alone at an empty puzzle/race table, so you can take the seat across from him.
+    hostTable2(prefix, kind, label){
+      let n = 1; for(; n<=6; n++){ const t = store["trades/"+prefix+n]; if(!t || (!t.sideA && !t.sideB)) break; }
+      if(n>6){ panelLog("Every "+label+" table already has someone sitting at it."); return false; }
+      const path = "trades/"+prefix+n, doc = store[path] || newTable(kind, n);
+      doc.sideA = seatRobo(kind); doc.round = (doc.round||0)+1; store[path] = doc; notify(path);
+      panelLog("🤖 Robo sat down at "+label+" table "+n+". Take the seat across from him.");
       return true;
-    },
-    hostPuzzle(mode){
-      let code; do{ code = String(Math.floor(1000+realRandom()*9000)); }while(store["trades/puzzle-"+code] && ["lobby","playing"].includes(store["trades/puzzle-"+code].status));
-      db.doc("trades/puzzle-"+code).set({kind:"puzzle", code, status:"lobby", mode, size:"medium", seed:Math.floor(realRandom()*1e9),
-        sideA:{playerId:ROBO, name:"Robo", avatar:"🤖"}, sideB:null, placed:{}, progress:{A:0,B:0}, winner:null, createdAt:Date.now()});
-      panelLog("🤖 Robo opened a "+(mode==="coop"?"build-together":"race")+" puzzle table "+code+". Games → Puzzles → Join, then type "+code+".");
-      const input = document.getElementById("pzJoinInput"); if(input) input.value = code;
-      return code;
     },
     // Robo sits at the other seat of the table I'm sitting at.
     joinMyTable(){
@@ -248,15 +256,15 @@ const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)
     },
     leave(){
       let any = false;
-      Object.keys(store).filter(p=>p.startsWith("trades/lobby-")).forEach(p=>{
-        const t = store[p]; ["sideA","sideB"].forEach(k=>{ if(t[k] && t[k].playerId===ROBO){ any = true; db.doc(p).update(resetPatch(t, {[k]: null})); } });
+      Object.keys(store).filter(isTable).forEach(p=>{
+        const t = store[p]; ["sideA","sideB"].forEach(k=>{ if(t[k] && t[k].playerId===ROBO){ any = true; db.doc(p).update(resetFor(t, {[k]: null})); } });
       });
       panelLog(any ? "🤖 Robo left his table." : "Robo isn't sitting anywhere.");
     },
     // Pretend Robo's tablet went to sleep: his seat stops being renewed and goes stale.
     sleep(){
       let any = false;
-      Object.keys(store).filter(p=>p.startsWith("trades/lobby-")).forEach(p=>{
+      Object.keys(store).filter(isTable).forEach(p=>{
         const t = store[p]; ["sideA","sideB"].forEach(k=>{ if(t[k] && t[k].playerId===ROBO){ any = true; t[k].seenAt = Date.now()-120000; } });
         notify(p);
       });
@@ -280,16 +288,15 @@ const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)
       + '<button type="button" data-a="robosleep">Robo\'s tablet falls asleep</button>'
       + '<small>Trade tab → tap a seat, then tap Robo sits at my table. Or tap Robo sits at an empty table and take the seat across from him. Tables stay open for more trades until someone leaves.</small></div>'
       + '<div class="sb-group"><b>🧩 Puzzles with Robo</b>'
-      + '<button type="button" data-a="pzinvite">Invite Robo to my puzzle table</button>'
-      + '<button type="button" data-a="pzcoop">Robo hosts: build together</button>'
-      + '<button type="button" data-a="pzrace">Robo hosts: race</button>'
+      + '<button type="button" data-a="pzinvite">Robo sits at my puzzle table</button>'
+      + '<button type="button" data-a="pzhost">Robo sits at an empty puzzle table</button>'
       + '<button type="button" data-a="stickers">Give me every sticker</button>'
       + '<button type="button" data-a="nostickers">Clear my stickers</button>'
-      + '<small>Create a puzzle table under Games → Puzzles, then invite Robo. Or let Robo host and join with the code.</small></div>'
+      + '<small>Games → Puzzles → Find a puzzle table → sit down, then invite Robo (he starts the first puzzle; after that you press Start). Choose Build together or Race on the table.</small></div>'
       + '<div class="sb-group"><b>🏎 Racing with Robo</b>'
-      + '<button type="button" data-a="rcinvite">Invite Robo to my race table</button>'
-      + '<button type="button" data-a="rchost">Robo hosts a race table</button>'
-      + '<small>Create a race table under Games → Squishy Racers, then invite Robo. Robo\'s kart is driven by the computer, so this checks the table, lobby and start flow.</small></div>'
+      + '<button type="button" data-a="rcinvite">Robo sits at my race table</button>'
+      + '<button type="button" data-a="rchost">Robo sits at an empty race table</button>'
+      + '<small>Games → Squishy Racers → Find a race table → sit down, then invite Robo. His kart is driven by the computer, so this checks the table, seats and start flow.</small></div>'
       + '<div class="sb-group"><b>🪙 Coins & toys</b>'
       + '<button type="button" data-a="coins">+1,000 coins</button>'
       + '<button type="button" data-a="unlock">Refill every toy (×3)</button>'
@@ -304,8 +311,8 @@ const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)
       const a = e.target.closest("button[data-a]"); if(!a) return;
       const closePanel = ()=>{ panel.hidden = true; fab.setAttribute("aria-expanded","false"); };
       ({ join:()=>{ if(robo.joinMyTable()) closePanel(); }, host:()=>{ if(robo.hostTable()) closePanel(); }, roboleave:()=>robo.leave(), robosleep:()=>robo.sleep(),
-         pzinvite:()=>{ if(robo.invitePuzzle()) closePanel(); }, pzcoop:()=>{ robo.hostPuzzle("coop"); closePanel(); }, pzrace:()=>{ robo.hostPuzzle("race"); closePanel(); },
-         rcinvite:()=>{ if(robo.inviteRace()) closePanel(); }, rchost:()=>{ robo.hostRace(); closePanel(); },
+         pzinvite:()=>{ if(robo.inviteTable("puzzle-t","puzzle")) closePanel(); }, pzhost:()=>{ if(robo.hostTable2("puzzle-t","puzzle","puzzle")) closePanel(); },
+         rcinvite:()=>{ if(robo.inviteTable("race-t","race")) closePanel(); }, rchost:()=>{ if(robo.hostTable2("race-t","race","race")) closePanel(); },
          stickers:()=>{ const o = {}; STICKER_IDS.forEach(id=>o[id]=1); store["players/"+ME].stickers = o; notify("players/"+ME); panelLog("Every puzzle sticker added."); },
          nostickers:()=>{ store["players/"+ME].stickers = {}; notify("players/"+ME); panelLog("Stickers cleared."); },
          coins:()=>{ tools.addCoins(1000); panelLog("Added 1,000 coins."); },
@@ -323,5 +330,5 @@ const declined = (t, ref)=>ref.update(resetPatch(t, {lastResult:{id:(t.round||0)
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", buildPanel); else buildPanel();
   // Seats left over from a previous visit would otherwise sit forever.
-  Object.keys(store).forEach(p=>{ if(p.startsWith("trades/lobby-")){ const t = store[p]; ["sideA","sideB"].forEach(k=>{ if(t[k]) t[k] = null; }); } else if(p.startsWith("trades/") && !p.startsWith("trades/puzzle-") && !p.startsWith("trades/race-")) delete store[p]; });
+  Object.keys(store).forEach(p=>{ if(isTable(p)){ const t = store[p]; ["sideA","sideB"].forEach(k=>{ if(t[k]) t[k] = null; }); t.status = t.kind==="lobby" ? "open" : "lobby"; } else if(p.startsWith("trades/")) delete store[p]; });
 })();

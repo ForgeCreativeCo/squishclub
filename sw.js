@@ -3,7 +3,7 @@
 // Firebase (auth + firestore) calls are never intercepted here — they
 // always go to the network so saves and trades stay live and correct.
 
-const CACHE_VERSION = "v31";
+const CACHE_VERSION = "v32";
 const SHELL_CACHE = "squish-shell-" + CACHE_VERSION;
 const FONT_CACHE = "squish-fonts-" + CACHE_VERSION;
 

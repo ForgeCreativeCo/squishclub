@@ -2387,8 +2387,9 @@ function startGame(id){
   else if(id==="words") initWordGame(stage);
 }
 
-function gameResultsScreen(stage, coinsEarned, lines, extra){
+function gameResultsScreen(stage, coinsEarned, lines, extra, custom){
   stage.innerHTML = "";
+  if(custom && custom.marker) stage.appendChild(custom.marker);   // keeps a table game "alive" (seat heartbeat, live updates) while results are showing
   const card = el("div",{class:"card results-card"});
   card.appendChild(el("div",{class:"big", text:"🎉"}));
   card.appendChild(el("h2",{text:"Nice round!"}));
@@ -2396,13 +2397,16 @@ function gameResultsScreen(stage, coinsEarned, lines, extra){
   if(extra) card.appendChild(extra);
   card.appendChild(el("div",{class:"coins-earned", text:"+"+coinsEarned+" 🪙"}));
   const row = el("div",{style:"display:flex;gap:10px;margin-top:6px"});
-  row.appendChild(el("button",{class:"btn", text:"Claim & Play Again", onclick: async ()=>{
+  // Table games (puzzles, racers with a buddy) pass their own buttons: back to the table, or leave it.
+  row.appendChild(el("button",{class:"btn", text: custom ? custom.again.text : "Claim & Play Again", onclick: async ()=>{
     await addItemsAndCoins({}, coinsEarned);
+    if(custom){ custom.again.fn(); return; }
     exitGame();
     startGame(id_cache);
   }}));
-  row.appendChild(el("button",{class:"btn secondary", text:"Done", onclick: async ()=>{
+  row.appendChild(el("button",{class:"btn secondary", text: custom ? custom.done.text : "Done", onclick: async ()=>{
     await addItemsAndCoins({}, coinsEarned);
+    if(custom){ custom.done.fn(); return; }
     exitGame();
   }}));
   card.appendChild(row);
@@ -4240,18 +4244,24 @@ function raceTrackCanvas(tr, rng){
 function initRaceGame(stage){
   id_cache = "race";
   const C = RACE;
-  const ctx = {unsub:null, poseUnsub:null, code:null, side:null, data:null, playing:false, finished:false};
+  const ctx = {unsub:null, poseUnsub:null, hb:null, n:null, code:null, side:null, data:null, playing:false, finished:false, joinedRd:null, view:""};
   const marker = el("div",{style:"display:none"});
   const alive = ()=>marker.isConnected;
-  const RDOC = code => "trades/race-"+code;
+  const kit = makeSeatKit("race-t", {kind:"race",
+    fresh:()=>({status:"lobby", trackId:RACE_TRACKS[0].id, seed:0, startedAt:null}),
+    reset:{status:"lobby", startedAt:null}, seatReset:{doneRd:null}});
+  // A round is still going until both kids have crossed the line (each writes doneRd when they finish).
+  const raceActive = t => t.status==="playing" && !(hasSeat(t,"sideA") && hasSeat(t,"sideB") && t.sideA.doneRd===t.startedAt && t.sideB.doneRd===t.startedAt);
   const PDOC = (code,side) => "trades/race-"+code+"-"+side;
   function clear(){ stage.innerHTML = ""; stage.appendChild(marker); }
   function dropNet(){ if(ctx.unsub){ ctx.unsub(); ctx.unsub = null; } if(ctx.poseUnsub){ ctx.poseUnsub(); ctx.poseUnsub = null; } }
+  function stopTable(){ dropNet(); clearInterval(ctx.hb); ctx.hb = null; ctx.n = null; ctx.playing = false; }
+  // Exit: give the seat up, so the buddy's table opens back up.
   function leave(){
-    if(ctx.code && ctx.data && (ctx.data.status==="lobby"||ctx.data.status==="playing") && !ctx.finished){
-      try{ db.doc(RDOC(ctx.code)).update({status:"closed", closedBy:player.name}); }catch(e){}
-    }
-    dropNet(); ctx.left = true; exitGame();
+    const n = ctx.n, key = ctx.data && seatKeyOf(ctx.data);
+    stopTable(); kit.stop(); ctx.left = true;
+    if(n && key) kit.leave(n, key).catch(()=>{});
+    exitGame();
   }
   function topRow(title){
     stage.appendChild(el("div",{class:"game-hud"},[el("div",{style:"font-family:var(--font-display);font-size:16px", text:title}), el("button",{class:"btn ghost small", text:"Exit", onclick:leave})]));
@@ -4297,86 +4307,123 @@ function initRaceGame(stage){
     wrap.appendChild(el("div",{class:"card"},[el("h3",{text:"Race!"}),
       el("p",{text:"4 laps. Grab the ? boxes for power-ups and shoot your rivals. 1st place wins the most coins!"}),
       el("button",{class:"btn block", text:"Race the computers", onclick:()=>{ remember(); const seed = Math.floor(Math.random()*1e9); racePlay({trackId, seed, net:false, humans:[{slot:0, item:driverId, name:player.name, avatar:player.avatar}]}); }}),
-      el("p",{style:"margin-top:6px", text:"Race with a buddy on another tablet. Two kids and two computer racers."}),
-      el("button",{class:"btn secondary block", text:"Create a race table", onclick:createTable}),
-      el("button",{class:"btn secondary block", text:"Join a race table", onclick:joinScreen})]));
+      el("p",{style:"margin-top:6px", text:"Race with a buddy on another tablet: two kids and two computer racers. Sit at a race table; it stays open for more races until one of you leaves."}),
+      el("button",{class:"btn secondary block", text:"🪑 Find a race table", onclick:tablesScreen})]));
     stage.appendChild(wrap);
   }
 
-  /* ---------- 2 players: create / join / lobby ---------- */
-  async function createTable(){
+  /* ---------- 2 players: six tables, two seats each ---------- */
+  function tablesScreen(){
+    stopTable(); ctx.view = "tables";
+    const render = ()=>{
+      if(!alive() || ctx.view!=="tables") return;
+      clear(); topRow("🏎 Race tables");
+      const wrap = el("div",{class:"pz-menu"});
+      wrap.appendChild(el("p",{style:"margin:0;font-size:13px;color:var(--ink-dim)", text:"Tap an empty seat to sit down. When two kids are seated you can race as many times as you like until one of you leaves."}));
+      wrap.appendChild(buildSeatGrid(n=>kit.data[n], sit, (n,k)=>enterTable(n,k)));
+      wrap.appendChild(el("button",{class:"btn ghost small", type:"button", text:"← Back", onclick:()=>{ kit.stop(); ctx.view = ""; menu(); }}));
+      stage.appendChild(wrap);
+    };
+    kit.watch(render); render();
+  }
+  async function sit(n, key){
     remember();
-    let code, tries = 0, busy = true;
-    do{
-      code = String(Math.floor(1000+Math.random()*9000));
-      const snap = await db.doc(RDOC(code)).get();
-      busy = snap.exists && (snap.data().status==="lobby"||snap.data().status==="playing");
-    } while(busy && ++tries<6);
     try{
-      await db.doc(RDOC(code)).set({kind:"race", code, status:"lobby", trackId, seed:Math.floor(Math.random()*1e9),
-        sideA:{playerId:PLAYER_ID, name:player.name, avatar:player.avatar, item:driverId}, sideB:null, createdAt:Date.now()});
-      ctx.side = "A"; subscribe(code);
-    }catch(e){ showToast("Couldn't create a table. Try again."); }
+      const r = await kit.sit(n, key, {item:driverId});
+      if(r==="taken") showToast("Someone just sat there. Pick another seat!");
+      else { sfx("boop"); enterTable(n, key); }
+    }catch(e){ console.warn("sit failed", e); showToast("Couldn't sit down. Try again."); }
   }
-  function joinScreen(){
-    clear(); topRow("🏎 Join a race table");
-    const card = el("div",{class:"card pz-menu"});
-    card.appendChild(el("h3",{text:"Type the 4-digit code"}));
-    const input = el("input",{type:"tel", id:"rcJoinInput", placeholder:"4-digit code", maxlength:"4", inputmode:"numeric"});
-    const msg = el("p",{style:"color:var(--danger);min-height:16px"});
-    const btn = el("button",{class:"btn block", text:"Join race table", onclick:async ()=>{
-      const code = input.value.trim();
-      if(!/^\d{4}$/.test(code)){ msg.textContent = "Enter the 4-digit code."; return; }
-      try{
-        const snap = await db.doc(RDOC(code)).get();
-        const t = snap.exists && snap.data();
-        if(!t || t.kind!=="race" || t.status!=="lobby"){ msg.textContent = "No race table waiting with that code."; return; }
-        if(t.sideA.playerId===PLAYER_ID){ msg.textContent = "That's your own table! Give the code to your buddy."; return; }
-        if(t.sideB && t.sideB.playerId!==PLAYER_ID){ msg.textContent = "That table already has two players."; return; }
-        await db.doc(RDOC(code)).update({sideB:{playerId:PLAYER_ID, name:player.name, avatar:player.avatar, item:driverId}});
-        ctx.side = "B"; subscribe(code);
-      }catch(e){ msg.textContent = "Couldn't join. Try again."; }
-    }});
-    card.appendChild(pickerCard()); card.appendChild(input); card.appendChild(btn); card.appendChild(msg);
-    stage.appendChild(card);
+  function enterTable(n, key){
+    kit.stop(); stopTable();
+    ctx.n = n; ctx.code = "t"+n; ctx.side = key==="sideA" ? "A" : "B"; ctx.data = null; ctx.joinedRd = null; ctx.finished = false;
+    subscribe();
+    ctx.hb = setInterval(()=>{ if(!alive()){ clearInterval(ctx.hb); return; } kit.heartbeat(n); }, HEARTBEAT_MS);
+    kit.heartbeat(n);
   }
-  function subscribe(code){
-    ctx.code = code; ctx.playing = false; ctx.finished = false;
+  function rejoin(){ ctx.playing = false; ctx.finished = false; ctx.view = ""; subscribe(); }
+  async function verifySeat(){
+    try{
+      const snap = await db.doc(kit.path(ctx.n)).get();
+      const t = snap.exists ? snap.data() : null;
+      if(alive() && ctx.n && !(t && seatKeyOf(t))){ stopTable(); showToast("You're no longer seated at that table."); tablesScreen(); }
+    }catch(e){}
+  }
+  function subscribe(){
     dropNet();
-    ctx.unsub = db.doc(RDOC(code)).onSnapshot((snap)=>{
+    ctx.unsub = db.doc(kit.path(ctx.n)).onSnapshot((snap)=>{
       if(!alive()){ dropNet(); return; }
-      if(!snap.exists) return;
-      const t = snap.data(); ctx.data = t;
-      if(t.status==="closed"){ if(!ctx.finished){ ctx.finished = true; closedScreen(t); } return; }
-      if(t.status==="lobby"){ lobbyScreen(t); return; }
-      if(t.status==="playing" && !ctx.playing){
-        ctx.playing = true;
-        racePlay({trackId:t.trackId, seed:t.seed, net:true, humans:[
+      const t = snap.exists ? snap.data() : null, mk = t && seatKeyOf(t);
+      if(!t || !mk){ verifySeat(); return; }
+      const prev = ctx.data; ctx.data = t; ctx.side = mk==="sideA" ? "A" : "B";
+      const o = mk==="sideA" ? "sideB" : "sideA";
+      if(prev && prev[o] && !t[o]){ showToast((prev[o].name||"Your buddy")+" left the table."); sfx("sad"); }
+      else if(prev && !prev[o] && t[o]){ showToast((t[o].name||"Someone")+" sat down. Let's race!"); sfx("ding"); }
+      if(ctx.playing){
+        if(ctx.finished) return;                       // looking at my results: leave the screen alone
+        if(t.status!=="playing"){ ctx.playing = false; tableScreen(t); return; }   // table was reset (buddy left)
+        return;
+      }
+      if(raceActive(t) && t.startedAt!==ctx.joinedRd && hasSeat(t,"sideA") && hasSeat(t,"sideB")){
+        ctx.playing = true; ctx.joinedRd = t.startedAt;
+        racePlay({trackId:t.trackId, seed:t.seed, net:true, rd:t.startedAt, humans:[
           {slot:0, item:t.sideA.item, name:t.sideA.name, avatar:t.sideA.avatar},
           {slot:1, item:t.sideB.item, name:t.sideB.name, avatar:t.sideB.avatar}]});
+        return;
       }
+      if(prev && ctx.view==="table" && presenceless(prev)===presenceless(t)) return;   // just a heartbeat
+      tableScreen(t);
     }, (err)=>console.warn("race snapshot error", err));
   }
-  function lobbyScreen(t){
-    clear(); topRow("🏎 Race table");
-    const mine = ctx.side==="A", T = RACE_TRACKS.find(x=>x.id===t.trackId) || RACE_TRACKS[0];
-    const card = el("div",{class:"card pz-menu", style:"text-align:center"});
-    card.appendChild(el("p",{text: mine ? "Tell your buddy this code:" : "You joined the table!"}));
-    card.appendChild(el("div",{class:"pz-code", text:t.code}));
-    card.appendChild(el("p",{text:T.name+" · 4 laps · you + buddy + 2 computer racers"}));
-    const who = (s)=>{ const it = ITEMS.find(i=>i.id===s.item); return el("span",{text:s.avatar+" "+s.name+(it?" · "+it.name:"")}); };
-    card.appendChild(el("div",{class:"pz-who", style:"flex-direction:column;align-items:center"},[who(t.sideA), t.sideB ? who(t.sideB) : el("span",{text:"Waiting…"})]));
-    if(mine){
-      const go = el("button",{class:"btn block", text: t.sideB ? "Start the race!" : "Waiting for your buddy…", onclick:()=>{ db.doc(RDOC(t.code)).update({status:"playing", startedAt:Date.now()}); }});
-      go.disabled = !t.sideB; card.appendChild(go);
-    } else card.appendChild(el("p",{text:"Waiting for "+t.sideA.name+" to start…"}));
-    stage.appendChild(card);
+  const setting = (patch)=>{ try{ const r = db.doc(kit.path(ctx.n)).update(patch); if(r && r.catch) r.catch(()=>showToast("Couldn't change that.")); }catch(e){} };
+  async function startRound(){
+    const path = kit.path(ctx.n);
+    try{
+      await db.runTransaction(async (tx)=>{
+        const snap = await tx.get(path);
+        if(!snap.exists) return;
+        const t = snap.data();
+        if(raceActive(t) || !hasSeat(t,"sideA") || !hasSeat(t,"sideB")) return;
+        tx.update(path, {status:"playing", seed:Math.floor(Math.random()*1e9), startedAt:Date.now()});
+      });
+    }catch(e){ showToast("Couldn't start. Try again."); }
   }
-  function closedScreen(t){
-    clear();
-    stage.appendChild(el("div",{class:"card results-card"},[el("div",{class:"big", text:"👋"}), el("h2",{text:"Race table closed"}),
-      el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:(t.closedBy||"Your buddy")+" left the race."}),
-      el("button",{class:"btn", text:"Back", onclick:()=>{ dropNet(); exitGame(); }})]));
+  function leaveTable(){
+    const n = ctx.n, key = ctx.data && seatKeyOf(ctx.data);
+    stopTable();
+    if(n && key) kit.leave(n, key).catch(()=>{});
+    tablesScreen();
+  }
+  function tableScreen(t){
+    ctx.view = "table";
+    clear(); topRow("🏎 Table "+t.table);
+    const mk = ctx.side==="A" ? "sideA" : "sideB", o = mk==="sideA" ? "sideB" : "sideA";
+    const both = hasSeat(t,"sideA") && hasSeat(t,"sideB"), going = raceActive(t);
+    const T = RACE_TRACKS.find(x=>x.id===t.trackId) || RACE_TRACKS[0];
+    const card = el("div",{class:"card pz-menu", style:"text-align:center"});
+    card.appendChild(el("h3",{text:"Table "+t.table}));
+    const who = (s)=>{ if(!s || !s.playerId) return el("span",{text:"🪑 Empty seat"}); const it = ITEMS.find(i=>i.id===s.item); return el("span",{text:s.avatar+" "+s.name+(it?" · "+it.name:"")}); };
+    card.appendChild(el("div",{class:"pz-who", style:"flex-direction:column;align-items:center"},[who(t.sideA), who(t.sideB)]));
+    card.appendChild(el("p",{text: !both ? "You're seated. Waiting for a buddy to sit down…" : going ? (t[o].name||"Your buddy")+" is still racing. Hang tight!" : "Pick your driver and a track, then start!"}));
+    // my driver (each kid picks their own)
+    card.appendChild(el("h3",{text:"Your driver"}));
+    const grid = el("div",{class:"item-grid rc-pick"});
+    pool().forEach(it=>{
+      const c = el("div",{class:"item-card pickable"+((t[mk]&&t[mk].item)===it.id?" selected":""), onclick:()=>{ driverId = it.id; remember(); setting({[mk]:{item:it.id}}); }});
+      styleRarity(c, it.rarity); c.appendChild(toyEl(it)); c.appendChild(el("div",{class:"nm", text:it.name}));
+      grid.appendChild(c);
+    });
+    card.appendChild(grid);
+    // the track (shared: either kid can change it)
+    card.appendChild(el("h3",{text:"Track"}));
+    const pills = el("div",{class:"pz-pills", style:"flex-wrap:wrap"});
+    RACE_TRACKS.forEach(tk=>pills.appendChild(el("button",{class:"pillbtn"+(tk.id===T.id?" active":""), type:"button", text:tk.name, onclick:()=>setting({trackId:tk.id})})));
+    card.appendChild(pills); card.appendChild(el("p",{text:T.blurb}));
+    card.appendChild(el("p",{text:T.name+" · 4 laps · you + buddy + 2 computer racers"}));
+    const go = el("button",{class:"btn block", type:"button", text: !both ? "Waiting for your buddy…" : going ? "Race in progress…" : "Start the race!", onclick:startRound});
+    go.disabled = !both || going; card.appendChild(go);
+    card.appendChild(el("button",{class:"btn ghost small", type:"button", text:"🚪 Leave table", onclick:leaveTable}));
+    stage.appendChild(card);
   }
 
   /* ---------- the race ---------- */
@@ -4629,12 +4676,13 @@ function initRaceGame(stage){
       while(outShots.length && rt-outShots[0].at > 8) outShots.shift();
       while(myHits.length && rt-myHits[0].at > 8) myHits.shift();
       const p = {kind:"racepose", side:ctx.side, x:Math.round(me.x*10)/10, y:Math.round(me.y*10)/10, a:+me.a.toFixed(3), v:Math.round(me.v), lap:Math.floor(me.prog/tr.L),
-        fin: me.finished ? me.finT : null, shots:outShots.slice(), hits:myHits.map(h=>h.id), spin:me.spin>0, shield:me.shield>0, boost:me.boost>0, t:Date.now()};
+        rd:cfg.rd, fin: me.finished ? me.finT : null, shots:outShots.slice(), hits:myHits.map(h=>h.id), spin:me.spin>0, shield:me.shield>0, boost:me.boost>0, t:Date.now()};
       try{ const r = db.doc(PDOC(ctx.code, ctx.side)).set(p); if(r && r.catch) r.catch(()=>{}); }catch(e){}
     }
     function onPose(snap){
       if(!snap.exists || !remote) return;
       const p = snap.data(), g = remote.goal, now = performance.now();
+      if(p.rd!==cfg.rd) return;
       g.x = p.x; g.y = p.y; g.a = p.a; g.v = p.v||0; g.at = now; remote.lastPose = now; remote.auto = false;
       remote.rSpin = p.spin; remote.rShield = p.shield; remote.rBoost = p.boost;
       (p.shots||[]).forEach(s=>{
@@ -4703,7 +4751,10 @@ function initRaceGame(stage){
       const lines = ["You finished "+ordinal(place)+" of 4 in "+pzClock(Math.max(0,(me.finT!=null?me.finT:rt)))+"."];
       const names = karts.slice().sort(cmpKart).map((k,i)=>(i+1)+". "+(k.kind==="ai" ? k.name+" (computer)" : k.kind==="me" ? "You" : k.name)).join("   ");
       lines.push(names);
-      gameResultsScreen(stage, coins, lines);
+      if(net){
+        try{ const r = db.doc(kit.path(ctx.n)).update({[ctx.side==="A"?"sideA":"sideB"]:{doneRd:cfg.rd}}); if(r && r.catch) r.catch(()=>{}); }catch(e){}
+        gameResultsScreen(stage, coins, lines, null, {marker, again:{text:"Claim & back to table", fn:rejoin}, done:{text:"Claim & leave table", fn:leave}});
+      } else gameResultsScreen(stage, coins, lines);
     }
 
     showHeld(); measure();
@@ -4927,20 +4978,26 @@ function puzzleCoins(size, secs, role){
   return {coins: Math.max(8, Math.min(90, coins)), tier};
 }
 function pzClock(s){ s = Math.max(0, Math.floor(s)); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); }
-const PZ_DOC = code => "trades/puzzle-"+code;
+const PZ_DOC = code => "trades/puzzle-"+code;   // code is "t1".."t6"
 
 function initPuzzleGame(stage){
   id_cache = "puzzle";
-  const ctx = {unsub:null, code:null, side:null, data:null, playing:false, finished:false, onNet:null};
+  const ctx = {unsub:null, hb:null, n:null, code:null, side:null, data:null, playing:false, finished:false, onNet:null, joinedRd:null, view:""};
   const marker = el("div",{style:"display:none"});
   const alive = ()=>marker.isConnected;
+  const kit = makeSeatKit("puzzle-t", {kind:"puzzle",
+    fresh:()=>({status:"lobby", mode:"coop", size:"medium", seed:0, startedAt:null, placed:null, progress:{A:0,B:0}, winner:null}),
+    reset:{status:"lobby", startedAt:null, placed:null, progress:{A:0,B:0}, winner:null}});
   function clear(){ stage.innerHTML = ""; stage.appendChild(marker); }
   function dropNet(){ if(ctx.unsub){ ctx.unsub(); ctx.unsub = null; } }
+  // Stop being "at a table" on this tablet (heartbeat and live updates), without giving up the seat.
+  function stopTable(){ dropNet(); clearInterval(ctx.hb); ctx.hb = null; ctx.n = null; ctx.playing = false; ctx.onNet = null; }
+  // Exit: give the seat up, so the buddy's table opens back up.
   function leave(){
-    if(ctx.code && ctx.data && (ctx.data.status==="lobby"||ctx.data.status==="playing") && !ctx.finished){
-      try{ db.doc(PZ_DOC(ctx.code)).update({status:"closed", closedBy:player.name}); }catch(e){}
-    }
-    dropNet(); ctx.active = false; exitGame();
+    const n = ctx.n, key = ctx.data && seatKeyOf(ctx.data);
+    stopTable(); kit.stop(); ctx.active = false;
+    if(n && key) kit.leave(n, key).catch(()=>{});
+    exitGame();
   }
   function topRow(title){
     const hud = el("div",{class:"game-hud"},[el("div",{style:"font-family:var(--font-display);font-size:16px", text:title}), el("button",{class:"btn ghost small", text:"Exit", onclick:leave})]);
@@ -4960,97 +5017,116 @@ function initPuzzleGame(stage){
     clear(); topRow("🧩 Puzzles");
     const wrap = el("div",{class:"pz-menu"});
     const solo = el("div",{class:"card"},[el("h3",{text:"Play alone"}), el("p",{text:"Drag the pieces to where they belong. Faster puzzles earn more coins, and every finished puzzle wins a sticker!"}), sizeButtons(size=>puzzlePlay({mode:"solo", size, seed:Math.floor(Math.random()*1e9)}))]);
-    const two = el("div",{class:"card"},[el("h3",{text:"Play with a buddy"}), el("p",{text:"Use two tablets. Build one puzzle together, or race to finish first."}),
-      el("button",{class:"btn block", text:"Create a puzzle table", onclick:createScreen}),
-      el("button",{class:"btn secondary block", text:"Join a puzzle table", onclick:joinScreen})]);
+    const two = el("div",{class:"card"},[el("h3",{text:"Play with a buddy"}), el("p",{text:"Use two tablets. Sit at a puzzle table, then build one puzzle together or race to finish first. The table stays open for more puzzles until one of you leaves."}),
+      el("button",{class:"btn block", text:"🪑 Find a puzzle table", onclick:tablesScreen})]);
     wrap.appendChild(solo); wrap.appendChild(two); stage.appendChild(wrap);
   }
 
-  /* ---------- 2 players: create / join / lobby ---------- */
-  function createScreen(){
-    clear(); topRow("🧩 New puzzle table");
-    let mode = "coop";
-    const card = el("div",{class:"card pz-menu"});
-    card.appendChild(el("h3",{text:"How do you want to play?"}));
-    const pills = el("div",{class:"pz-pills"});
-    const bCo = el("button",{class:"pillbtn active", type:"button", text:"🤝 Build together"});
-    const bRace = el("button",{class:"pillbtn", type:"button", text:"🏁 Race"});
-    const desc = el("p",{text:"You each get half the pieces, and you both build the same picture. You share the prize!"});
-    bCo.addEventListener("click",()=>{ mode="coop"; bCo.classList.add("active"); bRace.classList.remove("active"); desc.textContent = "You each get half the pieces, and you both build the same picture. You share the prize!"; });
-    bRace.addEventListener("click",()=>{ mode="race"; bRace.classList.add("active"); bCo.classList.remove("active"); desc.textContent = "You each get your own copy of the same puzzle. First one done wins a bigger prize!"; });
-    pills.appendChild(bCo); pills.appendChild(bRace); card.appendChild(pills); card.appendChild(desc);
-    card.appendChild(el("h3",{text:"How big?"}));
-    card.appendChild(sizeButtons(size=>createTable(mode,size)));
-    stage.appendChild(card);
+  /* ---------- 2 players: six tables, two seats each ---------- */
+  function tablesScreen(){
+    stopTable(); ctx.view = "tables";
+    const render = ()=>{
+      if(!alive() || ctx.view!=="tables") return;
+      clear(); topRow("🧩 Puzzle tables");
+      const wrap = el("div",{class:"pz-menu"});
+      wrap.appendChild(el("p",{style:"margin:0;font-size:13px;color:var(--ink-dim)", text:"Tap an empty seat to sit down. When two kids are seated you can play as many puzzles as you like until one of you leaves."}));
+      wrap.appendChild(buildSeatGrid(n=>kit.data[n], sit, (n,k)=>enterTable(n,k)));
+      wrap.appendChild(el("button",{class:"btn ghost small", type:"button", text:"← Back", onclick:()=>{ kit.stop(); ctx.view = ""; menu(); }}));
+      stage.appendChild(wrap);
+    };
+    kit.watch(render); render();
   }
-  async function createTable(mode, size){
-    let code, tries = 0, busy = true;
-    do{
-      code = String(Math.floor(1000+Math.random()*9000));
-      const snap = await db.doc(PZ_DOC(code)).get();
-      busy = snap.exists && (snap.data().status==="lobby"||snap.data().status==="playing");
-    } while(busy && ++tries<6);
+  async function sit(n, key){
     try{
-      await db.doc(PZ_DOC(code)).set({kind:"puzzle", code, status:"lobby", mode, size, seed:Math.floor(Math.random()*1e9),
-        sideA:{playerId:PLAYER_ID, name:player.name, avatar:player.avatar}, sideB:null, placed:{}, progress:{A:0,B:0}, winner:null, createdAt:Date.now()});
-      ctx.side = "A"; subscribe(code);
-    }catch(e){ showToast("Couldn't create a table. Try again."); }
+      const r = await kit.sit(n, key, {});
+      if(r==="taken") showToast("Someone just sat there. Pick another seat!");
+      else { sfx("boop"); enterTable(n, key); }
+    }catch(e){ console.warn("sit failed", e); showToast("Couldn't sit down. Try again."); }
   }
-  function joinScreen(){
-    clear(); topRow("🧩 Join a puzzle table");
-    const card = el("div",{class:"card pz-menu"});
-    card.appendChild(el("h3",{text:"Type the 4-digit code"}));
-    const input = el("input",{type:"tel", id:"pzJoinInput", placeholder:"4-digit code", maxlength:"4", inputmode:"numeric"});
-    const msg = el("p",{style:"color:var(--danger);min-height:16px"});
-    const btn = el("button",{class:"btn block", text:"Join puzzle table", onclick:async ()=>{
-      const code = input.value.trim();
-      if(!/^\d{4}$/.test(code)){ msg.textContent = "Enter the 4-digit code."; return; }
-      try{
-        const snap = await db.doc(PZ_DOC(code)).get();
-        const t = snap.exists && snap.data();
-        if(!t || t.kind!=="puzzle" || t.status!=="lobby"){ msg.textContent = "No puzzle table waiting with that code."; return; }
-        if(t.sideA.playerId===PLAYER_ID){ msg.textContent = "That's your own table! Give the code to your buddy."; return; }
-        if(t.sideB && t.sideB.playerId!==PLAYER_ID){ msg.textContent = "That table already has two players."; return; }
-        await db.doc(PZ_DOC(code)).update({sideB:{playerId:PLAYER_ID, name:player.name, avatar:player.avatar}});
-        ctx.side = "B"; subscribe(code);
-      }catch(e){ msg.textContent = "Couldn't join. Try again."; }
-    }});
-    card.appendChild(input); card.appendChild(btn); card.appendChild(msg);
-    stage.appendChild(card);
-    input.focus();
+  function enterTable(n, key){
+    kit.stop(); stopTable();
+    ctx.n = n; ctx.code = "t"+n; ctx.side = key==="sideA" ? "A" : "B"; ctx.data = null; ctx.joinedRd = null; ctx.finished = false;
+    subscribe();
+    ctx.hb = setInterval(()=>{ if(!alive()){ clearInterval(ctx.hb); return; } kit.heartbeat(n); }, HEARTBEAT_MS);
+    kit.heartbeat(n);
   }
-  function subscribe(code){
-    ctx.code = code; ctx.playing = false; ctx.finished = false;
+  // Back to the table after a round (the seat was never given up).
+  function rejoin(){ ctx.playing = false; ctx.finished = false; ctx.onNet = null; ctx.view = ""; subscribe(); }
+  async function verifySeat(){
+    try{
+      const snap = await db.doc(kit.path(ctx.n)).get();
+      const t = snap.exists ? snap.data() : null;
+      if(alive() && ctx.n && !(t && seatKeyOf(t))){ stopTable(); showToast("You're no longer seated at that table."); tablesScreen(); }
+    }catch(e){}
+  }
+  function subscribe(){
     dropNet();
-    ctx.unsub = db.doc(PZ_DOC(code)).onSnapshot((snap)=>{
+    ctx.unsub = db.doc(kit.path(ctx.n)).onSnapshot((snap)=>{
       if(!alive()){ dropNet(); return; }
-      if(!snap.exists) return;
-      const t = snap.data(); ctx.data = t;
-      if(t.status==="closed"){ if(!ctx.finished){ ctx.finished = true; closedScreen(t); } return; }
-      if(t.status==="lobby"){ lobbyScreen(t); return; }
-      if(t.status==="playing" && !ctx.playing){ ctx.playing = true; puzzlePlay({mode:t.mode, size:t.size, seed:t.seed, net:true}); return; }
-      if(ctx.playing && ctx.onNet) ctx.onNet(t);
+      const t = snap.exists ? snap.data() : null, mk = t && seatKeyOf(t);
+      if(!t || !mk){ verifySeat(); return; }
+      const prev = ctx.data; ctx.data = t; ctx.side = mk==="sideA" ? "A" : "B";
+      const o = mk==="sideA" ? "sideB" : "sideA";
+      if(prev && prev[o] && !t[o]){ showToast((prev[o].name||"Your buddy")+" left the table."); sfx("sad"); }
+      else if(prev && !prev[o] && t[o]){ showToast((t[o].name||"Someone")+" sat down. Let's play!"); sfx("ding"); }
+      if(ctx.playing){
+        if(ctx.finished) return;                       // looking at my results: leave the screen alone
+        if(t.status!=="playing" && t.status!=="done"){ ctx.playing = false; ctx.onNet = null; tableScreen(t); return; }   // table was reset (buddy left)
+        if(ctx.onNet) ctx.onNet(t);
+        return;
+      }
+      if(t.status==="playing" && t.startedAt!==ctx.joinedRd && hasSeat(t,"sideA") && hasSeat(t,"sideB")){
+        ctx.playing = true; ctx.joinedRd = t.startedAt;
+        puzzlePlay({mode:t.mode, size:t.size, seed:t.seed, net:true});
+        return;
+      }
+      if(prev && ctx.view==="table" && presenceless(prev)===presenceless(t)) return;   // just a heartbeat
+      tableScreen(t);
     }, (err)=>console.warn("puzzle snapshot error", err));
   }
-  function lobbyScreen(t){
-    clear(); topRow("🧩 Puzzle table");
-    const mine = ctx.side==="A", S = PUZZLE_SIZES[t.size];
-    const card = el("div",{class:"card pz-menu", style:"text-align:center"});
-    card.appendChild(el("p",{text: mine ? "Tell your buddy this code:" : "You joined the table!"}));
-    card.appendChild(el("div",{class:"pz-code", text:t.code}));
-    card.appendChild(el("p",{text:(t.mode==="coop" ? "🤝 Build together" : "🏁 Race")+" · "+S.label+" ("+S.pieces+" pieces)"}));
-    card.appendChild(el("div",{class:"pz-who"},[el("span",{text:t.sideA.avatar+" "+t.sideA.name}), el("span",{text: t.sideB ? t.sideB.avatar+" "+t.sideB.name : "Waiting…"})]));
-    if(mine){
-      const go = el("button",{class:"btn block", text: t.sideB ? "Start the puzzle!" : "Waiting for your buddy…", onclick:()=>{ db.doc(PZ_DOC(t.code)).update({status:"playing", startedAt:Date.now()}); }});
-      go.disabled = !t.sideB; card.appendChild(go);
-    } else card.appendChild(el("p",{text:"Waiting for "+t.sideA.name+" to start…"}));
-    stage.appendChild(card);
+  const setting = (patch)=>{ try{ const r = db.doc(kit.path(ctx.n)).update(patch); if(r && r.catch) r.catch(()=>showToast("Couldn't change that.")); }catch(e){} };
+  async function startRound(){
+    const path = kit.path(ctx.n);
+    try{
+      await db.runTransaction(async (tx)=>{
+        const snap = await tx.get(path);
+        if(!snap.exists) return;
+        const t = snap.data();
+        if(t.status==="playing" || !hasSeat(t,"sideA") || !hasSeat(t,"sideB")) return;
+        tx.update(path, {status:"playing", seed:Math.floor(Math.random()*1e9), startedAt:Date.now(), placed:null, winner:null, progress:{A:0,B:0}});
+      });
+    }catch(e){ showToast("Couldn't start. Try again."); }
   }
-  function closedScreen(t){
-    clear();
-    const card = el("div",{class:"card results-card"},[el("div",{class:"big", text:"👋"}), el("h2",{text:"Puzzle table closed"}),
-      el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:(t.closedBy||"Your buddy")+" left the puzzle."}),
-      el("button",{class:"btn", text:"Back", onclick:()=>{ dropNet(); exitGame(); }})]);
+  function leaveTable(){
+    const n = ctx.n, key = ctx.data && seatKeyOf(ctx.data);
+    stopTable();
+    if(n && key) kit.leave(n, key).catch(()=>{});
+    tablesScreen();
+  }
+  function tableScreen(t){
+    ctx.view = "table";
+    clear(); topRow("🧩 Table "+t.table);
+    const both = hasSeat(t,"sideA") && hasSeat(t,"sideB"), buddy = t[ctx.side==="A" ? "sideB" : "sideA"];
+    const card = el("div",{class:"card pz-menu", style:"text-align:center"});
+    card.appendChild(el("h3",{text:"Table "+t.table}));
+    const seatTxt = (s)=>el("span",{text: s && s.playerId ? s.avatar+" "+s.name : "🪑 Empty seat"});
+    card.appendChild(el("div",{class:"pz-who"},[seatTxt(t.sideA), seatTxt(t.sideB)]));
+    card.appendChild(el("p",{text: both ? "Pick how to play, then start!" : "You're seated. Waiting for a buddy to sit down…"}));
+    const pills = el("div",{class:"pz-pills"});
+    [["coop","🤝 Build together"],["race","🏁 Race"]].forEach(([m,label])=>{
+      pills.appendChild(el("button",{class:"pillbtn"+(t.mode===m?" active":""), type:"button", text:label, onclick:()=>setting({mode:m})}));
+    });
+    card.appendChild(pills);
+    card.appendChild(el("p",{text: t.mode==="coop" ? "You each get half the pieces and build the same picture. You share the prize!" : "You each get your own copy of the same puzzle. First one done wins a bigger prize!"}));
+    const sizes = el("div",{class:"pz-sizes"});
+    Object.keys(PUZZLE_SIZES).forEach(k=>{
+      const S = PUZZLE_SIZES[k];
+      sizes.appendChild(el("button",{class:"btn "+(t.size===k?"":"secondary"), type:"button", onclick:()=>setting({size:k})},[el("span",{text:S.label}), el("small",{text:S.pieces+" pieces"})]));
+    });
+    card.appendChild(sizes);
+    const go = el("button",{class:"btn block", type:"button", text: both ? "Start the puzzle!" : "Waiting for your buddy…", onclick:startRound});
+    go.disabled = !both; card.appendChild(go);
+    card.appendChild(el("button",{class:"btn ghost small", type:"button", text:"🚪 Leave table", onclick:leaveTable}));
     stage.appendChild(card);
   }
 
@@ -5106,7 +5182,8 @@ function initPuzzleGame(stage){
       else if(role==="win") lines.push("You won the race in "+pzClock(s)+"!");
       else lines.push(buddy.name+" finished first. You placed "+mine+" of "+total+" pieces.");
       dropNet();
-      gameResultsScreen(stage, R.coins, lines, stickerWinEl(g));
+      gameResultsScreen(stage, R.coins, lines, stickerWinEl(g), net ? {
+        marker, again:{text:"Claim & back to table", fn:rejoin}, done:{text:"Claim & leave table", fn:leave}} : null);
     }
     async function completeCoop(){
       try{ await db.doc(PZ_DOC(ctx.code)).update({status:"done", doneAt:Date.now()}); }catch(e){}
@@ -6106,42 +6183,120 @@ function emptyState(ic,title,body){
   return w;
 }
 
+// The six-table grid, shared by Trade, Puzzles and Squishy Racers.
+function buildSeatGrid(dataOf, onSit, onReturn){
+  const grid = el("div",{class:"lobby-grid"});
+  for(let n=1;n<=LOBBY_TABLES;n++){
+    const t = dataOf(n);
+    const seatOf = k => (t && seatLive(t[k])) ? t[k] : null;
+    const a = seatOf("sideA"), b = seatOf("sideB");
+    const mineHere = (a && a.playerId===PLAYER_ID) || (b && b.playerId===PLAYER_ID);
+    const count = (a?1:0)+(b?1:0);
+    const card = el("div",{class:"lobby-table"+(mineHere?" mine":"")});
+    card.appendChild(buildSeatButton(a, ()=>onSit(n,"sideA"), ()=>onReturn(n,"sideA")));
+    card.appendChild(el("div",{class:"lobby-mat"},[el("span",{text:"Table "+n}), el("small",{text: count===2 ? "Playing 🤝" : count===1 ? "1 waiting" : "Empty"})]));
+    card.appendChild(buildSeatButton(b, ()=>onSit(n,"sideB"), ()=>onReturn(n,"sideB")));
+    grid.appendChild(card);
+  }
+  return grid;
+}
+function buildSeatButton(seat, onSit, onReturn){
+  const isMe = seat && seat.playerId===PLAYER_ID;
+  const b = el("button",{class:"seat "+(seat ? (isMe?"me":"taken") : "free"), type:"button"});
+  if(!seat){
+    b.appendChild(el("span",{class:"av", text:"🪑"})); b.appendChild(el("span",{class:"nm", text:"Sit here"}));
+    b.addEventListener("click", onSit);
+  } else {
+    b.appendChild(el("span",{class:"av", text:seat.avatar||"🙂"}));
+    b.appendChild(el("span",{class:"nm", text: isMe ? "You (tap to go back)" : (seat.name||"Trader")}));
+    if(isMe) b.addEventListener("click", onReturn); else b.disabled = true;
+  }
+  return b;
+}
 function buildTradeLobby(){
   const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
   wrap.appendChild(el("div",{},[
     el("h2",{text:"Trading Lobby", style:"margin:0 0 2px"}),
     el("p",{style:"margin:0;font-size:13px;color:var(--ink-dim)", text:"Pick a table and tap an empty seat to sit down. When two kids are seated, you can trade as many times as you like until one of you leaves."})
   ]));
-  const grid = el("div",{class:"lobby-grid"});
-  for(let n=1;n<=LOBBY_TABLES;n++){
-    const t = lobbyData[n];
-    const seatOf = k => (t && seatLive(t[k])) ? t[k] : null;
-    const a = seatOf("sideA"), b = seatOf("sideB");
-    const mineHere = (a && a.playerId===PLAYER_ID) || (b && b.playerId===PLAYER_ID);
-    const count = (a?1:0)+(b?1:0);
-    const card = el("div",{class:"lobby-table"+(mineHere?" mine":"")});
-    card.appendChild(buildSeatButton(n, "sideA", a));
-    card.appendChild(el("div",{class:"lobby-mat"},[el("span",{text:"Table "+n}), el("small",{text: count===2 ? "Trading 🤝" : count===1 ? "1 waiting" : "Empty"})]));
-    card.appendChild(buildSeatButton(n, "sideB", b));
-    grid.appendChild(card);
-  }
-  wrap.appendChild(grid);
+  wrap.appendChild(buildSeatGrid(n=>lobbyData[n], sitDown, (n)=>openTradeSession("lobby-"+n)));
   return wrap;
 }
 
-function buildSeatButton(n, key, seat){
-  const isMe = seat && seat.playerId===PLAYER_ID;
-  const b = el("button",{class:"seat "+(seat ? (isMe?"me":"taken") : "free"), type:"button"});
-  if(!seat){
-    b.appendChild(el("span",{class:"av", text:"🪑"})); b.appendChild(el("span",{class:"nm", text:"Sit here"}));
-    b.addEventListener("click", ()=>sitDown(n, key));
-  } else {
-    b.appendChild(el("span",{class:"av", text:seat.avatar||"🙂"}));
-    b.appendChild(el("span",{class:"nm", text: isMe ? "You (tap to go back)" : (seat.name||"Trader")}));
-    if(isMe) b.addEventListener("click", ()=>openTradeSession("lobby-"+n));
-    else b.disabled = true;
-  }
-  return b;
+/* ---- Seat tables for Puzzles and Squishy Racers ----
+   The same six-tables-with-two-seats idea as the trading lobby, one set of
+   tables per game (trades/puzzle-t1..t6, trades/race-t1..t6). Each table stays
+   open round after round until a kid leaves. cfg: kind, fresh() = fields for a
+   brand-new table doc, reset = fields that go back to their starting values
+   whenever someone sits or leaves, seatReset = per-seat fields to clear. */
+function hasSeat(t, k){ return !!(t && t[k] && t[k].playerId); }
+function seatKeyOf(t){ return t && t.sideA && t.sideA.playerId===PLAYER_ID ? "sideA" : t && t.sideB && t.sideB.playerId===PLAYER_ID ? "sideB" : null; }
+function makeSeatKit(prefix, cfg){
+  const path = n => "trades/"+prefix+n;
+  const kit = {data:{}, unsubs:[], timer:null, path};
+  kit.reset = (t, extra)=>{
+    const p = Object.assign({round:(t.round||0)+1}, cfg.reset);
+    ["sideA","sideB"].forEach(k=>{ if(t[k]) p[k] = Object.assign({}, cfg.seatReset||{}); });
+    return Object.assign(p, extra||{});
+  };
+  kit.watch = (onChange)=>{
+    kit.stop();
+    for(let n=1;n<=LOBBY_TABLES;n++){
+      kit.unsubs.push(db.doc(path(n)).onSnapshot((snap)=>{ kit.data[n] = snap.exists ? snap.data() : null; onChange(); }, ()=>{}));
+    }
+    kit.timer = setInterval(onChange, 15000);   // seats go stale with the clock too
+  };
+  kit.stop = ()=>{ kit.unsubs.forEach(u=>u()); kit.unsubs = []; clearInterval(kit.timer); kit.timer = null; };
+  // Take a seat inside a transaction so two kids can't both get it.
+  kit.sit = async (n, key, seatExtra)=>{
+    for(const m in kit.data){
+      const lt = kit.data[m]; if(!lt) continue;
+      for(const k of ["sideA","sideB"]){
+        if(lt[k] && lt[k].playerId===PLAYER_ID && !(Number(m)===n && k===key)) await kit.leave(Number(m), k);
+      }
+    }
+    let taken = false;
+    await db.runTransaction(async (tx)=>{
+      taken = false;
+      const snap = await tx.get(path(n));
+      const t = snap.exists ? snap.data() : null, cur = t && t[key];
+      if(cur && cur.playerId!==PLAYER_ID && seatLive(cur)){ taken = true; return; }
+      const me = Object.assign({}, cfg.seatReset||{}, {playerId:PLAYER_ID, name:player.name, avatar:player.avatar, seenAt:Date.now()}, seatExtra||{});
+      if(!t){
+        const doc = Object.assign({kind:cfg.kind, code:"t"+n, table:n, round:1, sideA:null, sideB:null, createdAt:Date.now()}, cfg.fresh());
+        doc[key] = me; tx.set(path(n), doc); return;
+      }
+      if(cur && cur.playerId===PLAYER_ID){ tx.update(path(n), {[key]:{seenAt:Date.now()}}); return; }
+      tx.update(path(n), kit.reset(t, {[key]: me}));
+    });
+    return taken ? "taken" : "ok";
+  };
+  kit.leave = async (n, key)=>{
+    await db.runTransaction(async (tx)=>{
+      const snap = await tx.get(path(n));
+      if(!snap.exists) return;
+      const t = snap.data();
+      if(!t[key] || t[key].playerId!==PLAYER_ID) return;
+      tx.update(path(n), kit.reset(t, {[key]: null}));
+    });
+  };
+  // Keeps my seat alive; gives up a buddy's seat if their tablet went quiet.
+  kit.heartbeat = async (n)=>{
+    try{
+      await db.runTransaction(async (tx)=>{
+        const snap = await tx.get(path(n));
+        if(!snap.exists) return;
+        const t = snap.data(), mine = seatKeyOf(t);
+        if(!mine) return;
+        const other = mine==="sideA" ? "sideB" : "sideA";
+        const stale = !!t[other] && !seatLive(t[other]);
+        const patch = stale ? kit.reset(t, {[other]: null}) : {};
+        patch[mine] = Object.assign({seenAt: Date.now()}, stale ? (cfg.seatReset||{}) : {});
+        tx.update(path(n), patch);
+      });
+    }catch(e){ console.warn("heartbeat failed", e); }
+  };
+  return kit;
 }
 
 // Take a seat. Done inside a transaction so two kids tapping the same seat
