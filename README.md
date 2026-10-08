@@ -56,6 +56,18 @@ Eight mini-games earn Squish Coins. Each round ends with a results screen, and t
 
 All the games use the same toy art as the rest of the game: real toys on the match cards, falling into your own backpack in Squishy Catch, and in Sort Rush, plus glossy pop-it bubbles in Pop Rush and Pattern Pop.
 
+#### Planned mini-games
+
+Next up for the Games tab (not built yet):
+
+- **Spot the Fake** 🔍 *(build first; cheapest, and fits the theme best).* Show 4–6 near-identical squishies where one is a knockoff "dupe". The tells are subtle: a slightly wrong color shade, a missing detail, a misspelled tag. Tells get smaller as levels rise. A tap-to-zoom magnifying glass helps younger kids, and it teaches kids to look closely at real toys.
+- **Squish Sorter** (an upgrade of Sort Rush, or a replacement for it). Squishies ride a conveyor belt that speeds up, and kids swipe each into the right bin (by type, color or rarity). "Trap" items like broken or knockoff toys must go in the trash bin, and combo streaks earn bonus coins.
+- **Squishy Stacker.** Drop squishies onto a wobbly tower; soft or round ones are harder to balance than flat ones. Height sets the reward. A fallen tower should be funny, not punishing. Keep the physics light (simple tilt and wobble, no full physics engine) so older Fire tablets run it smoothly.
+
+Other ideas parked for later: **Squeeze Meter** (hold to squish, release in the green zone), **Bubble Pop Rescue** (tap floating squishies before they escape), **Mystery Capsule** (crank a capsule machine and solve a mini lock to reveal the prize), and a **Daily Challenge** (one rotating goal per day for a bonus capsule). A **co-op mini-game at the trading table**, where both kids work together and split the prize, could make the shared table feel like more than a swap screen.
+
+Like every game, each one uses the shared toy art, pays out coins on the results screen, and gets matching sandbox support (see [Updating the game](#updating-the-game)).
+
 The two learning games adapt to each kid. The first time, a kid picks a starting point (🌱 / 🌟 / 🚀). After every round, a strong score moves them up a level and a rough one moves them down. Each kid's level is saved separately.
 
 - **Pop-It Math:** 10 questions a round, no timer. Twelve levels:
