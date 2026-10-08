@@ -245,7 +245,7 @@ img{max-width:100%}
 
 /* games */
 .game-card{display:flex; gap:12px; align-items:center; padding:14px; cursor:pointer; border-left:5px solid var(--gc,var(--accent)); transition:transform .15s}
-.game-card .ic{font-size:34px; width:52px; text-align:center}
+.game-card .ic{font-size:34px; width:56px; height:56px; flex:none; text-align:center}
 .game-card .meta{flex:1; min-width:0}
 .game-card .meta h3{font-size:15px}
 .game-card .meta p{margin:2px 0 0; font-size:12px; color:var(--ink-dim)}
@@ -286,6 +286,7 @@ img{max-width:100%}
 .arena-match .match-card.flipped,.arena-match .match-card.matched{background:var(--surface); color:var(--ink); border:2px solid var(--line); border-radius:16px; box-shadow:none; animation:none}
 .arena-match .match-card.flipped::before,.arena-match .match-card.matched::before{display:none}
 .arena-match .match-card.matched{opacity:.5}
+.arena-match .match-card .toy-art{width:82%; height:82%}
 
 /* arena 2 — Pop Rush: raised bubble-wrap sheet */
 .arena-pop{background:radial-gradient(circle at 12px 12px, rgba(0,0,0,.05) 0 7px, transparent 8px) 0 0/26px 26px, var(--surface-2)}
@@ -313,15 +314,26 @@ img{max-width:100%}
 .cloud::before,.cloud::after{content:""; position:absolute; background:rgba(255,255,255,.85); border-radius:50%}
 .cloud::before{width:24px; height:24px; top:-11px; left:6px}
 .cloud::after{width:18px; height:18px; top:-7px; left:28px}
-.falling{position:absolute; font-size:26px; transform:translate(-50%,-50%); user-select:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.18))}
-.basket{position:absolute; bottom:28px; width:64px; height:40px; transform:translateX(-50%); font-size:34px; display:flex; align-items:flex-end; justify-content:center; filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
+.falling{position:absolute; width:46px; height:46px; font-size:26px; transform:translate(-50%,-50%); user-select:none; filter:drop-shadow(0 3px 3px rgba(0,0,0,.18)); pointer-events:none}
+.falling .toy-art, .falling.toy-art .toy-svg{width:100%; height:100%}
+.basket{position:absolute; bottom:22px; width:70px; height:76px; transform:translateX(-50%); font-size:34px; display:flex; align-items:flex-end; justify-content:center; filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
+
+.basket .bp-wrap.small{width:70px}
+.basket.gulp{animation:gulp .3s ease}
+.basket.hit{animation:fJiggle .45s ease}
+@keyframes gulp{0%,100%{transform:translateX(-50%) scale(1)}45%{transform:translateX(-50%) scale(1.15,.88)}}
 
 /* arena 4 — Stretch Zone: taffy pull */
 .arena-stretch{background:repeating-linear-gradient(135deg, var(--accent-soft) 0 14px, var(--surface-2) 14px 28px)}
 .stretch-wrap{display:flex; flex-direction:column; gap:16px; align-items:center}
 .stretch-track{position:relative; width:100%; max-width:340px; height:34px; background:var(--surface); border:2px solid var(--line); border-radius:999px; overflow:visible; box-shadow:inset 0 2px 5px rgba(0,0,0,.1)}
 .stretch-zone{position:absolute; top:-2px; bottom:-2px; background:var(--mint-soft); border:2px solid var(--mint); border-radius:999px; animation:ringPulse 1.5s ease-out infinite}
-.stretch-marker{position:absolute; top:50%; width:26px; height:26px; margin-top:-13px; border-radius:50% 50% 50% 4px; transform:translateX(-50%) rotate(45deg); background:radial-gradient(circle at 35% 30%, #fff, var(--accent) 68%); box-shadow:0 3px 6px rgba(0,0,0,.3)}
+.stretch-marker{position:absolute; top:50%; width:38px; height:38px; margin-top:-24px; transform:translateX(-50%); filter:drop-shadow(0 3px 3px rgba(0,0,0,.25))}
+.stretch-marker .toy-art{width:100%; height:100%}
+.stretch-toy{width:120px; height:120px; transition:transform .5s ease}
+.stretch-toy .toy-art{width:100%; height:100%}
+.stretch-toy.squished{transform:scale(1.28,.62) translateY(22%); transition:transform .12s ease-out}
+.stretch-toy.rising{transform:scale(1,1); transition:transform 1s cubic-bezier(.2,.9,.3,1.15)}
 .stretch-feedback{font-family:var(--font-display); font-size:22px; min-height:30px}
 .squish-btn{box-shadow:0 6px 0 rgba(0,0,0,.22), var(--shadow); transition:transform .08s, box-shadow .08s}
 .squish-btn:active{transform:translateY(5px); box-shadow:0 1px 0 rgba(0,0,0,.22)}
@@ -337,7 +349,9 @@ img{max-width:100%}
 .sort-bin{flex:1; padding:20px 8px 16px; border-radius:8px 8px 18px 18px; border:2px solid var(--line); background:linear-gradient(180deg,var(--surface),var(--surface-2)); font-weight:800; text-align:center; cursor:pointer; font-size:14px; display:flex; flex-direction:column; gap:4px; align-items:center; position:relative}
 .sort-bin::before{content:""; position:absolute; top:-8px; left:8%; right:8%; height:9px; background:var(--line); border-radius:4px}
 .sort-bin:active{transform:translateY(1px)}
-.sort-bin .ic{font-size:26px}
+.sort-bin .ic{font-size:26px; width:40px; height:40px}
+.sort-display{display:flex; flex-direction:column; align-items:center}
+.sort-display .sort-toy{width:96px; height:96px; animation:dropIn .35s cubic-bezier(.3,1.6,.5,1)}
 
 /* arena 6 — Pattern Pop: silicone pad */
 .arena-pattern{background:radial-gradient(circle at 10px 10px, rgba(0,0,0,.05) 0 2px, transparent 3px) 0 0/20px 20px, var(--surface-2)}
@@ -473,6 +487,15 @@ img{max-width:100%}
 @keyframes fJiggle{0%,100%{transform:translate(0)}20%{transform:translate(-5px,2px) rotate(-3deg)}40%{transform:translate(5px,-2px) rotate(3deg)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,-1px)}}
 @keyframes fSwirl{0%{transform:rotate(0)}30%{transform:rotate(-12deg)}60%{transform:rotate(10deg)}100%{transform:rotate(0)}}
 .fidget-status{margin:4px 0 0; font-weight:800; font-size:14px; text-align:center; color:var(--ink-dim); min-height:20px}
+
+/* glossy pop-it bubbles for Pop Rush + dimple buttons for Pattern Pop */
+.arena-pop .popit-base{padding:12px; border-radius:26px; background:linear-gradient(180deg, hsl(350 80% 62%) 0 25%, hsl(22 85% 58%) 25% 50%, hsl(150 55% 50%) 50% 75%, hsl(178 60% 46%) 75% 100%); box-shadow:0 6px 0 rgba(0,0,0,.18), inset 0 2px 0 rgba(255,255,255,.4)}
+.arena-pop .pop-grid .pop-cell{background:radial-gradient(circle at 34% 26%, rgba(255,255,255,.7) 0%, hsl(var(--h) 75% 60%) 32%, hsl(var(--h) 70% 44%) 100%); box-shadow:0 4px 0 hsl(var(--h) 60% 32%), inset 0 -3px 5px rgba(0,0,0,.15); filter:saturate(.8) brightness(.95); transition:transform .1s}
+.arena-pop .pop-grid .pop-cell.lit{filter:none; transform:translateY(-3px) scale(1.08); box-shadow:0 0 0 6px #fff, 0 0 22px 8px rgba(255,255,255,.85), 0 6px 0 hsl(var(--h) 60% 32%); animation:popPulse .32s ease}
+.arena-pop .pop-grid .pop-cell.popped{animation:popIn .25s ease}
+@keyframes popIn{0%{transform:scale(1)}40%{transform:translateY(3px) scale(.86)}100%{transform:scale(1)}}
+.arena-pattern .pop-cell{border-radius:50%; background:radial-gradient(circle at 34% 26%, rgba(255,255,255,.7), transparent 42%), radial-gradient(circle at 50% 120%, rgba(0,0,0,.28), transparent 62%), var(--rc,var(--accent)); box-shadow:0 4px 0 rgba(0,0,0,.25), inset 0 -3px 5px rgba(0,0,0,.15); opacity:.5; filter:saturate(.75)}
+.arena-pattern .pop-cell.lit{opacity:1; filter:none; transform:translateY(-3px) scale(1.06); box-shadow:0 0 0 6px var(--rc-soft,var(--accent-soft)), 0 0 20px 6px var(--rc,var(--accent)), 0 4px 0 rgba(0,0,0,.25); animation:popPulse .3s ease}
 
 .results-card{text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px}
 .results-card .big{font-size:40px}
@@ -1272,6 +1295,18 @@ function dodecaSVG(){ const id=toyId("dc");
     lg(id,"#b48cff","#6a35d6",1,1)+rg(id+"j","#ffffff","#ff7ab2","#d3266a"));
 }
 
+// A cartoon bomb for Squishy Catch, in the same glossy style.
+function bombSVG(){ const id=toyId("bm");
+  return svgWrap('<path d="M62 22 Q70 8 80 12" fill="none" stroke="#8a6a3b" stroke-width="4" stroke-linecap="round"/>'
+    +sparkle(82,11,1.1,"#ffd23f")+sparkle(82,11,.55,"#ff4d6d")
+    +'<rect x="52" y="20" width="16" height="12" rx="3" transform="rotate(25 60 26)" fill="#4a4458"/>'
+    +'<circle cx="48" cy="58" r="32" fill="url(#'+id+')"/>'
+    +'<ellipse cx="40" cy="64" rx="3.4" ry="4.2" fill="#fff"/><ellipse cx="58" cy="64" rx="3.4" ry="4.2" fill="#fff"/>'
+    +'<path d="M34 54 L44 58 M62 54 L52 58" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>'
+    +gloss(36,42,8,4),
+    rg(id,"#7b7590","#3a3448","#16131f"));
+}
+
 // ---------- catalog: item id -> drawing ----------
 const TOY_ART = {
   needoh_cube: niceCubeSVG, dream_drop: dreamDropSVG, jelly_squish: jellySVG, gummy_bear_sq: gummyBearSVG,
@@ -1886,15 +1921,23 @@ function setupTapFidget(item, toy, kind){
 
 /* ============================= GAMES ============================= */
 const GAME_DEFS = [
-  {id:"match", name:"Squish Match", emoji:"🧠", desc:"Flip cards, find every pair."},
-  {id:"pop", name:"Pop Rush", emoji:"🫧", desc:"Tap the glowing bubble before it's gone."},
-  {id:"catch", name:"Squishy Catch", emoji:"🧺", desc:"Catch squishies, dodge the bombs."},
-  {id:"stretch", name:"Stretch Zone", emoji:"📏", desc:"Time your tap inside the glowing zone."},
-  {id:"sort", name:"Sort Rush", emoji:"🗂️", desc:"Squishy or fidget? Sort it before time's up."},
-  {id:"pattern", name:"Pattern Pop", emoji:"🔁", desc:"Watch the pattern, then repeat it back."},
-  {id:"mathpop", name:"Pop-It Math", emoji:"➕", desc:"Pop the right answer. Levels grow with you!", edu:true},
-  {id:"words", name:"Word Builder", emoji:"🔤", desc:"Pop the letters in order to spell the word.", edu:true},
+  {id:"match", name:"Squish Match", emoji:"🧠", art:"mochi_panda", desc:"Flip cards, find every pair."},
+  {id:"pop", name:"Pop Rush", emoji:"🫧", art:"pop_it", desc:"Tap the glowing bubble before it's gone."},
+  {id:"catch", name:"Squishy Catch", emoji:"🧺", art:"gummy_bear_sq", desc:"Catch squishies in your backpack, dodge the bombs."},
+  {id:"stretch", name:"Stretch Zone", emoji:"📏", art:"sensory_putty", desc:"Time your tap inside the glowing zone."},
+  {id:"sort", name:"Sort Rush", emoji:"🗂️", art:"infinity_cube", desc:"Squishy or fidget? Sort it before time's up."},
+  {id:"pattern", name:"Pattern Pop", emoji:"🔁", art:"simple_dimple", desc:"Watch the pattern, then repeat it back."},
+  {id:"mathpop", name:"Pop-It Math", emoji:"➕", art:"heart_pop", desc:"Pop the right answer. Levels grow with you!", edu:true},
+  {id:"words", name:"Word Builder", emoji:"🔤", art:"knitten", desc:"Pop the letters in order to spell the word.", edu:true},
 ];
+// Game-card icons reuse the toy art (the heart pop-it isn't a collectible).
+function gameIcon(g){
+  const wrap = el("div",{class:"ic toy-art"});
+  if(g.art==="heart_pop") wrap.innerHTML = popItSVG("heart");
+  else if(TOY_ART[g.art]) wrap.innerHTML = TOY_ART[g.art]();
+  else wrap.textContent = g.emoji;
+  return wrap;
+}
 const GAME_ACCENT = {match:"--accent", pop:"--rarity-rare", catch:"--mint", stretch:"--coin", sort:"--rarity-epic", pattern:"--danger", mathpop:"--mint", words:"--rarity-rare"};
 function buildGamePicker(){
   const wrap = $("#gamePicker");
@@ -1902,7 +1945,7 @@ function buildGamePicker(){
   GAME_DEFS.forEach(g=>{
     const card = el("div",{class:"card game-card", onclick:()=>startGame(g.id)});
     card.style.setProperty("--gc", "var("+(GAME_ACCENT[g.id]||"--accent")+")");
-    card.appendChild(el("div",{class:"ic", text:g.emoji}));
+    card.appendChild(gameIcon(g));
     const meta = el("div",{class:"meta"});
     const h3 = el("h3",{text:g.name});
     if(g.edu) h3.appendChild(el("span",{class:"edu-chip", text:"📚 Learning"}));
@@ -1981,7 +2024,8 @@ function initMatchGame(stage){
     grid.innerHTML = "";
     deck.forEach(c=>{
       const isUp = flipped.includes(c.key) || matched.has(c.key);
-      const btn = el("button",{class:"match-card"+(matched.has(c.key)?" matched":isUp?" flipped":""), type:"button", text: isUp? c.emoji : "🫧"});
+      const btn = el("button",{class:"match-card"+(matched.has(c.key)?" matched":isUp?" flipped":""), type:"button", "aria-label": isUp ? (ITEM_MAP[c.id]||{}).name||"card" : "Hidden card"});
+      if(isUp) btn.appendChild(toyEl(ITEM_MAP[c.id]));
       btn.addEventListener("click", ()=>onFlip(c.key));
       grid.appendChild(btn);
     });
@@ -2024,10 +2068,11 @@ function initPopGame(stage){
   stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Tap the glowing bubble fast!"}));
 
   const arena = el("div",{class:"arena arena-pop"});
-  const grid = el("div",{class:"pop-grid"});
+  const grid = el("div",{class:"pop-grid popit-base"});
   const cells = [];
   for(let i=0;i<16;i++){
-    const c = el("button",{class:"pop-cell", type:"button"});
+    const c = el("button",{class:"pop-cell", type:"button", "aria-label":"Bubble "+(i+1)});
+    c.style.setProperty("--h", String(MATHPOP_HUES[Math.floor(i/4) % MATHPOP_HUES.length]));
     c.addEventListener("click", ()=>tapCell(i));
     grid.appendChild(c);
     cells.push(c);
@@ -2049,6 +2094,7 @@ function initPopGame(stage){
     if(!running) return;
     if(i===litIndex){
       score++; hScore.querySelector(".v").textContent = score;
+      cells[i].classList.remove("popped"); void cells[i].offsetWidth; cells[i].classList.add("popped"); sfx("pop");
       speed = Math.max(420, speed-18);
       cells[i].classList.remove("lit");
       litIndex=-1; clearTimeout(litTimeout);
@@ -2078,7 +2124,7 @@ function initCatchGame(stage){
   hud.appendChild(hScore); hud.appendChild(hLives); hud.appendChild(hTime);
   hud.appendChild(el("button",{class:"btn ghost small", text:"Exit", onclick:()=>{running=false; exitGame();}}));
   stage.appendChild(hud);
-  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Drag the basket — catch squishies, dodge bombs!"}));
+  stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Drag your backpack to catch squishies. Dodge the bombs!"}));
 
   const field = el("div",{class:"catch-field arena arena-catch"});
   for(let c=0;c<3;c++){
@@ -2086,15 +2132,15 @@ function initCatchGame(stage){
     field.appendChild(cloud);
   }
   field.appendChild(el("div",{class:"catch-ground"}));
-  const basket = el("div",{class:"basket", text:"🧺"});
+  const basket = el("div",{class:"basket"});
+  basket.appendChild(backpackEl(myBackpack().color||"pink", null, {small:true}));
   field.appendChild(basket);
   stage.appendChild(field);
 
   let fieldW = 300, fieldH = 360;
   let basketX = 150;
   let score=0, lives=3, timeLeft=30, running=true, lastSpawn=0, items=[];
-  const goodEmoji = ["🧸","🍩","🐻","🧁","🧊","🍦"];
-  const bad = "💣";
+  const goodToys = ITEMS.filter(i=>i.category==="squishy");
 
   function layout(){
     const r = field.getBoundingClientRect();
@@ -2118,7 +2164,9 @@ function initCatchGame(stage){
 
   function spawn(){
     const isBad = Math.random()<0.22;
-    const node = el("div",{class:"falling", text: isBad? bad : goodEmoji[Math.floor(Math.random()*goodEmoji.length)]});
+    const node = el("div",{class:"falling"+(isBad?" bomb":"")});
+    if(isBad){ node.classList.add("toy-art"); node.innerHTML = bombSVG(); }
+    else node.appendChild(toyEl(goodToys[Math.floor(Math.random()*goodToys.length)]));
     const x = 20+Math.random()*(fieldW-40);
     node.style.left = x+"px";
     node.style.top = "-20px";
@@ -2138,8 +2186,10 @@ function initCatchGame(stage){
       if(it.y > fieldH-72 && it.y < fieldH-24 && Math.abs(it.x-basketX) < 34){
         if(it.bad){
           lives--; hLives.querySelector(".v").textContent = "❤️".repeat(Math.max(lives,0))+"🖤".repeat(3-Math.max(lives,0));
+          sfx("sad"); basket.classList.remove("hit","gulp"); void basket.offsetWidth; basket.classList.add("hit");
         } else {
           score++; hScore.querySelector(".v").textContent = score;
+          sfx("pop"); basket.classList.remove("hit","gulp"); void basket.offsetWidth; basket.classList.add("gulp");
         }
         it.node.remove(); items.splice(k,1);
         if(lives<=0){ finish(); return; }
@@ -2182,9 +2232,12 @@ function initStretchGame(stage){
   stage.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px;text-align:center", text:"Tap SQUISH! when the marker is inside the glowing zone."}));
 
   const wrap = el("div",{class:"stretch-wrap arena arena-stretch"});
+  const squishPool = ITEMS.filter(i=>i.category==="squishy");
+  const stretchToy = el("div",{class:"stretch-toy"},[toyEl(squishPool[Math.floor(Math.random()*squishPool.length)])]);
+  wrap.appendChild(stretchToy);
   const track = el("div",{class:"stretch-track"});
   const zone = el("div",{class:"stretch-zone"});
-  const marker = el("div",{class:"stretch-marker"});
+  const marker = el("div",{class:"stretch-marker"},[toyEl(ITEM_MAP.dream_drop)]);
   track.appendChild(zone); track.appendChild(marker);
   wrap.appendChild(track);
   const feedback = el("div",{class:"stretch-feedback", text:" "});
@@ -2226,6 +2279,8 @@ function initStretchGame(stage){
     hScore.querySelector(".v").textContent = score;
     hTaps.querySelector(".v").textContent = taps+"/10";
     feedback.textContent = pts? label+" +"+pts : label;
+    stretchToy.classList.remove("rising"); stretchToy.classList.add("squished"); sfx(pts? "squish" : "click");
+    setTimeout(()=>{ stretchToy.classList.remove("squished"); stretchToy.classList.add("rising"); }, 160);
     speed = Math.min(4.2, speed+0.25);
     if(taps>=10){ finish(); return; }
     randomizeZone();
@@ -2260,8 +2315,8 @@ function initSortGame(stage){
   const display = el("div",{class:"sort-display"});
   stageWrap.appendChild(display);
   const bins = el("div",{class:"sort-bins"});
-  const squishyBin = el("div",{class:"sort-bin"},[el("div",{class:"ic",text:"🧸"}),el("div",{text:"Squishy"})]);
-  const fidgetBin = el("div",{class:"sort-bin"},[el("div",{class:"ic",text:"🔧"}),el("div",{text:"Fidget"})]);
+  const squishyBin = el("div",{class:"sort-bin"},[toyEl(ITEM_MAP.mochi_panda, "ic"),el("div",{text:"Squishy"})]);
+  const fidgetBin = el("div",{class:"sort-bin"},[toyEl(ITEM_MAP.golden_spinner, "ic"),el("div",{text:"Fidget"})]);
   bins.appendChild(squishyBin); bins.appendChild(fidgetBin);
   stageWrap.appendChild(bins);
   stage.appendChild(stageWrap);
@@ -2275,7 +2330,7 @@ function initSortGame(stage){
     round++;
     current = pool[Math.floor(Math.random()*pool.length)];
     display.innerHTML = "";
-    display.appendChild(el("div",{text:current.emoji}));
+    display.appendChild(toyEl(current, "sort-toy"));
     display.appendChild(el("div",{class:"nm", text:current.name}));
     roundMs = Math.max(900, 1700 - round*40);
     roundStart = performance.now();

@@ -47,12 +47,14 @@ Eight mini-games earn Squish Coins. Each round ends with a results screen, and t
 |---|---|
 | Squish Match | Flip cards and find all 8 pairs |
 | Pop Rush | Tap the glowing bubble before it moves |
-| Squishy Catch | Catch falling squishies, dodge bombs |
+| Squishy Catch | Catch falling squishies in your backpack, dodge bombs |
 | Stretch Zone | Time your tap inside the glowing zone |
 | Sort Rush | Squishy or fidget? Sort it before time runs out |
 | Pattern Pop | Watch the pattern, then repeat it |
 | **Pop-It Math** 📚 | Pop the bubble with the right answer |
 | **Word Builder** 📚 | Pop letters in order to spell the word |
+
+All the games use the same toy art as the rest of the game: real toys on the match cards, falling into your own backpack in Squishy Catch, and in Sort Rush, plus glossy pop-it bubbles in Pop Rush and Pattern Pop.
 
 The two learning games adapt to each kid. The first time, a kid picks a starting point (🌱 / 🌟 / 🚀). After every round, a strong score moves them up a level and a rough one moves them down. Each kid's level is saved separately.
 
