@@ -410,14 +410,62 @@ img{max-width:100%}
 
 /* trade */
 .code-display{font-family:var(--font-display); font-size:38px; letter-spacing:.12em; text-align:center; color:var(--accent)}
-.trade-cols{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.trade-panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:12px; display:flex; flex-direction:column; gap:8px; min-width:0}
-.trade-panel h3{font-size:13px; display:flex; align-items:center; gap:6px}
-.trade-panel .ready-dot{width:9px; height:9px; border-radius:50%; background:var(--line)}
-.trade-panel .ready-dot.on{background:var(--mint)}
-.offer-slots{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; min-height:64px}
-.offer-slot{aspect-ratio:1; border:1.5px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:20px; background:var(--surface-2)}
-.offer-slot.filled{border-style:solid; background:var(--surface)}
+.trade-banner{display:flex; flex-direction:column; gap:8px; padding:12px; text-align:center}
+.trade-banner.alert{box-shadow:0 0 0 3px var(--coin), var(--shadow); animation:popPulse .5s ease}
+.trade-code{font-family:var(--font-display); font-size:15px; color:var(--accent)}
+.trade-steps{display:flex; justify-content:center; gap:6px; flex-wrap:wrap}
+.trade-step{display:flex; align-items:center; gap:4px; font-size:11px; font-weight:800; color:var(--ink-dim); padding:3px 8px 3px 3px; border-radius:999px; background:var(--surface-2)}
+.trade-step .n{width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface-3); font-size:10.5px}
+.trade-step.now{background:var(--accent-soft); color:var(--ink)}
+.trade-step.now .n{background:var(--accent); color:#fff}
+.trade-step.done .n{background:var(--mint); color:#fff}
+.trade-msg{margin:0; font-weight:800; font-size:14.5px; line-height:1.35}
+
+/* the trading board: a printed mat with a dashed divider, like a real one */
+.trade-board{border-radius:22px; padding:10px; display:flex; flex-direction:column; gap:8px;
+  background:linear-gradient(var(--line) 1px, transparent 1px) 0 0/22px 22px, linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/22px 22px, var(--surface-2);
+  border:3px solid var(--ink); box-shadow:0 8px 0 rgba(0,0,0,.12), var(--shadow)}
+.board-half{background:var(--surface); border-radius:16px; padding:10px; display:flex; flex-direction:column; gap:8px; border:2px solid var(--line); transition:box-shadow .2s}
+.board-half.theirs{border-color:var(--rarity-rare)}
+.board-half.mine{border-color:var(--accent)}
+.board-half.asked{box-shadow:0 0 0 4px var(--coin); animation:popPulse .6s ease}
+.board-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.board-head .who{font-weight:800; font-size:14px; flex:1; min-width:0}
+.board-val{font-family:var(--font-display); font-size:16px}
+.board-badge{font-size:11px; font-weight:800; padding:3px 8px; border-radius:999px}
+.board-badge.ok{background:var(--mint-soft); color:var(--ink)}
+.board-badge.more{background:var(--coin); color:#fff}
+.board-slots{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
+@media (max-width:420px){ .board-slots{grid-template-columns:repeat(3,1fr)} }
+.board-slot{aspect-ratio:1; border:2px dashed var(--line); border-radius:12px; background:var(--surface-2); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative}
+.board-slot.filled{border-style:solid; border-color:var(--rc); background:var(--rc-soft); animation:popPulse .25s ease}
+.board-slot .e{font-size:26px; line-height:1}
+.board-slot .v{font-size:10px; font-weight:800; margin-top:2px}
+.board-slot.removable{cursor:pointer}
+.board-tip{font-size:11px; color:var(--ink-dim); text-align:center}
+.board-middle{display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px 0; border-top:3px dashed var(--ink); border-bottom:3px dashed var(--ink)}
+.trade-scale{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; padding-top:6px}
+.trade-scale .beam{display:flex; align-items:center; gap:8px; transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
+.trade-scale .pan{font-family:var(--font-display); font-size:14px; background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:3px 12px}
+.trade-scale .pivot{font-size:14px; color:var(--ink-dim)}
+.trade-scale .verdict{font-weight:800; font-size:13px}
+.board-buttons{display:flex; gap:14px; justify-content:center}
+.board-btn{width:84px; height:84px; border-radius:50%; border:none; cursor:pointer; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  box-shadow:0 6px 0 rgba(0,0,0,.25); transition:transform .08s, box-shadow .08s, filter .2s; font-weight:800}
+.board-btn .i{font-size:28px; line-height:1}
+.board-btn .l{font-size:11.5px}
+.board-btn:active:not(:disabled), .board-btn.pressed{transform:translateY(5px); box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.board-btn:disabled{filter:grayscale(.85) opacity(.5); cursor:default}
+.board-btn.more{background:radial-gradient(circle at 34% 26%, #ffe08a, #f2a516 70%)}
+.board-btn.accept{background:radial-gradient(circle at 34% 26%, #9df0c2, #1fae63 70%)}
+.board-btn.decline{background:radial-gradient(circle at 34% 26%, #ffb0b0, #e5484d 70%)}
+.board-btn.accept.pressed{box-shadow:0 0 0 5px var(--mint-soft), 0 1px 0 rgba(0,0,0,.25)}
+.item-grid.waiting{opacity:.45}
+.item-card .val{position:absolute; top:4px; left:5px; font-size:9.5px; font-weight:800}
+.trade-legend{margin:0; font-size:11px; color:var(--ink-dim); text-align:center}
+.swap-row{display:flex; align-items:center; gap:10px; font-size:26px}
+.swap-row .k{font-size:12px; font-weight:800; color:var(--ink-dim); text-transform:uppercase; width:70px; text-align:right}
+.swap-anim{animation:popPulse .6s ease 3}
 
 input[type=text],input[type=tel]{
   font-family:var(--font-body); font-size:16px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line);
@@ -1972,6 +2020,9 @@ function renderTrade(){
     area.appendChild(el("div",{class:"card", style:"text-align:center;color:var(--ink-dim)", text:"Opening table…"}));
     return;
   }
+  // A finished trade keeps showing its result, even when the swap itself
+  // updates the inventory and triggers a re-render.
+  if(tradeData.status!=="open"){ renderTradeEndScreen(tradeData); return; }
   area.appendChild(buildTradeTable());
 }
 
@@ -2015,9 +2066,9 @@ async function createTable(){
     attempts++;
   } while(exists && attempts<6);
 
-  const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], ready:false, confirmed:false };
+  const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null };
   try{
-    await db.doc("trades/"+code).set({ code, status:"open", sideA: sideData, sideB: null, createdAt: Date.now() });
+    await db.doc("trades/"+code).set({ code, status:"open", sideA: sideData, sideB: null, addMoreTo: null, addMoreValue: null, createdAt: Date.now() });
     openTradeSession(code);
   }catch(e){
     showToast("Couldn't create a table. Try again.");
@@ -2034,7 +2085,7 @@ async function joinTable(code){
     if(t.sideA && t.sideA.playerId===PLAYER_ID){ openTradeSession(code); return; }
     if(t.sideB && t.sideB.playerId===PLAYER_ID){ openTradeSession(code); return; }
     if(t.sideB){ msg.textContent = "That table already has two traders."; return; }
-    const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], ready:false, confirmed:false };
+    const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null };
     await db.doc("trades/"+code).update({ sideB: sideData });
     openTradeSession(code);
   }catch(e){
@@ -2062,7 +2113,7 @@ function subscribeTrade(code){
     if(!snap.exists){ tradeData = null; closeTradeSession(); return; }
     const t = snap.data();
     tradeData = t;
-    if(t.status==="completed" || t.status==="cancelled" || t.status==="failed"){
+    if(t.status!=="open"){
       renderTradeEndScreen(t);
       return;
     }
@@ -2085,6 +2136,31 @@ function otherSideKey(t){
   return mine==="sideA" ? "sideB" : mine==="sideB" ? "sideA" : null;
 }
 
+/* ---- Trading board ----
+   Plays like a real fidget-trading board:
+     1. Ante: the table's starter puts an item on their side.
+     2. Counter-offer: the buddy answers with items they think match it.
+     3. Evaluate: both look at the board (the scale shows each side's value).
+     4. Decide with the three buttons: ➕ Add More, ✔️ Accept, ❌ Decline.
+   An accept is tied to the exact deal on the board when it was pressed
+   (side.accepted = dealKey), so if either side changes anything afterward the
+   old accept silently stops counting, even if two taps race each other. */
+const RARITY_VALUE = {common:1, uncommon:2, rare:4, epic:7, legendary:10};
+const MAX_OFFER = 6;
+
+function itemValue(id){ const it = ITEM_MAP[id]; return it ? (RARITY_VALUE[it.rarity]||0) : 0; }
+function offerValue(items){ return (items||[]).reduce((sum,id)=>sum+itemValue(id), 0); }
+function dealKey(t){ return JSON.stringify([(t.sideA&&t.sideA.items)||[], (t.sideB&&t.sideB.items)||[]]); }
+function hasAccepted(t, sideKey){ return !!(t[sideKey] && t[sideKey].accepted && t[sideKey].accepted===dealKey(t)); }
+
+// Which step of the trade the table is on.
+function tradePhase(t){
+  if(!t.sideB) return "waiting";
+  if(!(t.sideA.items||[]).length) return "ante";
+  if(!(t.sideB.items||[]).length) return "counter";
+  return "negotiate";
+}
+
 function buildTradeTable(){
   const t = tradeData;
   const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
@@ -2093,89 +2169,152 @@ function buildTradeTable(){
     wrap.appendChild(el("div",{class:"card", style:"text-align:center"},[
       el("p",{style:"margin:0 0 6px;color:var(--ink-dim);font-size:13px", text:"Share this code with your trade buddy:"}),
       el("div",{class:"code-display", text:t.code}),
+      el("p",{style:"margin:6px 0;color:var(--ink-dim);font-size:12.5px", text:"You'll put down the first item (the ante) once they join."}),
       el("button",{class:"btn ghost small", text:"Cancel table", onclick:cancelTable})
     ]));
     return wrap;
   }
 
   const mine = mySideKey(t), theirs = otherSideKey(t);
-  const mySideData = t[mine], theirSideData = t[theirs];
+  const me = t[mine], them = t[theirs];
+  const phase = tradePhase(t);
+  const iStarted = mine==="sideA";
+  const theirName = them.name||"Your buddy";
+  const myAccepted = hasAccepted(t, mine), theirAccepted = hasAccepted(t, theirs);
+  const addMore = t.addMoreTo ? { to: t.addMoreTo, value: t.addMoreValue||0 } : null;
+  const askedMe = addMore && addMore.to===mine;
+  const iAsked = addMore && addMore.to===theirs;
+  // Guided turns: the buddy can't place anything until the ante is down.
+  const canPlace = !(phase==="ante" && !iStarted);
 
-  wrap.appendChild(el("div",{class:"card", style:"text-align:center; padding:12px"},[
-    el("div",{class:"code-display", style:"font-size:22px", text:"Table "+t.code})
-  ]));
+  // Step tracker + what to do now
+  let step = 1, msg;
+  if(phase==="ante"){
+    step = 1;
+    msg = iStarted ? "Your ante! Put an item on your side of the board." : "Waiting for "+theirName+" to put down their ante…";
+  } else if(phase==="counter"){
+    step = 2;
+    msg = iStarted ? "Waiting for "+theirName+"'s counter-offer…" : "Your counter-offer! Put down something you think matches "+theirName+"'s ante.";
+  } else {
+    step = (myAccepted||theirAccepted||addMore) ? 4 : 3;
+    if(askedMe) msg = theirName+" wants you to add more! ➕ Put down another item, or ❌ decline.";
+    else if(iAsked) msg = "You asked "+theirName+" to add more. Waiting…";
+    else if(myAccepted && !theirAccepted) msg = "You accepted ✔️. Waiting for "+theirName+"…";
+    else if(theirAccepted && !myAccepted) msg = theirName+" accepted ✔️! Press ✔️ to swap, ➕ to ask for more, or ❌ to decline.";
+    else msg = "Is it a fair trade? Check the scale, then press a button.";
+  }
+  const steps = el("div",{class:"trade-steps"});
+  ["Ante","Counter","Evaluate","Decide"].forEach((label,i)=>{
+    steps.appendChild(el("div",{class:"trade-step"+(i+1===step?" now":"")+(i+1<step?" done":"")},[
+      el("span",{class:"n", text: i+1<step ? "✓" : String(i+1)}), el("span",{text:label})
+    ]));
+  });
+  const banner = el("div",{class:"card trade-banner"+(askedMe?" alert":"")},[
+    el("div",{class:"trade-code", text:"Table "+t.code}), steps, el("p",{class:"trade-msg", text:msg})
+  ]);
+  wrap.appendChild(banner);
 
-  const cols = el("div",{class:"trade-cols"});
-  cols.appendChild(buildTradePanel(true, mySideData));
-  cols.appendChild(buildTradePanel(false, theirSideData));
-  wrap.appendChild(cols);
+  // The board: buddy's side on top, yours on the bottom, buttons down the middle.
+  const board = el("div",{class:"trade-board"});
+  board.appendChild(buildBoardSide(false, them, theirAccepted, addMore && addMore.to===theirs));
+  board.appendChild(buildBoardMiddle(t, mine, theirs, phase, myAccepted, iAsked));
+  board.appendChild(buildBoardSide(true, me, myAccepted, askedMe));
+  wrap.appendChild(board);
 
+  // Your items to place on the board
   const myItemsLeft = Object.entries(player.inventory||{}).filter(([id,c])=>c>0);
-  wrap.appendChild(el("div",{class:"section-title"},[el("h2",{style:"font-size:15px", text:"Your items"}),el("span",{class:"hint", text:"Tap to offer"})]));
-  const pickerGrid = el("div",{class:"item-grid"});
+  wrap.appendChild(el("div",{class:"section-title"},[el("h2",{style:"font-size:15px", text:"Your items"}),el("span",{class:"hint", text: canPlace ? "Tap to put on the board" : "Wait for the ante"})]));
+  const pickerGrid = el("div",{class:"item-grid"+(canPlace?"":" waiting")});
   myItemsLeft.forEach(([id,count])=>{
     const item = ITEM_MAP[id]; if(!item) return;
-    const offeredCount = myOffer.filter(x=>x===id).length;
-    const remaining = count - offeredCount;
+    const remaining = count - myOffer.filter(x=>x===id).length;
     const card = el("div",{class:"item-card pickable"+(remaining<=0?" locked":"")});
     styleRarity(card, item.rarity);
     card.appendChild(el("div",{class:"emoji", text:item.emoji}));
     card.appendChild(el("div",{class:"nm", text:item.name}));
     card.appendChild(el("div",{class:"ct", text:remaining+"/"+count}));
-    if(!mySideData.ready){
-      card.addEventListener("click", ()=>{
-        if(remaining<=0) return;
-        if(myOffer.length>=6){ showToast("Max 6 items per trade."); return; }
-        myOffer.push(id);
-        writeMyOffer();
-      });
-    }
+    card.appendChild(el("div",{class:"val", text:"⭐"+itemValue(id)}));
+    card.addEventListener("click", ()=>{
+      if(!canPlace){ showToast("Wait for "+theirName+" to put down the ante first."); return; }
+      if(remaining<=0) return;
+      if(myOffer.length>=MAX_OFFER){ showToast("The board fits "+MAX_OFFER+" items per side."); return; }
+      myOffer.push(id);
+      writeMyOffer();
+    });
     pickerGrid.appendChild(card);
   });
-  if(myItemsLeft.length===0) pickerGrid.appendChild(el("p",{style:"color:var(--ink-dim);font-size:13px", text:"You don't have any items yet — play mini-games or open a pack!"}));
+  if(myItemsLeft.length===0) pickerGrid.appendChild(el("p",{style:"color:var(--ink-dim);font-size:13px", text:"You don't have any items yet. Play mini-games or open a pack!"}));
   wrap.appendChild(pickerGrid);
-
-  const actions = el("div",{style:"display:flex; gap:10px"});
-  if(!mySideData.ready){
-    actions.appendChild(el("button",{class:"btn block", text: myOffer.length? "I'm Ready!" : "Mark Ready (no items)", onclick: markReady}));
-  } else if(!mySideData.confirmed){
-    actions.appendChild(el("button",{class:"btn secondary block", text:"Edit Offer", onclick: unReady}));
-    if(theirSideData.ready){
-      actions.appendChild(el("button",{class:"btn block", text:"Confirm Trade ✅", onclick: confirmTrade}));
-    }
-  } else {
-    actions.appendChild(el("div",{class:"card", style:"text-align:center;flex:1;padding:10px;font-weight:800;color:var(--mint)", text:"Waiting for your buddy to confirm…"}));
-  }
-  wrap.appendChild(actions);
-  wrap.appendChild(el("button",{class:"btn ghost small", text:"Leave table", onclick:cancelTable}));
-
+  wrap.appendChild(el("p",{class:"trade-legend", text:"Item values: Common ⭐1 · Uncommon ⭐2 · Rare ⭐4 · Epic ⭐7 · Legendary ⭐10"}));
   return wrap;
 }
 
-function buildTradePanel(isMe, sideData){
-  const panel = el("div",{class:"trade-panel"});
-  const dot = el("span",{class:"ready-dot"+(sideData.ready?" on":"")});
-  panel.appendChild(el("h3",{},[document.createTextNode((sideData.avatar||"🙂")+" "+(sideData.name||"Trader")+(isMe?" (you)":"")), dot]));
-  const slots = el("div",{class:"offer-slots"});
-  const list = sideData.items||[];
-  for(let i=0;i<6;i++){
-    const id = list[i];
+function buildBoardSide(isMe, side, accepted, beingAsked){
+  const items = side.items||[];
+  const half = el("div",{class:"board-half "+(isMe?"mine":"theirs")+(beingAsked?" asked":"")});
+  const head = el("div",{class:"board-head"},[
+    el("span",{class:"who", text:(side.avatar||"🙂")+" "+(isMe?"You":(side.name||"Trader"))}),
+    el("span",{class:"board-val", text:"⭐ "+offerValue(items)}),
+  ]);
+  if(accepted) head.appendChild(el("span",{class:"board-badge ok", text:"✔️ Accepted"}));
+  if(beingAsked) head.appendChild(el("span",{class:"board-badge more", text:"➕ Add more!"}));
+  half.appendChild(head);
+  const slots = el("div",{class:"board-slots"});
+  for(let i=0;i<MAX_OFFER;i++){
+    const id = items[i];
     if(id && ITEM_MAP[id]){
       const item = ITEM_MAP[id];
-      const slot = el("div",{class:"offer-slot filled", title:item.name});
+      const slot = el("div",{class:"board-slot filled", title:item.name+" (⭐"+itemValue(id)+")"},[
+        el("span",{class:"e", text:item.emoji}), el("span",{class:"v", text:"⭐"+itemValue(id)})
+      ]);
       styleRarity(slot,item.rarity);
-      slot.textContent = item.emoji;
-      if(isMe && !sideData.ready){
-        slot.style.cursor="pointer";
-        slot.addEventListener("click", ()=>{ myOffer.splice(myOffer.indexOf(id),1); writeMyOffer(); });
+      if(isMe){
+        slot.classList.add("removable");
+        slot.addEventListener("click", ()=>{ myOffer.splice(i,1); writeMyOffer(); });
       }
       slots.appendChild(slot);
     } else {
-      slots.appendChild(el("div",{class:"offer-slot", text:"·"}));
+      slots.appendChild(el("div",{class:"board-slot"}));
     }
   }
-  panel.appendChild(slots);
-  return panel;
+  half.appendChild(slots);
+  if(isMe && items.length) half.appendChild(el("div",{class:"board-tip", text:"Tap an item on the board to take it back."}));
+  return half;
+}
+
+function buildBoardMiddle(t, mine, theirs, phase, myAccepted, iAsked){
+  const mid = el("div",{class:"board-middle"});
+  const myVal = offerValue(t[mine].items), theirVal = offerValue(t[theirs].items);
+  const theirName = t[theirs].name||"Buddy";
+
+  // Fairness scale: the beam tips toward the side that's worth more.
+  const total = myVal + theirVal;
+  const diff = Math.abs(myVal - theirVal);
+  let verdict;
+  if(!myVal || !theirVal) verdict = "⚖️ Both sides need an item";
+  else if(diff <= Math.max(1, Math.round(Math.max(myVal,theirVal)*0.2))) verdict = "⚖️ Looks fair! 👍";
+  else verdict = myVal>theirVal ? "⚖️ Your side is worth more" : "⚖️ "+theirName+"'s side is worth more";
+  const tilt = total ? Math.max(-7, Math.min(7, (theirVal - myVal) / total * 14)) : 0;
+  const scale = el("div",{class:"trade-scale"},[
+    el("div",{class:"beam", style:"transform:rotate("+(-tilt).toFixed(1)+"deg)"},[
+      el("span",{class:"pan", text:"You ⭐"+myVal}), el("span",{class:"pivot", text:"▲"}), el("span",{class:"pan", text:theirName+" ⭐"+theirVal})
+    ]),
+    el("div",{class:"verdict", text:verdict})
+  ]);
+  mid.appendChild(scale);
+
+  const ready = phase==="negotiate";
+  const btns = el("div",{class:"board-buttons"});
+  const mk = (cls, icon, label, enabled, onclick, pressed)=>{
+    const b = el("button",{class:"board-btn "+cls+(pressed?" pressed":""), type:"button"},[el("span",{class:"i", text:icon}), el("span",{class:"l", text:label})]);
+    if(enabled) b.addEventListener("click", onclick); else b.disabled = true;
+    return b;
+  };
+  btns.appendChild(mk("more", "➕", iAsked ? "Asked" : "Add More", ready && !iAsked, requestAddMore, iAsked));
+  btns.appendChild(mk("accept", "✔️", myAccepted ? "Accepted" : "Accept", ready, toggleAccept, myAccepted));
+  btns.appendChild(mk("decline", "❌", "Decline", true, declineTrade, false));
+  mid.appendChild(btns);
+  return mid;
 }
 
 let offerWritePending = false, offerWriteQueued = false;
@@ -2184,26 +2323,29 @@ async function writeMyOffer(){
   if(offerWritePending){ offerWriteQueued = true; return; }
   offerWritePending = true;
   const t = tradeData, mine = mySideKey(t);
-  try{
-    await db.doc("trades/"+tradeCode).update({ [mine]: { items: myOffer.slice() } });
-  }catch(e){ showToast("Couldn't update offer."); }
+  const patch = { [mine]: { items: myOffer.slice() } };
+  // Adding value answers an "add more" request aimed at me.
+  if(t.addMoreTo===mine && offerValue(myOffer) > (t.addMoreValue||0)){ patch.addMoreTo = null; patch.addMoreValue = null; }
+  try{ await db.doc("trades/"+tradeCode).update(patch); }
+  catch(e){ showToast("Couldn't update the board."); }
   offerWritePending = false;
   if(offerWriteQueued){ offerWriteQueued = false; writeMyOffer(); }
 }
-async function markReady(){
-  const mine = mySideKey(tradeData);
-  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { items: myOffer.slice(), ready:true } }); }
-  catch(e){ showToast("Couldn't mark ready."); }
+async function requestAddMore(){
+  const t = tradeData, theirs = otherSideKey(t);
+  try{ await db.doc("trades/"+tradeCode).update({ addMoreTo: theirs, addMoreValue: offerValue(t[theirs].items) }); }
+  catch(e){ showToast("Couldn't send that. Try again."); }
 }
-async function unReady(){
-  const mine = mySideKey(tradeData);
-  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { ready:false, confirmed:false } }); }
-  catch(e){ showToast("Couldn't update."); }
+async function toggleAccept(){
+  const t = tradeData, mine = mySideKey(t);
+  const accepted = hasAccepted(t, mine) ? null : dealKey(t);
+  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { accepted } }); }
+  catch(e){ showToast("Couldn't accept. Try again."); }
 }
-async function confirmTrade(){
-  const mine = mySideKey(tradeData);
-  try{ await db.doc("trades/"+tradeCode).update({ [mine]: { confirmed:true } }); }
-  catch(e){ showToast("Couldn't confirm."); }
+async function declineTrade(){
+  const t = tradeData, mine = mySideKey(t);
+  try{ if(t && t.status==="open") await db.doc("trades/"+tradeCode).update({ status:"declined", declinedBy: t[mine].name||"A trader" }); }
+  catch(e){ showToast("Couldn't decline. Try again."); }
 }
 async function cancelTable(){
   try{ if(tradeData && tradeData.status==="open") await db.doc("trades/"+tradeCode).update({ status:"cancelled" }); }
@@ -2215,20 +2357,21 @@ let executingTrade = false;
 async function maybeExecuteTrade(t, code){
   if(!t.sideA || !t.sideB) return;
   if(t.status!=="open") return;
-  if(!(t.sideA.confirmed && t.sideB.confirmed)) return;
+  if(!(hasAccepted(t,"sideA") && hasAccepted(t,"sideB"))) return;
   if(executingTrade) return;
   executingTrade = true;
   // Run the whole check-and-swap inside a Firestore transaction: Firestore reads
   // everything first, then automatically retries this callback from scratch if
   // another device (the trade buddy's tablet, racing to execute the same trade)
   // wrote to any of the same documents first — so the swap can never double-fire
-  // and never applies to stale inventory.
+  // and never applies to stale inventory or a deal someone changed.
   try{
     await db.runTransaction(async (tx)=>{
       const fresh = await tx.get("trades/"+code);
       if(!fresh.exists) return;
       const ft = fresh.data();
-      if(ft.status!=="open" || !(ft.sideA.confirmed && ft.sideB.confirmed)) return;
+      if(ft.status!=="open" || !(hasAccepted(ft,"sideA") && hasAccepted(ft,"sideB"))) return;
+      if(!(ft.sideA.items||[]).length || !(ft.sideB.items||[]).length) return;
 
       const sA = await tx.get("players/"+ft.sideA.playerId);
       const sB = await tx.get("players/"+ft.sideB.playerId);
@@ -2265,20 +2408,23 @@ function renderTradeEndScreen(t){
   const area = $("#tradeArea");
   area.innerHTML = "";
   const mine = mySideKey(t);
-  let card;
+  const emojis = (items)=> (items||[]).map(id=>ITEM_MAP[id] ? ITEM_MAP[id].emoji : "").join(" ");
+  const card = el("div",{class:"card results-card"});
   if(t.status==="completed"){
     const mySide = t[mine], theirSide = t[mine==="sideA"?"sideB":"sideA"];
-    card = el("div",{class:"card results-card"});
-    card.appendChild(el("div",{class:"big", text:"🤝"}));
+    card.appendChild(el("div",{class:"big swap-anim", text:"🤝"}));
     card.appendChild(el("h2",{text:"Trade complete!"}));
-    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"You gave "+(mySide.items||[]).length+" item(s) and got "+(theirSide.items||[]).length+" item(s)."}));
+    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You got"}), el("span",{class:"got", text:emojis(theirSide.items)})]));
+    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You gave"}), el("span",{class:"gave", text:emojis(mySide.items)})]));
   } else if(t.status==="failed"){
-    card = el("div",{class:"card results-card"});
     card.appendChild(el("div",{class:"big", text:"😕"}));
     card.appendChild(el("h2",{text:"Trade fell through"}));
     card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"One of you didn't have enough of an item anymore."}));
+  } else if(t.status==="declined"){
+    card.appendChild(el("div",{class:"big", text:"❌"}));
+    card.appendChild(el("h2",{text:"Trade declined"}));
+    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:(t.declinedBy||"Someone")+" declined. Everyone keeps their own items."}));
   } else {
-    card = el("div",{class:"card results-card"});
     card.appendChild(el("div",{class:"big", text:"🚪"}));
     card.appendChild(el("h2",{text:"Table closed"}));
     card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"The trade was cancelled."}));
