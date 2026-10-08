@@ -223,6 +223,13 @@ img{max-width:100%}
   display:flex; flex-direction:column; align-items:center; gap:4px; min-width:0;
 }
 .item-card .emoji{font-size:30px; line-height:1}
+.toy-art{display:flex; align-items:center; justify-content:center}
+.toy-art .toy-svg{width:100%; height:100%; overflow:visible}
+.toy-art.toy-emoji{line-height:1}
+.item-card .toy-art{width:54px; height:54px}
+.item-card .toy-art.toy-emoji{font-size:34px}
+.toy-art.silhouette .toy-svg{filter:brightness(0) opacity(.22)}
+.toy-art.silhouette.toy-emoji{filter:grayscale(1) opacity(.5)}
 .item-card .nm{font-size:10.5px; font-weight:800; color:var(--ink); line-height:1.15; min-height:24px; display:flex; align-items:center; justify-content:center}
 .item-card .ct{position:absolute; top:4px; right:5px; background:var(--surface); border:1px solid var(--line); border-radius:999px; font-size:9.5px; font-weight:800; padding:1px 6px; color:var(--ink-dim)}
 .item-card.locked{filter:grayscale(1); opacity:.42}
@@ -403,7 +410,7 @@ img{max-width:100%}
 .reveal-overlay{position:fixed; inset:0; background:rgba(20,14,36,.6); backdrop-filter:blur(2px); display:flex; align-items:center; justify-content:center; z-index:80; padding:24px; overflow:hidden}
 .reveal-card{width:min(280px,80vw); background:var(--surface); border-radius:24px; padding:28px 20px; text-align:center; box-shadow:0 30px 60px -20px rgba(0,0,0,.5); border:3px solid var(--rc,var(--line)); animation:revealPop .45s cubic-bezier(.2,1.4,.4,1); position:relative; overflow:hidden}
 @keyframes revealPop{from{transform:scale(.55) rotate(-6deg); opacity:0} to{transform:scale(1) rotate(0); opacity:1}}
-.reveal-card .emoji{font-size:70px; position:relative; z-index:1}
+.reveal-card .emoji{font-size:70px; position:relative; z-index:1; width:130px; height:130px; margin:0 auto}
 .pack-shake{font-size:110px; animation:packShake .55s ease-in-out 2; filter:drop-shadow(0 12px 18px rgba(0,0,0,.4))}
 @keyframes packShake{0%,100%{transform:rotate(0) scale(1)}20%{transform:rotate(-14deg) scale(1.05)}40%{transform:rotate(12deg) scale(1.1)}60%{transform:rotate(-9deg) scale(1.08)}80%{transform:rotate(6deg) scale(1.12)}}
 .reveal-card.scam{animation:revealPop .45s cubic-bezier(.2,1.4,.4,1), scamShake .4s ease .75s}
@@ -470,7 +477,7 @@ img{max-width:100%}
 @media (max-width:420px){ .board-slots{grid-template-columns:repeat(3,1fr)} }
 .board-slot{aspect-ratio:1; border:2px dashed rgba(147,180,255,.35); border-radius:12px; background:rgba(255,255,255,.04); display:flex; flex-direction:column; align-items:center; justify-content:center}
 .board-slot.filled{border-style:solid; border-color:var(--rc); background:radial-gradient(circle at 50% 40%, var(--rc-soft), rgba(255,255,255,.1) 75%); animation:popPulse .25s ease}
-.board-slot .e{font-size:26px; line-height:1}
+.board-slot .e{width:74%; height:62%; font-size:26px}
 .board-slot .v{font-size:10px; font-weight:800; margin-top:2px; color:#fff}
 .board-slot.removable{cursor:pointer}
 .board-tip{font-size:11px; opacity:.7; text-align:center}
@@ -482,6 +489,8 @@ img{max-width:100%}
 .item-card .val{position:absolute; top:4px; left:5px; font-size:9.5px; font-weight:800}
 .trade-legend{margin:0; font-size:11px; color:var(--ink-dim); text-align:center}
 .swap-row{display:flex; align-items:center; gap:10px; font-size:26px}
+.swap-toys{display:flex; gap:6px; flex-wrap:wrap}
+.swap-toys .toy-art{width:46px; height:46px}
 .swap-row .k{font-size:12px; font-weight:800; color:var(--ink-dim); text-transform:uppercase; width:70px; text-align:right}
 .swap-anim{animation:popPulse .6s ease 3}
 
@@ -783,6 +792,411 @@ function rollItem(odds){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 
+/* ============================= TOY ART ============================= */
+// Every toy is drawn as SVG in code (no image files).
+// Pop-its are built from a shape outline filled with rainbow rows of domed
+// bubbles, each bubble its own element so it can be popped in fidget mode.
+const TOY_RAINBOW = ["#ff4d6d","#ff9f1c","#ffd23f","#3ddc84","#2fb8ff","#7b5cff","#d35cff"];
+let toyUid = 0;
+function toyId(p){ return p + (++toyUid); }
+
+// --- shapes as polygons in a 100x100 box ---
+function shapePoly(kind){
+  const pts = [];
+  if(kind==="heart"){
+    for(let i=0;i<120;i++){ const t=i/120*Math.PI*2;
+      const x=16*Math.pow(Math.sin(t),3), y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+      pts.push([50+x*2.85, 47-y*2.85]); }
+  } else if(kind==="circle"){
+    for(let i=0;i<90;i++){ const t=i/90*Math.PI*2; pts.push([50+46*Math.cos(t), 50+46*Math.sin(t)]); }
+  } else if(kind==="star"){
+    for(let i=0;i<10;i++){ const t=-Math.PI/2+i*Math.PI/5, r=i%2?22:48; pts.push([50+r*Math.cos(t), 54+r*Math.sin(t)]); }
+  } else if(kind==="pill"){ // Simple Dimple keychain
+    const r=17; for(let i=0;i<=40;i++){ const t=Math.PI/2+i/40*Math.PI; pts.push([20+r*Math.cos(t), 50+r*Math.sin(t)]); }
+    for(let i=0;i<=40;i++){ const t=-Math.PI/2+i/40*Math.PI; pts.push([80+r*Math.cos(t), 50+r*Math.sin(t)]); }
+  } else { // rounded square
+    const r=14, a=4, b=96;
+    const corner=(cx,cy,s)=>{ for(let i=0;i<=10;i++){ const t=s+i/10*Math.PI/2; pts.push([cx+r*Math.cos(t), cy+r*Math.sin(t)]); } };
+    corner(b-r,a+r,-Math.PI/2); corner(b-r,b-r,0); corner(a+r,b-r,Math.PI/2); corner(a+r,a+r,Math.PI);
+  }
+  return pts;
+}
+function inPoly(x,y,pts){
+  let inside=false;
+  for(let i=0,j=pts.length-1;i<pts.length;j=i++){
+    const [xi,yi]=pts[i],[xj,yj]=pts[j];
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+function polyPath(pts){ return "M"+pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join("L")+"Z"; }
+function shade(hex, amt){ // amt -1..1
+  const n=parseInt(hex.slice(1),16); let r=n>>16, g=n>>8&255, b=n&255;
+  const f=v=>Math.round(amt<0 ? v*(1+amt) : v+(255-v)*amt);
+  return "#"+[f(r),f(g),f(b)].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+
+// popped: optional Set of bubble indexes shown pushed in.
+function popItSVG(shape, opts){
+  opts = opts||{};
+  const pts = shapePoly(shape), id = toyId("pi");
+  const step = opts.step || 13.2, rad = step*0.4;
+  const colors = opts.colors || TOY_RAINBOW;
+  const xs = pts.map(p=>p[0]), ys = pts.map(p=>p[1]);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  // Center the bubble grid inside the shape so edges get even margins.
+  const nCols = Math.floor((maxX-minX)/step), nRows = Math.floor((maxY-minY)/step);
+  const x0 = minX + ((maxX-minX) - (nCols-1)*step)/2, y0 = minY + ((maxY-minY) - (nRows-1)*step)/2;
+  const fits = (x,y)=> inPoly(x,y,pts) && [0,1,2,3,4,5,6,7].every(k=>{ const t=k*Math.PI/4; return inPoly(x+Math.cos(t)*rad*1.05, y+Math.sin(t)*rad*1.05, pts); });
+  let defs = '<clipPath id="'+id+'c"><path d="'+polyPath(pts)+'"/></clipPath>';
+  colors.forEach((c,i)=>{
+    defs += '<radialGradient id="'+id+'b'+i+'" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="'+shade(c,.65)+'"/><stop offset=".45" stop-color="'+c+'"/><stop offset="1" stop-color="'+shade(c,-.28)+'"/></radialGradient>';
+    defs += '<radialGradient id="'+id+'p'+i+'" cx="50%" cy="58%" r="65%"><stop offset="0" stop-color="'+shade(c,-.38)+'"/><stop offset=".7" stop-color="'+shade(c,-.15)+'"/><stop offset="1" stop-color="'+shade(c,.3)+'"/></radialGradient>';
+  });
+  // Stripes run in rows (rainbow pop-its) or columns (Simple Dimple).
+  const byCol = !!opts.columns;
+  let base = '', bubbles = '', idx = 0;
+  const bands = byCol ? nCols : nRows;
+  for(let b=0;b<bands;b++){
+    const c = colors[b % colors.length];
+    const o = byCol ? x0 : y0;
+    const lo = b===0 ? -10 : o+(b-.5)*step, hi = b===bands-1 ? 110 : o+(b+.5)*step+.3;
+    base += byCol
+      ? '<rect x="'+lo.toFixed(1)+'" y="-10" width="'+(hi-lo).toFixed(1)+'" height="120" fill="'+shade(c,-.05)+'"/>'
+      : '<rect x="-10" y="'+lo.toFixed(1)+'" width="120" height="'+(hi-lo).toFixed(1)+'" fill="'+shade(c,-.05)+'"/>';
+  }
+  for(let r=0;r<nRows;r++){
+    for(let q=0;q<nCols;q++){
+      const x = x0 + q*step, y = y0 + r*step;
+      if(!fits(x,y)) continue;
+      const ci = (byCol ? q : r) % colors.length, c = colors[ci];
+      const popped = opts.popped && opts.popped.has(idx);
+      bubbles += '<circle class="bub" data-i="'+idx+'" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+rad.toFixed(1)+'" fill="url(#'+id+(popped?'p':'b')+ci+')" stroke="'+shade(c,-.35)+'" stroke-width=".7"/>';
+      idx++;
+    }
+  }
+  return '<svg viewBox="-4 -4 108 110" class="toy-svg"><defs>'+defs+'</defs>'
+    +'<path d="'+polyPath(pts)+'" transform="translate(0 3)" fill="rgba(0,0,0,.22)"/>'
+    +'<g clip-path="url(#'+id+'c)">'+base+'</g>'
+    +'<path d="'+polyPath(pts)+'" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="1.6"/>'
+    +'<path d="'+polyPath(pts)+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1" transform="translate(-.6 -.8)"/>'
+    +bubbles+'</svg>';
+}
+
+// Kawaii face shared by the squishies.
+function face(cx, cy, s, opts){
+  opts = opts||{};
+  const e = 7*s, eo = 13*s;
+  const eye = (x)=>'<ellipse cx="'+x+'" cy="'+cy+'" rx="'+(3.6*s)+'" ry="'+(4.4*s)+'" fill="#2b1d2f"/><circle cx="'+(x+1.3*s)+'" cy="'+(cy-1.6*s)+'" r="'+(1.4*s)+'" fill="#fff"/>';
+  return eye(cx-eo)+eye(cx+eo)
+    +'<ellipse cx="'+(cx-eo-4*s)+'" cy="'+(cy+6*s)+'" rx="'+(4.5*s)+'" ry="'+(2.6*s)+'" fill="#ff7aa8" opacity=".55"/>'
+    +'<ellipse cx="'+(cx+eo+4*s)+'" cy="'+(cy+6*s)+'" rx="'+(4.5*s)+'" ry="'+(2.6*s)+'" fill="#ff7aa8" opacity=".55"/>'
+    +'<path d="M'+(cx-4*s)+' '+(cy+4*s)+' Q'+(cx-2*s)+' '+(cy+7.5*s)+' '+cx+' '+(cy+4.5*s)+' Q'+(cx+2*s)+' '+(cy+7.5*s)+' '+(cx+4*s)+' '+(cy+4*s)+'" fill="none" stroke="#2b1d2f" stroke-width="'+(1.6*s)+'" stroke-linecap="round"/>';
+}
+function gloss(cx,cy,rx,ry){ return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="#fff" opacity=".55" transform="rotate(-25 '+cx+' '+cy+')"/>'; }
+
+function mochiPandaSVG(){
+  const id = toyId("mp");
+  return '<svg viewBox="0 0 100 100" class="toy-svg"><defs>'
+    +'<radialGradient id="'+id+'" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#eef0f6"/><stop offset="1" stop-color="#c9cedd"/></radialGradient>'
+    +'<radialGradient id="'+id+'k" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#5a5468"/><stop offset="1" stop-color="#1e1a28"/></radialGradient></defs>'
+    +'<ellipse cx="50" cy="92" rx="34" ry="5" fill="rgba(0,0,0,.18)"/>'
+    +'<circle cx="24" cy="30" r="11" fill="url(#'+id+'k)"/><circle cx="76" cy="30" r="11" fill="url(#'+id+'k)"/>'
+    +'<path d="M50 22 C82 22 92 48 92 64 C92 84 74 92 50 92 C26 92 8 84 8 64 C8 48 18 22 50 22Z" fill="url(#'+id+')"/>'
+    +'<ellipse cx="35" cy="58" rx="9" ry="11" fill="url(#'+id+'k)" transform="rotate(20 35 58)"/>'
+    +'<ellipse cx="65" cy="58" rx="9" ry="11" fill="url(#'+id+'k)" transform="rotate(-20 65 58)"/>'
+    +'<circle cx="36" cy="58" r="3.6" fill="#fff"/><circle cx="37.2" cy="56.6" r="1.4" fill="#1e1a28"/>'
+    +'<circle cx="64" cy="58" r="3.6" fill="#fff"/><circle cx="65.2" cy="56.6" r="1.4" fill="#1e1a28"/>'
+    +'<ellipse cx="50" cy="68" rx="3.6" ry="2.6" fill="#1e1a28"/>'
+    +'<path d="M45 72 Q50 77 55 72" fill="none" stroke="#1e1a28" stroke-width="1.8" stroke-linecap="round"/>'
+    +'<ellipse cx="25" cy="70" rx="5" ry="3" fill="#ff7aa8" opacity=".5"/><ellipse cx="75" cy="70" rx="5" ry="3" fill="#ff7aa8" opacity=".5"/>'
+    +gloss(34,36,10,5)+'</svg>';
+}
+
+function donutSVG(){
+  const id = toyId("dn");
+  const sprinkles = [[30,38,20,"#ffd23f"],[44,28,-40,"#2fb8ff"],[62,30,30,"#3ddc84"],[72,44,-10,"#ffffff"],[70,62,50,"#ffd23f"],[54,72,-30,"#7b5cff"],[34,66,10,"#2fb8ff"],[26,52,70,"#ffffff"],[58,40,80,"#ff4d6d"],[40,48,-60,"#3ddc84"]];
+  return '<svg viewBox="0 0 100 100" class="toy-svg"><defs>'
+    +'<radialGradient id="'+id+'d" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#f7c98b"/><stop offset="1" stop-color="#c9823e"/></radialGradient>'
+    +'<radialGradient id="'+id+'i" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#ffc2dc"/><stop offset=".6" stop-color="#ff7ab2"/><stop offset="1" stop-color="#e2508f"/></radialGradient>'
+    +'<mask id="'+id+'m"><rect width="100" height="100" fill="#fff"/><ellipse cx="50" cy="52" rx="11" ry="9" fill="#000"/></mask></defs>'
+    +'<ellipse cx="50" cy="91" rx="36" ry="5" fill="rgba(0,0,0,.18)"/>'
+    +'<g mask="url(#'+id+'m)">'
+    +'<ellipse cx="50" cy="54" rx="42" ry="36" fill="url(#'+id+'d)"/>'
+    +'<path d="M14 50 C14 26 34 16 50 16 C68 16 86 26 86 50 C86 58 82 60 80 64 C78 70 74 64 72 70 C70 76 64 70 62 74 C58 80 54 72 50 76 C46 80 42 72 38 74 C34 76 32 68 28 70 C24 72 22 64 19 62 C15 60 14 56 14 50Z" fill="url(#'+id+'i)"/>'
+    +sprinkles.map(([x,y,r,c])=>'<rect x="'+(x-4)+'" y="'+(y-1.3)+'" width="8" height="2.6" rx="1.3" fill="'+c+'" transform="rotate('+r+' '+x+' '+y+')"/>').join("")
+    +'</g>'
+    +'<ellipse cx="50" cy="52" rx="11" ry="9" fill="none" stroke="#b56f30" stroke-width="2" opacity=".5"/>'
+    +face(50,40,0.55)
+    +gloss(30,30,9,4)+'</svg>';
+}
+
+function spinnerSVG(gold){
+  const id = toyId("sp");
+  const c1 = gold ? "#fff3b0" : "#bfe6ff", c2 = gold ? "#f5b81c" : "#2f8bff", c3 = gold ? "#a8700a" : "#1b4fae";
+  const lobes = [0,120,240].map(a=>{ const t=(a-90)*Math.PI/180; return [50+27*Math.cos(t), 52+27*Math.sin(t)]; });
+  const arm = lobes.map(([x,y])=>'<line x1="50" y1="52" x2="'+x.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="url(#'+id+')" stroke-width="22" stroke-linecap="round"/>').join("");
+  const bearing = (x,y,r)=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="url(#'+id+'b)" stroke="'+c3+'" stroke-width="1.5"/><circle cx="'+x+'" cy="'+y+'" r="'+(r*.45)+'" fill="#e9edf5" stroke="#8a93a6" stroke-width="1"/>';
+  return '<svg viewBox="0 0 100 100" class="toy-svg"><defs>'
+    +'<linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset=".5" stop-color="'+c2+'"/><stop offset="1" stop-color="'+c3+'"/></linearGradient>'
+    +'<radialGradient id="'+id+'b" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#9aa3b5"/></radialGradient></defs>'
+    +'<ellipse cx="50" cy="92" rx="30" ry="4.5" fill="rgba(0,0,0,.18)"/>'
+    +'<g class="spin">'+arm+lobes.map(([x,y])=>'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="16" fill="url(#'+id+')" stroke="'+c3+'" stroke-width="1.5"/>').join("")
+    +'<circle cx="50" cy="52" r="15" fill="url(#'+id+')" stroke="'+c3+'" stroke-width="1.5"/>'
+    +lobes.map(([x,y])=>bearing(x.toFixed(1),y.toFixed(1),9)).join("")+bearing(50,52,9)
+    +(gold?'<path d="M22 22 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z M80 70 l1.5 3.5 3.5 1.5 -3.5 1.5 -1.5 3.5 -1.5 -3.5 -3.5 -1.5 3.5 -1.5z" fill="#fff" opacity=".9"/>':'')
+    +'</g></svg>';
+}
+
+// ---------- shared bits ----------
+function svgWrap(body, defs){ return '<svg viewBox="0 0 100 100" class="toy-svg">'+(defs?'<defs>'+defs+'</defs>':'')+body+'</svg>'; }
+function shadow(rx){ return '<ellipse cx="50" cy="92" rx="'+(rx||32)+'" ry="4.5" fill="rgba(0,0,0,.18)"/>'; }
+function rg(id, c0, c1, c2, cx, cy){ return '<radialGradient id="'+id+'" cx="'+(cx||"40%")+'" cy="'+(cy||"32%")+'" r="75%"><stop offset="0" stop-color="'+c0+'"/><stop offset=".6" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></radialGradient>'; }
+function lg(id, c0, c1, x2, y2){ return '<linearGradient id="'+id+'" x1="0" y1="0" x2="'+(x2==null?0:x2)+'" y2="'+(y2==null?1:y2)+'"><stop offset="0" stop-color="'+c0+'"/><stop offset="1" stop-color="'+c1+'"/></linearGradient>'; }
+function blush(x,y,s){ s=s||1; return '<ellipse cx="'+x+'" cy="'+y+'" rx="'+(4.5*s)+'" ry="'+(2.6*s)+'" fill="#ff7aa8" opacity=".55"/>'; }
+function sparkle(x,y,s,c){ s=s||1; return '<path d="M'+x+' '+(y-5*s)+' L'+(x+1.4*s)+' '+(y-1.4*s)+' L'+(x+5*s)+' '+y+' L'+(x+1.4*s)+' '+(y+1.4*s)+' L'+x+' '+(y+5*s)+' L'+(x-1.4*s)+' '+(y+1.4*s)+' L'+(x-5*s)+' '+y+' L'+(x-1.4*s)+' '+(y-1.4*s)+'Z" fill="'+(c||"#fff")+'"/>'; }
+
+// ---------- squishies ----------
+function niceCubeSVG(){ const id=toyId("nc");
+  return svgWrap(shadow(30)
+    +'<path d="M24 34 L50 22 L80 32 L54 44Z" fill="url(#'+id+'t)"/>'
+    +'<path d="M80 32 L80 74 Q80 82 72 85 L54 90 L54 44Z" fill="url(#'+id+'r)"/>'
+    +'<path d="M24 34 L54 44 L54 90 L30 82 Q22 79 22 71 L22 40 Q22 35 24 34Z" fill="url(#'+id+'f)"/>'
+    +[[30,50],[44,58],[34,72],[64,52],[72,66],[60,74],[48,30],[60,33]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.2" fill="#fff" opacity=".8"/>').join("")
+    +face(38,62,0.62)+gloss(32,44,6,3),
+    lg(id+"t","#e3fbff","#b6ecff",1,1)+lg(id+"r","#8fd8f5","#5ab8e6")+lg(id+"f","#c6f2ff","#7fcdf0"));
+}
+function dreamDropSVG(){ const id=toyId("dd");
+  return svgWrap(shadow(26)+'<path d="M50 8 C58 26 80 44 80 64 C80 81 66 90 50 90 C34 90 20 81 20 64 C20 44 42 26 50 8Z" fill="url(#'+id+')"/>'
+    +face(50,64,0.7)+gloss(38,46,7,4)+sparkle(64,32,.8),
+    rg(id,"#f0e6ff","#b9a2ff","#7e66e6"));
+}
+function jellySVG(){ const id=toyId("js");
+  return svgWrap('<ellipse cx="50" cy="86" rx="40" ry="8" fill="#e9eef7"/><ellipse cx="50" cy="85" rx="40" ry="6.5" fill="#fff"/>'
+    +'<path d="M24 82 L30 36 Q50 28 70 36 L76 82 Q50 90 24 82Z" fill="url(#'+id+')"/>'
+    +'<path d="M30 36 Q50 28 70 36 L69 44 Q66 52 63 44 Q60 56 56 46 Q52 54 48 46 Q44 56 41 46 Q37 52 34 44 Q32 50 31 44Z" fill="url(#'+id+'c)"/>'
+    +face(50,62,0.6)+gloss(38,52,4,6),
+    lg(id,"#ffe9a8","#f5c04a")+lg(id+"c","#c9762f","#8a4a17"));
+}
+function gummyBearSVG(){ const id=toyId("gb");
+  return svgWrap(shadow(26)
+    +'<g fill="url(#'+id+')" stroke="#c4203a" stroke-opacity=".35" stroke-width="1.2">'
+    +'<circle cx="34" cy="16" r="8"/><circle cx="66" cy="16" r="8"/>'
+    +'<ellipse cx="34" cy="80" rx="10" ry="9"/><ellipse cx="66" cy="80" rx="10" ry="9"/>'
+    +'<ellipse cx="24" cy="54" rx="8" ry="10" transform="rotate(25 24 54)"/><ellipse cx="76" cy="54" rx="8" ry="10" transform="rotate(-25 76 54)"/>'
+    +'<ellipse cx="50" cy="62" rx="24" ry="24"/><circle cx="50" cy="30" r="21"/></g>'
+    +face(50,30,0.6)+gloss(40,20,6,3)+gloss(42,54,5,3),
+    rg(id,"#ffb3c1","#ff4d6d","#c4203a"));
+}
+function cheeseSVG(){ const id=toyId("ch");
+  return svgWrap(shadow(34)
+    +'<path d="M12 46 L80 26 L90 44Z" fill="url(#'+id+'t)"/>'
+    +'<path d="M12 46 L90 44 L90 80 L12 84Z" fill="url(#'+id+'f)"/>'
+    +'<ellipse cx="28" cy="74" rx="5" ry="4" fill="#e6a51c"/><ellipse cx="78" cy="58" rx="6" ry="5" fill="#e6a51c"/><ellipse cx="64" cy="78" rx="3.5" ry="3" fill="#e6a51c"/><ellipse cx="60" cy="36" rx="4" ry="1.8" fill="#f1b934"/>'
+    +face(50,62,0.62)+gloss(30,52,7,2.5),
+    lg(id+"t","#fff3b8","#ffe066",1,1)+lg(id+"f","#ffd84a","#f5b81c"));
+}
+function strawberrySVG(){ const id=toyId("sb");
+  const seeds=[[36,44],[50,40],[64,44],[30,58],[44,56],[58,56],[70,58],[38,72],[52,74],[64,70],[46,86]];
+  return svgWrap(shadow(24)
+    +'<path d="M50 92 C30 84 16 66 18 48 C20 34 34 28 50 32 C66 28 80 34 82 48 C84 66 70 84 50 92Z" fill="url(#'+id+')"/>'
+    +seeds.map(([x,y])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="1.4" ry="2.2" fill="#ffe28a"/>').join("")
+    +'<path d="M50 32 L36 22 L46 26 L42 14 L50 24 L58 14 L54 26 L64 22Z" fill="#3ddc84" stroke="#1fa971" stroke-width="1.2" stroke-linejoin="round"/>'
+    +face(50,58,0.62)+gloss(34,44,6,3),
+    rg(id,"#ff9db0","#ff3b5c","#c7193a"));
+}
+function puttySVG(){ const id=toyId("pt");
+  return svgWrap('<ellipse cx="50" cy="86" rx="40" ry="9" fill="#cfd4e2"/><ellipse cx="50" cy="83" rx="40" ry="9" fill="#eef1f8"/><ellipse cx="50" cy="83" rx="34" ry="6.5" fill="#d9dfec"/>'
+    +'<path d="M18 80 C14 66 26 50 40 46 C46 36 62 36 66 46 C80 48 88 64 82 80 C70 88 30 88 18 80Z" fill="url(#'+id+')"/>'
+    +'<path d="M30 70 C40 58 56 74 68 60" fill="none" stroke="#f0b8ff" stroke-width="3" stroke-linecap="round" opacity=".7"/>'
+    +'<path d="M36 78 C46 70 58 82 72 72" fill="none" stroke="#5b2a9e" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>'
+    +sparkle(30,60,.6)+sparkle(70,68,.5)+sparkle(52,52,.45)+gloss(42,54,7,3),
+    rg(id,"#e5b8ff","#a64dff","#5b2a9e"));
+}
+function fuzzBallSVG(){ const id=toyId("fz");
+  let fuzz='';
+  for(let i=0;i<64;i++){ const t=i/64*Math.PI*2, r1=30, r2=36+((i*7)%4); fuzz+='<line x1="'+(50+r1*Math.cos(t)).toFixed(1)+'" y1="'+(52+r1*Math.sin(t)).toFixed(1)+'" x2="'+(50+r2*Math.cos(t+.04)).toFixed(1)+'" y2="'+(52+r2*Math.sin(t+.04)).toFixed(1)+'"/>'; }
+  return svgWrap(shadow(30)+'<g stroke="#ff8fc8" stroke-width="3" stroke-linecap="round">'+fuzz+'</g>'
+    +'<circle cx="50" cy="52" r="32" fill="url(#'+id+')"/>'+face(50,54,0.75)+gloss(38,38,7,4),
+    rg(id,"#ffe0f1","#ff9fd2","#f067b0"));
+}
+function catSVG(){ const id=toyId("kt");
+  return svgWrap(shadow(32)
+    +'<path d="M18 40 L22 12 L42 28Z" fill="url(#'+id+')"/><path d="M82 40 L78 12 L58 28Z" fill="url(#'+id+')"/>'
+    +'<path d="M23 34 L25 19 L36 28Z" fill="#ffb3c6"/><path d="M77 34 L75 19 L64 28Z" fill="#ffb3c6"/>'
+    +'<path d="M50 24 C80 24 90 46 90 62 C90 82 72 90 50 90 C28 90 10 82 10 62 C10 46 20 24 50 24Z" fill="url(#'+id+')"/>'
+    +'<g stroke="#e07a2f" stroke-width="3" stroke-linecap="round" fill="none"><path d="M42 27 Q43 32 41 36"/><path d="M50 26 L50 34"/><path d="M58 27 Q57 32 59 36"/></g>'
+    +'<g stroke="#8a5a3b" stroke-width="1.3" stroke-linecap="round" opacity=".7"><line x1="14" y1="64" x2="28" y2="66"/><line x1="14" y1="72" x2="28" y2="70"/><line x1="86" y1="64" x2="72" y2="66"/><line x1="86" y1="72" x2="72" y2="70"/></g>'
+    +face(50,62,0.72)+gloss(34,40,7,3.5),
+    rg(id,"#fff1dc","#ffc27a","#f09a3e"));
+}
+function pupSVG(){ const id=toyId("pp");
+  return svgWrap(shadow(32)
+    +'<path d="M22 30 C8 30 6 58 14 66 C20 70 26 60 28 48Z" fill="#a8693a"/><path d="M78 30 C92 30 94 58 86 66 C80 70 74 60 72 48Z" fill="#a8693a"/>'
+    +'<path d="M50 22 C78 22 86 44 86 62 C86 82 70 90 50 90 C30 90 14 82 14 62 C14 44 22 22 50 22Z" fill="url(#'+id+')"/>'
+    +'<ellipse cx="64" cy="44" rx="10" ry="8" fill="#e8b98a"/>'
+    +'<ellipse cx="50" cy="72" rx="13" ry="9" fill="#fff6ea"/>'
+    +'<ellipse cx="50" cy="66" rx="4.5" ry="3.2" fill="#2b1d2f"/>'
+    +'<path d="M46 74 Q50 84 54 74Z" fill="#ff6b8a"/>'
+    +'<ellipse cx="38" cy="56" rx="3.6" ry="4.4" fill="#2b1d2f"/><circle cx="39.3" cy="54.4" r="1.4" fill="#fff"/>'
+    +'<ellipse cx="62" cy="56" rx="3.6" ry="4.4" fill="#2b1d2f"/><circle cx="63.3" cy="54.4" r="1.4" fill="#fff"/>'
+    +blush(28,66)+blush(72,66)+gloss(34,38,7,3.5),
+    rg(id,"#fff3e2","#f3cfa3","#d9a36d"));
+}
+function iceCreamSVG(){ const id=toyId("ic");
+  let grid=''; for(let i=-3;i<=3;i++){ grid+='<line x1="'+(50+i*8-14)+'" y1="50" x2="'+(50+i*8+14)+'" y2="94"/><line x1="'+(50+i*8+14)+'" y1="50" x2="'+(50+i*8-14)+'" y2="94"/>'; }
+  return svgWrap('<clipPath id="'+id+'k"><path d="M30 50 L70 50 L50 94Z"/></clipPath>'
+    +'<path d="M30 50 L70 50 L50 94Z" fill="url(#'+id+'c)"/><g clip-path="url(#'+id+'k)" stroke="#b9772e" stroke-width="1.5" opacity=".6">'+grid+'</g>'
+    +'<path d="M22 50 C18 32 32 16 50 16 C68 16 82 32 78 50 C76 56 72 52 70 58 C68 64 64 56 60 60 C56 66 52 58 48 62 C44 66 40 56 36 60 C32 62 30 54 26 56 C22 56 22 52 22 50Z" fill="url(#'+id+')"/>'
+    +'<circle cx="54" cy="12" r="6" fill="#ff3b5c"/><path d="M54 7 Q58 0 64 2" fill="none" stroke="#3a7d2c" stroke-width="1.5"/><circle cx="52" cy="10" r="1.8" fill="#fff" opacity=".7"/>'
+    +face(50,38,0.62)+gloss(36,28,6,3),
+    rg(id,"#ffe3f0","#ffa6cc","#f07aad")+lg(id+"c","#f8cf8f","#d9963e"));
+}
+function tedSVG(){ const id=toyId("tb");
+  return svgWrap(shadow(32)
+    +'<circle cx="24" cy="28" r="12" fill="url(#'+id+')"/><circle cx="76" cy="28" r="12" fill="url(#'+id+')"/>'
+    +'<circle cx="24" cy="28" r="6" fill="#f7c9a6"/><circle cx="76" cy="28" r="6" fill="#f7c9a6"/>'
+    +'<circle cx="50" cy="58" r="34" fill="url(#'+id+')"/>'
+    +'<ellipse cx="50" cy="70" rx="13" ry="10" fill="#f7dcc2"/><ellipse cx="50" cy="65" rx="5" ry="3.6" fill="#3a2418"/>'
+    +'<path d="M45 72 Q50 77 55 72" fill="none" stroke="#3a2418" stroke-width="1.8" stroke-linecap="round"/>'
+    +'<ellipse cx="37" cy="54" rx="3.6" ry="4.4" fill="#2b1d2f"/><circle cx="38.3" cy="52.4" r="1.4" fill="#fff"/>'
+    +'<ellipse cx="63" cy="54" rx="3.6" ry="4.4" fill="#2b1d2f"/><circle cx="64.3" cy="52.4" r="1.4" fill="#fff"/>'
+    +blush(28,66)+blush(72,66)+gloss(36,38,7,3.5),
+    rg(id,"#e8b98a","#b9774a","#8a5230"));
+}
+function dumplingSVG(){ const id=toyId("dp");
+  return svgWrap(shadow(36)
+    +'<path d="M10 74 C10 44 30 26 50 26 C70 26 90 44 90 74 C76 84 24 84 10 74Z" fill="url(#'+id+')"/>'
+    +'<path d="M30 34 Q34 26 38 34 Q42 24 46 32 Q50 22 54 32 Q58 24 62 34 Q66 26 70 34" fill="none" stroke="#d8cbb4" stroke-width="2.5" stroke-linecap="round"/>'
+    +'<g stroke="#d8cbb4" stroke-width="1.6" fill="none" opacity=".8"><path d="M38 34 Q36 44 34 50"/><path d="M50 30 Q50 40 50 46"/><path d="M62 34 Q64 44 66 50"/></g>'
+    +face(50,62,0.7)+gloss(28,52,7,3),
+    rg(id,"#ffffff","#f8f1e3","#e2d3b8"));
+}
+function butterSVG(){ const id=toyId("bt");
+  return svgWrap(shadow(36)
+    +'<path d="M14 46 L36 30 L88 34 L66 50Z" fill="url(#'+id+'t)"/>'
+    +'<path d="M66 50 L88 34 L88 66 L66 84Z" fill="#f2c73a"/>'
+    +'<path d="M14 46 L66 50 L66 84 L14 78Z" fill="url(#'+id+'f)"/>'
+    +'<path d="M40 48 L66 50 L66 84 L40 81Z" fill="#fff" opacity=".92"/><path d="M40 60 L66 62 L66 70 L40 68Z" fill="#2f7bff" opacity=".85"/>'
+    +'<path d="M66 50 L88 34 L88 66 L66 84Z" fill="#fff" opacity=".18"/>'
+    +face(27,62,0.55)+gloss(30,40,7,2.5),
+    lg(id+"t","#fff7c2","#ffe680",1,1)+lg(id+"f","#ffec8a","#ffd84a"));
+}
+function cakeSVG(){ const id=toyId("ck");
+  return svgWrap(shadow(36)
+    +'<path d="M12 44 L50 26 L88 40 L50 58Z" fill="#ffd6e7"/>'
+    +'<path d="M50 58 L88 40 L88 76 L50 92Z" fill="#f7b98a"/><path d="M50 72 L88 56 L88 61 L50 77Z" fill="#fff4e8"/>'
+    +'<path d="M12 44 L50 58 L50 92 L12 78Z" fill="url(#'+id+')"/><path d="M12 58 L50 72 L50 77 L12 63Z" fill="#fff4e8"/>'
+    +'<path d="M12 44 L50 58 L88 40 L88 46 Q84 52 80 46 Q76 54 72 48 Q66 58 60 52 Q56 62 50 60 Q44 62 40 54 Q34 60 30 52 Q24 56 20 50 Q16 54 12 50Z" fill="#ff8fbc"/>'
+    +'<circle cx="52" cy="34" r="6" fill="#ff3b5c"/><circle cx="50" cy="32" r="1.8" fill="#fff" opacity=".7"/>'
+    +face(31,70,0.55),
+    lg(id,"#ffd3a8","#f5a96a"));
+}
+function niceBergSVG(){ const id=toyId("nb");
+  return svgWrap('<ellipse cx="50" cy="88" rx="44" ry="7" fill="#7fd3ff" opacity=".55"/>'
+    +'<path d="M8 86 L26 40 L38 52 L52 12 L66 44 L76 32 L92 86Z" fill="url(#'+id+')"/>'
+    +'<path d="M43 36 L52 12 L61 34 L56 30 L52 38 L48 30Z" fill="#fff"/><path d="M22 50 L26 40 L32 46 L28 48Z" fill="#fff"/><path d="M72 38 L76 32 L80 42 L76 40Z" fill="#fff"/>'
+    +'<path d="M52 12 L66 44 L76 32 L92 86 L52 86Z" fill="#1e7fd6" opacity=".25"/>'
+    +face(48,66,0.78)+sparkle(30,30,.7)+sparkle(84,54,.55)+gloss(36,56,6,3),
+    lg(id,"#e6f8ff","#6cc6ff"));
+}
+function goldStarPlushSVG(){ const id=toyId("gs");
+  const pts=[]; for(let i=0;i<10;i++){ const t=-Math.PI/2+i*Math.PI/5, r=i%2?22:44; pts.push([50+r*Math.cos(t), 54+r*Math.sin(t)]); }
+  return svgWrap(shadow(30)+'<path d="'+polyPath(pts)+'" fill="url(#'+id+')" stroke="#b77a06" stroke-width="2.5" stroke-linejoin="round"/>'
+    +'<path d="'+polyPath(pts)+'" fill="none" stroke="#fff6c4" stroke-width="1.2" stroke-dasharray="2.5 2.5" stroke-linejoin="round" transform="translate(50 54) scale(.88) translate(-50 -54)"/>'
+    +face(50,58,0.7)+sparkle(16,20,.8)+sparkle(86,22,.6)+sparkle(88,78,.5,"#fff6c4")+gloss(40,42,6,3),
+    rg(id,"#fff7c9","#ffd23f","#e09a00"));
+}
+
+// ---------- fidgets ----------
+function infinityCubeSVG(){ const id=toyId("ifc");
+  // An isometric cube built from 2x2x2 smaller blocks, with hinge seams.
+  const top = ["#9ff0e0","#7be0cf"], left = ["#4fb8ff","#3a9be6"], right = ["#2d7dd2","#2468b5"];
+  const iso = (x,y,z)=>[50 + (x - y)*17.5, 50 + (x + y)*10 - z*20];
+  const quad = (a,b,c,d,fill)=>'<path d="M'+[a,b,c,d].map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join("L")+'Z" fill="'+fill+'" stroke="#123a66" stroke-width="1.4" stroke-linejoin="round"/>';
+  let s='';
+  for(let i=0;i<2;i++) for(let j=0;j<2;j++){
+    s+=quad(iso(i,j,2),iso(i+1,j,2),iso(i+1,j+1,2),iso(i,j+1,2), top[(i+j)%2]);
+    s+=quad(iso(i,2,2-j),iso(i+1,2,2-j),iso(i+1,2,1-j),iso(i,2,1-j), left[(i+j)%2]);
+    s+=quad(iso(2,i,2-j),iso(2,i+1,2-j),iso(2,i+1,1-j),iso(2,i,1-j), right[(i+j)%2]);
+  }
+  return svgWrap(shadow(30)+'<g transform="translate(0 6)">'+s+'</g>'+gloss(44,26,6,2.5));
+}
+function fidgetRingSVG(){ const id=toyId("fr");
+  const beads=[0,60,120,180,240,300].map(a=>{ const t=a*Math.PI/180; return [50+30*Math.cos(t), 50+30*Math.sin(t)]; });
+  const bc=["#ff4d6d","#ffd23f","#3ddc84","#2fb8ff","#7b5cff","#d35cff"];
+  return svgWrap(shadow(30)
+    +'<circle cx="50" cy="50" r="30" fill="none" stroke="url(#'+id+')" stroke-width="13"/>'
+    +'<circle cx="50" cy="50" r="30" fill="none" stroke="#fff" stroke-width="1.5" opacity=".5" stroke-dasharray="3 5"/>'
+    +beads.map(([x,y],i)=>'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="7.5" fill="'+bc[i]+'" stroke="rgba(0,0,0,.25)" stroke-width="1"/><circle cx="'+(x-2).toFixed(1)+'" cy="'+(y-2.4).toFixed(1)+'" r="2.4" fill="#fff" opacity=".75"/>').join(""),
+    lg(id,"#f4f6fb","#9aa3b5",1,1));
+}
+function speksSVG(){ const id=toyId("spk");
+  const cols=["#ff4d6d","#2fb8ff","#ffd23f","#3ddc84","#7b5cff","#ff9f1c"];
+  let balls=''; let k=0;
+  const rows=[[3,30],[4,42],[5,54],[4,66],[3,78]];
+  rows.forEach(([n,y])=>{ for(let i=0;i<n;i++){ const x=50+(i-(n-1)/2)*12.5; const c=cols[(k++)%cols.length];
+    balls+='<circle cx="'+x.toFixed(1)+'" cy="'+y+'" r="6.4" fill="url(#'+id+(k%cols.length)+')"/><circle cx="'+(x-2).toFixed(1)+'" cy="'+(y-2.4)+'" r="1.8" fill="#fff" opacity=".9"/>'; } });
+  return svgWrap(shadow(32)+balls, cols.map((c,i)=>rg(id+((i+1)%cols.length), shade(c,.6), c, shade(c,-.45))).join(""));
+}
+function vortexSVG(){ const id=toyId("vx");
+  let glitter=''; [[42,40],[58,48],[46,62],[56,70],[44,78],[54,34],[60,60]].forEach(([x,y],i)=>{ glitter+='<circle cx="'+x+'" cy="'+y+'" r="'+(i%2?1.3:1.8)+'" fill="'+(i%3?"#fff":"#ffd23f")+'"/>'; });
+  return svgWrap(shadow(20)
+    +'<rect x="38" y="8" width="24" height="10" rx="3" fill="url(#'+id+'c)"/>'
+    +'<path d="M34 22 Q34 16 40 16 L60 16 Q66 16 66 22 L66 84 Q66 92 58 92 L42 92 Q34 92 34 84Z" fill="url(#'+id+')" stroke="#5aa9e6" stroke-width="1.5"/>'
+    +'<path d="M50 26 C66 32 34 40 50 46 C66 52 34 60 50 66 C66 72 38 80 50 86" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity=".85"/>'
+    +'<path d="M50 26 C62 32 38 40 50 46 C62 52 38 60 50 66" fill="none" stroke="#2fb8ff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>'
+    +glitter+'<rect x="37" y="24" width="4" height="56" rx="2" fill="#fff" opacity=".45"/>',
+    lg(id,"#bfeaff","#5fbcf5",1,0)+lg(id+"c","#d35cff","#7b5cff"));
+}
+function marbleMeshSVG(){ const id=toyId("mm");
+  let weave=''; for(let i=0;i<24;i++){ const t=i/24*Math.PI*2; weave+='<line x1="'+(50+22*Math.cos(t)).toFixed(1)+'" y1="'+(52+22*Math.sin(t)).toFixed(1)+'" x2="'+(50+38*Math.cos(t+.35)).toFixed(1)+'" y2="'+(52+38*Math.sin(t+.35)).toFixed(1)+'"/><line x1="'+(50+22*Math.cos(t)).toFixed(1)+'" y1="'+(52+22*Math.sin(t)).toFixed(1)+'" x2="'+(50+38*Math.cos(t-.35)).toFixed(1)+'" y2="'+(52+38*Math.sin(t-.35)).toFixed(1)+'"/>'; }
+  return svgWrap(shadow(32)
+    +'<circle cx="50" cy="52" r="30" fill="none" stroke="url(#'+id+')" stroke-width="16"/>'
+    +'<g stroke="#fff" stroke-width="1.1" opacity=".55">'+weave+'</g>'
+    +'<circle cx="50" cy="52" r="38" fill="none" stroke="#1b4fae" stroke-width="1.2" opacity=".5"/><circle cx="50" cy="52" r="22" fill="none" stroke="#1b4fae" stroke-width="1.2" opacity=".5"/>'
+    +'<circle cx="74" cy="34" r="8" fill="url(#'+id+'m)"/><path d="M69 32 Q74 28 79 34" fill="none" stroke="#fff" stroke-width="1.6" opacity=".8"/>',
+    lg(id,"#ff7ab2","#7b5cff",1,1)+rg(id+"m","#ffffff","#7fe0ff","#1f8fd6"));
+}
+function dodecaSVG(){ const id=toyId("dc");
+  const pts=[]; for(let i=0;i<12;i++){ const t=i/12*Math.PI*2+Math.PI/12; pts.push([50+42*Math.cos(t), 50+42*Math.sin(t)]); }
+  return svgWrap(shadow(32)
+    +'<path d="'+polyPath(pts)+'" transform="translate(0 4)" fill="#3c1f78"/>'
+    +'<path d="'+polyPath(pts)+'" fill="url(#'+id+')" stroke="#3c1f78" stroke-width="2"/>'
+    +'<circle cx="50" cy="50" r="12" fill="#2b1650"/><circle cx="50" cy="50" r="7" fill="url(#'+id+'j)"/>'
+    +'<rect x="22" y="36" width="16" height="9" rx="4.5" fill="#2b1650"/><circle cx="33" cy="40.5" r="3.6" fill="#ffd23f"/>'
+    +[[64,30],[72,40],[64,40]].map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="3.8" fill="'+["#ff4d6d","#3ddc84","#2fb8ff"][i]+'" stroke="#2b1650" stroke-width="1.2"/>').join("")
+    +'<circle cx="34" cy="66" r="8" fill="#2b1650"/><g stroke="#c9b3ff" stroke-width="1.6">'+[0,45,90,135].map(a=>'<line x1="34" y1="66" x2="'+(34+6*Math.cos(a*Math.PI/180)).toFixed(1)+'" y2="'+(66+6*Math.sin(a*Math.PI/180)).toFixed(1)+'"/>').join("")+'</g>'
+    +'<rect x="56" y="60" width="20" height="10" rx="5" fill="#2b1650"/><circle cx="61" cy="65" r="3" fill="#ff9f1c"/><circle cx="71" cy="65" r="3" fill="#ff9f1c" opacity=".5"/>'
+    +gloss(34,24,8,3),
+    lg(id,"#b48cff","#6a35d6",1,1)+rg(id+"j","#ffffff","#ff7ab2","#d3266a"));
+}
+
+// ---------- catalog: item id -> drawing ----------
+const TOY_ART = {
+  needoh_cube: niceCubeSVG, dream_drop: dreamDropSVG, jelly_squish: jellySVG, gummy_bear_sq: gummyBearSVG,
+  donut_sq: donutSVG, cheese_sq: cheeseSVG, pocket_fruit: strawberrySVG, pop_it: ()=>popItSVG("square"),
+  simple_dimple: ()=>popItSVG("pill",{colors:["#2fb8ff","#ffd23f","#ff4d6d"], step:26, columns:true}), sensory_putty: puttySVG,
+  fuzz_ball: fuzzBallSVG, knitten: catSVG, funky_pup: pupSVG, nice_cream: iceCreamSVG, taba_sq: tedSVG, dumpling_sq: dumplingSVG,
+  infinity_cube: infinityCubeSVG, fidget_ring: fidgetRingSVG,
+  mochi_panda: mochiPandaSVG, butter_stick: butterSVG, cake_sq: cakeSVG, speks_magnets: speksSVG, water_vortex: vortexSVG, marble_mesh: marbleMeshSVG,
+  fidget_dodeca: dodecaSVG, nice_berg: niceBergSVG,
+  golden_squish: goldStarPlushSVG, golden_spinner: ()=>spinnerSVG(true),
+};
+
+// Wraps a toy's drawing for the page. Each call draws a fresh SVG with its own
+// gradient ids, so the same toy can appear many times (and inside hidden tabs)
+// without the drawings fighting over ids. Items without art (the scam joke
+// items) fall back to their emoji.
+function toyEl(item, cls){
+  const wrap = document.createElement("div");
+  wrap.className = "toy-art"+(cls?" "+cls:"");
+  const draw = item && TOY_ART[item.id];
+  if(draw) wrap.innerHTML = draw();
+  else { wrap.classList.add("toy-emoji"); wrap.textContent = item ? item.emoji : "❔"; }
+  return wrap;
+}
+
 /* ============================= UTIL ============================= */
 function $(sel,root){ return (root||document).querySelector(sel); }
 function $all(sel,root){ return Array.from((root||document).querySelectorAll(sel)); }
@@ -1014,7 +1428,7 @@ function renderCollection(){
     const count = getInventoryCount(item.id);
     const card = el("div",{class:"item-card"+(count<=0?" locked":"")});
     styleRarity(card, item.rarity);
-    card.appendChild(el("div",{class:"emoji", text: count>0? item.emoji : "❔"}));
+    card.appendChild(toyEl(item, count>0 ? "emoji" : "emoji silhouette"));
     card.appendChild(el("div",{class:"nm", text: count>0? item.name : "???"}));
     card.appendChild(el("div",{class:"rarity-tag", text: RARITY_LABEL[item.rarity]}));
     if(count>0) card.appendChild(el("div",{class:"ct", text:"×"+count}));
@@ -2025,7 +2439,7 @@ function revealScam(item){
   const overlay = el("div",{class:"reveal-overlay"});
   const card = el("div",{class:"reveal-card scam"});
   styleRarity(card, "scam");
-  card.appendChild(el("div",{class:"emoji", text:item.emoji}));
+  card.appendChild(toyEl(item, "emoji"));
   card.appendChild(el("div",{class:"rn", text:item.name}));
   const tag = el("div",{class:"rr rarity-tag", text:"Scam! ⭐0"});
   tag.style.setProperty("--rc", "var(--rarity-scam)");
@@ -2053,7 +2467,7 @@ function revealItem(item){
   const overlay = el("div",{class:"reveal-overlay"});
   const card = el("div",{class:"reveal-card"+(big?" shiny":"")});
   styleRarity(card, item.rarity);
-  card.appendChild(el("div",{class:"emoji", text:item.emoji}));
+  card.appendChild(toyEl(item, "emoji"));
   card.appendChild(el("div",{class:"rn", text:item.name}));
   const tag = el("div",{class:"rr rarity-tag", text:RARITY_LABEL[item.rarity]});
   tag.style.setProperty("--rc", "var(--rarity-"+item.rarity+")");
@@ -2303,7 +2717,7 @@ function buildTradeTable(){
     const remaining = count - myOffer.filter(x=>x===id).length;
     const card = el("div",{class:"item-card pickable"+(remaining<=0?" locked":"")});
     styleRarity(card, item.rarity);
-    card.appendChild(el("div",{class:"emoji", text:item.emoji}));
+    card.appendChild(toyEl(item, "emoji"));
     card.appendChild(el("div",{class:"nm", text:item.name}));
     card.appendChild(el("div",{class:"ct", text:remaining+"/"+count}));
     card.appendChild(el("div",{class:"val", text:"⭐"+itemValue(id)}));
@@ -2337,7 +2751,7 @@ function buildBoardSide(isMe, side, accepted, beingAsked){
     if(id && ITEM_MAP[id]){
       const item = ITEM_MAP[id];
       const slot = el("div",{class:"board-slot filled", title:item.name+" (⭐"+itemValue(id)+")"},[
-        el("span",{class:"e", text:item.emoji}), el("span",{class:"v", text:"⭐"+itemValue(id)})
+        toyEl(item, "e"), el("span",{class:"v", text:"⭐"+itemValue(id)})
       ]);
       styleRarity(slot,item.rarity);
       if(isMe){
@@ -2505,14 +2919,14 @@ function renderTradeEndScreen(t){
   const area = $("#tradeArea");
   area.innerHTML = "";
   const mine = mySideKey(t);
-  const emojis = (items)=> (items||[]).map(id=>ITEM_MAP[id] ? ITEM_MAP[id].emoji : "").join(" ");
+  const emojis = (items)=>{ const row = el("span",{class:"swap-toys"}); (items||[]).forEach(id=>{ if(ITEM_MAP[id]) row.appendChild(toyEl(ITEM_MAP[id])); }); return row; };
   const card = el("div",{class:"card results-card"});
   if(t.status==="completed"){
     const mySide = t[mine], theirSide = t[mine==="sideA"?"sideB":"sideA"];
     card.appendChild(el("div",{class:"big swap-anim", text:"🤝"}));
     card.appendChild(el("h2",{text:"Trade complete!"}));
-    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You got"}), el("span",{class:"got", text:emojis(theirSide.items)})]));
-    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You gave"}), el("span",{class:"gave", text:emojis(mySide.items)})]));
+    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You got"}), emojis(theirSide.items)]));
+    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You gave"}), emojis(mySide.items)]));
   } else if(t.status==="failed"){
     card.appendChild(el("div",{class:"big", text:"😕"}));
     card.appendChild(el("h2",{text:"Trade fell through"}));
