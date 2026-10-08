@@ -389,6 +389,29 @@ img{max-width:100%}
 .words-letters .mathpop-cell.used{visibility:hidden}
 .words-letters .mathpop-cell.hint{box-shadow:0 0 0 6px var(--coin), 0 5px 0 hsl(var(--h) 60% 32%); animation:popPulse .6s ease infinite}
 
+/* fidget mode */
+.fidget-overlay{position:fixed; inset:0; z-index:85; background:rgba(20,14,36,.55); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:16px}
+.fidget-panel{width:min(520px,100%); background:var(--surface); border-radius:28px; padding:16px 18px 22px; box-shadow:0 30px 60px -20px rgba(0,0,0,.5); display:flex; flex-direction:column; align-items:center; gap:6px; animation:revealPop .35s cubic-bezier(.2,1.4,.4,1)}
+.fidget-top{display:flex; justify-content:space-between; width:100%}
+.fidget-name{margin:0; font-size:20px}
+.fidget-stage{width:min(330px,78vw); aspect-ratio:1; display:flex; align-items:center; justify-content:center; perspective:700px; touch-action:none; user-select:none; -webkit-user-select:none}
+.fidget-toy{width:100%; height:100%; cursor:pointer; transition:transform .5s ease}
+.fidget-toy svg{width:100%; height:100%; overflow:visible}
+.fidget-toy .bub{cursor:pointer; transform-box:fill-box; transform-origin:center; transition:transform .12s}
+.fidget-toy .bub.popped{transform:scale(.9)}
+.fidget-toy.flipping{transform:rotateY(180deg) scale(.9)}
+.fidget-toy.squished{transform:scale(1.28,.62) translateY(22%); transition:transform .12s ease-out}
+.fidget-toy.rising{transform:scale(1,1); transition:transform 1.6s cubic-bezier(.2,.9,.3,1.15)}
+.fidget-toy.anim-flip{animation:fFlip .6s ease}
+.fidget-toy.anim-click{animation:fClick .35s ease}
+.fidget-toy.anim-jiggle{animation:fJiggle .5s ease}
+.fidget-toy.anim-swirl{animation:fSwirl .9s ease}
+@keyframes fFlip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg) rotateX(20deg) scale(.9)}100%{transform:rotateY(180deg)}}
+@keyframes fClick{0%,100%{transform:scale(1)}40%{transform:scale(.9) rotate(-6deg)}70%{transform:scale(1.05) rotate(4deg)}}
+@keyframes fJiggle{0%,100%{transform:translate(0)}20%{transform:translate(-5px,2px) rotate(-3deg)}40%{transform:translate(5px,-2px) rotate(3deg)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,-1px)}}
+@keyframes fSwirl{0%{transform:rotate(0)}30%{transform:rotate(-12deg)}60%{transform:rotate(10deg)}100%{transform:rotate(0)}}
+.fidget-status{margin:4px 0 0; font-weight:800; font-size:14px; text-align:center; color:var(--ink-dim); min-height:20px}
+
 .results-card{text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px; padding:28px 16px}
 .results-card .big{font-size:40px}
 .results-card .coins-earned{font-family:var(--font-display); font-size:30px; color:var(--coin)}
@@ -585,7 +608,7 @@ label{font-size:12.5px; font-weight:800; color:var(--ink-dim); text-transform:up
       <div>
         <div class="progress-track"><div class="progress-fill" id="collectProgress" style="width:0%"></div></div>
       </div>
-      <div class="section-title"><h2>Your Collection</h2><span class="hint" id="collectHint">28 items total</span></div>
+      <div class="section-title"><h2>Your Collection</h2><span class="hint" id="collectHint">Tap a toy you own to play with it!</span></div>
       <div class="pillbar" id="collectionFilters"></div>
       <div class="item-grid" id="collectionGrid"></div>
     </section>
@@ -1429,11 +1452,152 @@ function renderCollection(){
     const card = el("div",{class:"item-card"+(count<=0?" locked":"")});
     styleRarity(card, item.rarity);
     card.appendChild(toyEl(item, count>0 ? "emoji" : "emoji silhouette"));
+    if(count>0 && TOY_ART[item.id]){ card.classList.add("pickable"); card.addEventListener("click", ()=>openFidget(item)); }
     card.appendChild(el("div",{class:"nm", text: count>0? item.name : "???"}));
     card.appendChild(el("div",{class:"rarity-tag", text: RARITY_LABEL[item.rarity]}));
     if(count>0) card.appendChild(el("div",{class:"ct", text:"×"+count}));
     grid.appendChild(card);
   });
+}
+
+
+/* ============================= FIDGET MODE =============================
+   Tap a toy you own in the Collection to play with it. Purely for fun: no
+   coins, nothing saved. Each kind of toy has its own interaction. Sounds are
+   synthesized with Web Audio (no audio files), and a light buzz plays where
+   the tablet supports vibration. */
+const FIDGET_KIND = {
+  pop_it:"pop", simple_dimple:"pop",
+  golden_spinner:"spin", fidget_ring:"spin", marble_mesh:"spin",
+  infinity_cube:"flip", fidget_dodeca:"click",
+  speks_magnets:"jiggle", water_vortex:"swirl",
+};
+function fidgetKind(item){ return FIDGET_KIND[item.id] || "squish"; }
+const FIDGET_HINT = {
+  pop:"Pop every bubble! When they're all popped, it flips over.",
+  squish:"Press and hold to squish it… then let go and watch it rise.",
+  spin:"Flick it to spin! Swipe faster for a bigger spin.",
+  flip:"Tap to flip it and fold it around.",
+  click:"Tap it to click, roll and switch!",
+  jiggle:"Tap to jiggle the magnets.",
+  swirl:"Tap to swirl the glitter around.",
+};
+
+let fidgetSoundOn = safeLocalGet("squish_fidget_sound")!=="off";
+let audioCtx = null;
+function sfx(kind){
+  if(!fidgetSoundOn) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    if(kind==="pop"){ o.type="sine"; o.frequency.setValueAtTime(520+Math.random()*180,t); o.frequency.exponentialRampToValueAtTime(140,t+.09); g.gain.setValueAtTime(.5,t); g.gain.exponentialRampToValueAtTime(.001,t+.11); o.start(t); o.stop(t+.12); }
+    else if(kind==="squish"){ o.type="triangle"; o.frequency.setValueAtTime(240,t); o.frequency.exponentialRampToValueAtTime(90,t+.25); g.gain.setValueAtTime(.25,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); o.start(t); o.stop(t+.32); }
+    else if(kind==="flip"){ o.type="square"; o.frequency.setValueAtTime(320,t); o.frequency.exponentialRampToValueAtTime(880,t+.15); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.2); o.start(t); o.stop(t+.21); }
+    else if(kind==="whoosh"){ o.type="sawtooth"; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(60,t+.4); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.45); o.start(t); o.stop(t+.46); }
+    else { o.type="square"; o.frequency.setValueAtTime(1200,t); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.04); o.start(t); o.stop(t+.05); }
+  }catch(e){}
+}
+function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+
+function openFidget(item){
+  const kind = fidgetKind(item);
+  const overlay = el("div",{class:"fidget-overlay"});
+  const panel = el("div",{class:"fidget-panel"});
+  const top = el("div",{class:"fidget-top"});
+  const soundBtn = el("button",{class:"btn ghost small", type:"button", text: fidgetSoundOn ? "🔊 Sound on" : "🔇 Sound off"});
+  soundBtn.addEventListener("click", ()=>{ fidgetSoundOn=!fidgetSoundOn; safeLocalSet("squish_fidget_sound", fidgetSoundOn?"on":"off"); soundBtn.textContent = fidgetSoundOn ? "🔊 Sound on" : "🔇 Sound off"; });
+  let cleanup = ()=>{};
+  top.appendChild(soundBtn);
+  top.appendChild(el("button",{class:"btn ghost small", type:"button", text:"Done ✕", onclick:()=>{ cleanup(); overlay.remove(); }}));
+  panel.appendChild(top);
+  panel.appendChild(el("h2",{class:"fidget-name", text:item.name}));
+  const stage = el("div",{class:"fidget-stage kind-"+kind});
+  const toy = el("div",{class:"fidget-toy"});
+  stage.appendChild(toy);
+  panel.appendChild(stage);
+  const status = el("p",{class:"fidget-status", text:FIDGET_HINT[kind]});
+  panel.appendChild(status);
+  overlay.appendChild(panel);
+  document.body.appendChild(overlay);
+
+  if(kind==="pop") cleanup = setupPopFidget(item, toy, status);
+  else if(kind==="spin") cleanup = setupSpinFidget(item, toy, status);
+  else if(kind==="squish") cleanup = setupSquishFidget(item, toy, status);
+  else cleanup = setupTapFidget(item, toy, kind);
+}
+
+function setupPopFidget(item, toy, status){
+  let side = 1, flips = 0;
+  const draw = ()=>{
+    toy.innerHTML = TOY_ART[item.id]();
+    toy.querySelectorAll(".bub").forEach(b=>{
+      b.addEventListener("pointerdown", (e)=>{
+        e.preventDefault();
+        if(b.classList.contains("popped")) return;
+        b.classList.add("popped");
+        b.setAttribute("fill", b.getAttribute("fill").replace(/b(\d+)\)$/, "p$1)"));
+        sfx("pop"); buzz(12);
+        const left = toy.querySelectorAll(".bub:not(.popped)").length;
+        if(left===0){
+          flips++;
+          status.textContent = "All popped! Flipping it over… 🔄";
+          setTimeout(()=>{ sfx("flip"); toy.classList.add("flipping"); }, 350);
+          setTimeout(()=>{ side = side===1 ? 2 : 1; toy.classList.remove("flipping"); draw(); status.textContent = "Side "+side+"! Flipped "+flips+" time"+(flips===1?"":"s")+". Keep popping!"; }, 950);
+        }
+      });
+    });
+  };
+  draw();
+  return ()=>{};
+}
+
+function setupSquishFidget(item, toy, status){
+  toy.innerHTML = TOY_ART[item.id]();
+  let squeezes = 0;
+  const down = (e)=>{ e.preventDefault(); toy.classList.remove("rising"); toy.classList.add("squished"); sfx("squish"); buzz(25); };
+  const up = ()=>{ if(!toy.classList.contains("squished")) return; toy.classList.remove("squished"); toy.classList.add("rising"); squeezes++; if(squeezes===5) status.textContent = "So squishy! 😌"; };
+  toy.addEventListener("pointerdown", down);
+  window.addEventListener("pointerup", up);
+  window.addEventListener("pointercancel", up);
+  return ()=>{ window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up); };
+}
+
+function setupSpinFidget(item, toy, status){
+  toy.innerHTML = TOY_ART[item.id]();
+  const target = toy.querySelector(".spin") || toy.querySelector("svg");
+  target.style.transformOrigin = target.classList.contains("spin") ? "50px 52px" : "50% 50%";
+  target.style.transformBox = target.classList.contains("spin") ? "view-box" : "fill-box";
+  let angle = 0, vel = 0, raf = null, lastX = null, lastT = 0, best = 0;
+  const tick = ()=>{
+    angle += vel; vel *= 0.985;
+    target.style.transform = "rotate("+angle+"deg)";
+    if(Math.abs(vel) > best){ best = Math.abs(vel); }
+    if(Math.abs(vel) > 0.2) raf = requestAnimationFrame(tick);
+    else { raf = null; if(best>20) status.textContent = "Whoa, what a spin! 🌀"; best = 0; }
+  };
+  const kick = (v)=>{ vel = Math.max(-60, Math.min(60, vel + v)); sfx("whoosh"); buzz(10); if(!raf) raf = requestAnimationFrame(tick); };
+  toy.addEventListener("pointerdown", (e)=>{ e.preventDefault(); lastX = e.clientX; lastT = performance.now(); });
+  toy.addEventListener("pointerup", (e)=>{
+    if(lastX===null) return;
+    const dx = e.clientX - lastX, dt = Math.max(16, performance.now()-lastT);
+    kick(Math.abs(dx) < 6 ? 12 : dx/dt*14);
+    lastX = null;
+  });
+  return ()=>{ if(raf) cancelAnimationFrame(raf); };
+}
+
+function setupTapFidget(item, toy, kind){
+  toy.innerHTML = TOY_ART[item.id]();
+  const anim = {flip:"anim-flip", click:"anim-click", jiggle:"anim-jiggle", swirl:"anim-swirl"}[kind];
+  const sound = {flip:"flip", click:"click", jiggle:"click", swirl:"whoosh"}[kind];
+  toy.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    toy.classList.remove(anim); void toy.offsetWidth; toy.classList.add(anim);
+    sfx(sound); buzz(15);
+  });
+  return ()=>{};
 }
 
 /* ============================= GAMES ============================= */
