@@ -4,8 +4,9 @@ A collect-and-trade game built for kids on tablets: play mini-games to earn Squi
 
 ## How it works
 
-- **Solo progression** — each player earns coins from 7 mini-games (Squish Match, Pop Rush, Squishy Catch, Stretch Zone, Sort Rush, Pattern Pop, and the educational Pop-It Math) and spends them on Mystery Packs across 5 rarity tiers.
+- **Solo progression** — each player earns coins from 8 mini-games (Squish Match, Pop Rush, Squishy Catch, Stretch Zone, Sort Rush, Pattern Pop, and the educational Pop-It Math and Word Builder) and spends them on Mystery Packs across 5 rarity tiers.
 - **Pop-It Math** — an educational game: pop the bubble with the right answer, 10 questions a round, no timer. It has 12 levels, from "adding to 10" through times tables, division and missing numbers to fractions and percents of numbers. Each kid picks a starting point the first time; after that, their level (saved as `skills.math` on their player doc) goes up after a round of 9–10 correct and down after 5 or fewer. Wrong answers show the correct equation. Beginner levels show bubbles to count.
+- **Word Builder** — an educational spelling game: tap letter bubbles in order to spell the word, 8 words a round. It has 6 levels: short words (*cat*), blends (*frog*), long vowels (*snake*), tricky everyday words (*friend*, *because*), grade 3–4 words (*beautiful*) and grade 5–6 words (*necessary*, *rhythm*). Levels 1–3 show a picture; 4–6 give a fill-in-the-blank sentence. A 🔊 button reads the word aloud where the browser supports speech. Wrong letters wiggle and don't count, and after two misses the right letter glows. Leveling works like Pop-It Math (saved as `skills.words`): 7–8 perfect words moves you up, 4 or fewer moves you down.
 - **Collection** — 28 items modeled on real current squishy & fidget toy trends (NeeDoh, Taba squishies, mochi animals, Pop-Its, Infinity Cubes, Speks magnets, and more).
 - **Trading table** — two players join a 4-digit code table on separate devices, build an offer, both ready up, both confirm — then the swap executes live.
 
