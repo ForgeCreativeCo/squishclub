@@ -785,6 +785,22 @@ img{max-width:100%}
 .trade-banner{display:flex; flex-direction:column; gap:8px; padding:12px; text-align:center}
 .trade-banner.alert{box-shadow:0 0 0 3px var(--coin), var(--shadow); animation:popPulse .5s ease}
 .trade-code{font-family:var(--font-display); font-size:15px; color:var(--accent)}
+.trade-banner-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+/* the trading lobby: six tables, two seats each */
+.lobby-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+.lobby-table{display:flex; flex-direction:column; gap:6px; padding:10px; border-radius:var(--radius-sm); background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow)}
+.lobby-table.mine{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft), var(--shadow)}
+.lobby-mat{border-radius:10px; padding:10px 6px; text-align:center; font-family:var(--font-display); font-size:15px; color:#fff; background:repeating-linear-gradient(45deg,#1B2A5C 0 8px,#22336B 8px 16px); border:2px solid #0B1633; position:relative}
+.lobby-mat small{display:block; font-family:var(--font-body); font-size:10.5px; font-weight:800; opacity:.8}
+.lobby-mat::after{content:""; position:absolute; left:8%; right:8%; top:50%; height:2px; background:rgba(255,255,255,.25)}
+.lobby-mat span{position:relative; z-index:1}
+.seat{display:flex; align-items:center; justify-content:center; gap:6px; min-height:44px; border-radius:999px; border:2px dashed var(--line); background:var(--surface-2); color:var(--ink-dim); font-weight:800; font-size:12.5px; padding:6px 8px; cursor:pointer; font-family:inherit; width:100%}
+.seat.free{border-color:var(--mint); color:var(--mint); background:var(--mint-soft)}
+.seat.taken{border-style:solid; color:var(--ink); background:var(--surface-3); cursor:default}
+.seat.me{border-style:solid; border-color:var(--accent); background:var(--accent-soft); color:var(--ink); cursor:pointer}
+.seat .av{font-size:18px}
+.seat .nm{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.seat:disabled{opacity:1}
 .trade-steps{display:flex; justify-content:center; gap:6px; flex-wrap:wrap}
 .trade-step{display:flex; align-items:center; gap:4px; font-size:11px; font-weight:800; color:var(--ink-dim); padding:3px 8px 3px 3px; border-radius:999px; background:var(--surface-2)}
 .trade-step .n{width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--surface-3); font-size:10.5px}
@@ -2188,7 +2204,7 @@ function openFidget(item, opts){
   top.appendChild(soundBtn);
   top.appendChild(el("button",{class:"btn ghost small", type:"button", text:"Done ✕", onclick:()=>{ cleanup(); overlay.remove(); }}));
   panel.appendChild(top);
-  if(tradeCode && tradeData && tradeData.sideB) panel.appendChild(el("div",{class:"fidget-trade-strip", id:"fidgetTradeStrip"}));
+  if(tradeCode && bothSeated(tradeData)) panel.appendChild(el("div",{class:"fidget-trade-strip", id:"fidgetTradeStrip"}));
   panel.appendChild(el("h2",{class:"fidget-name", text:item.name}));
   if(opts.owner) panel.appendChild(el("div",{class:"fidget-owner", text:opts.owner+"'s toy · just looking 👀"}));
   const stage = el("div",{class:"fidget-stage kind-"+kind});
@@ -6014,9 +6030,51 @@ function revealItem(item){
 
 /* ============================= TRADE ============================= */
 let tradeCode = null, tradeUnsub = null, tradeData = null;
-let myOffer = []; // local working offer before it's written, mirrors sideX.items once joined
+let myOffer = []; // local working offer before it's written, mirrors sideX.items once seated
 
 function tradeStorageKey(){ return "squishtrade_code"; }
+
+/* ---- The trading lobby ----
+   Six permanent tables (trades/lobby-1 … lobby-6), two seats each (sideA and
+   sideB). A kid taps an empty seat to sit down and the mat opens. Once both
+   seats are taken the kids trade as many times as they like; the table stays
+   open until one of them leaves. A seat is kept alive by a heartbeat
+   (seenAt), so a tablet that is closed or loses power gives its seat back. */
+const LOBBY_TABLES = 6, SEAT_STALE_MS = 75000, HEARTBEAT_MS = 20000;
+const lobbyPath = n => "trades/lobby-"+n;
+const lobbyNum = code => Number(String(code||"").replace("lobby-",""));
+let lobbyData = {}, lobbyUnsubs = [], lobbyTimer = null, seatBusy = false;
+let heartbeatTimer = null, heartbeatBusy = false, lastResultSeen = null, resultPrimed = false, verifyingSeat = false;
+
+function seatLive(s){ return !!(s && s.playerId && (Date.now() - (s.seenAt||0)) < SEAT_STALE_MS); }
+function bothSeated(t){ return !!(t && t.sideA && t.sideB); }
+// The kid who puts down the ante. It swaps every trade, so the kids take turns going first.
+function starterKey(t){ return (t.round||0)%2===0 ? "sideA" : "sideB"; }
+function newLobbyDoc(n){ return {kind:"lobby", code:String(n), table:n, status:"open", sideA:null, sideB:null, addMoreTo:null, addMoreValue:null, round:0, lastResult:null, createdAt:Date.now()}; }
+function mySeatData(){ return { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null, bpColor: myBackpack().color||"pink", keychain: myBackpack().keychain||null, seenAt: Date.now() }; }
+// Clears the mat (new round) and applies extra changes, e.g. emptying a seat.
+function matResetPatch(t, extra){
+  const p = { addMoreTo:null, addMoreValue:null, round:(t.round||0)+1 };
+  ["sideA","sideB"].forEach(k=>{ if(t[k]) p[k] = {items:[], accepted:null}; });
+  return Object.assign(p, extra||{});
+}
+function presenceless(t){
+  const c = JSON.parse(JSON.stringify(t));
+  ["sideA","sideB"].forEach(k=>{ if(c[k]) delete c[k].seenAt; });
+  return JSON.stringify(c);
+}
+
+function startLobby(){
+  if(lobbyUnsubs.length) return;
+  for(let n=1;n<=LOBBY_TABLES;n++){
+    lobbyUnsubs.push(db.doc(lobbyPath(n)).onSnapshot((snap)=>{
+      lobbyData[n] = snap.exists ? snap.data() : null;
+      if(currentTab==="trade" && !tradeCode) renderTrade();
+    }, ()=>{}));
+  }
+  // seats go stale with the clock, not just with writes
+  lobbyTimer = setInterval(()=>{ if(currentTab==="trade" && !tradeCode) renderTrade(); }, 15000);
+}
 
 function renderTrade(){
   const area = $("#tradeArea");
@@ -6035,9 +6093,6 @@ function renderTrade(){
     area.appendChild(el("div",{class:"card", style:"text-align:center;color:var(--ink-dim)", text:"Opening table…"}));
     return;
   }
-  // A finished trade keeps showing its result, even when the swap itself
-  // updates the inventory and triggers a re-render.
-  if(tradeData.status!=="open"){ closeTradeDrawer(); renderTradeEndScreen(tradeData); updateFidgetStrip(); return; }
   area.appendChild(buildTradeTable());
   renderTradeDrawer();
   updateFidgetStrip();
@@ -6053,96 +6108,164 @@ function emptyState(ic,title,body){
 
 function buildTradeLobby(){
   const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
-  const createCard = el("div",{class:"card", style:"display:flex;flex-direction:column;gap:10px"});
-  createCard.appendChild(el("h3",{text:"Start a new table"}));
-  createCard.appendChild(el("p",{style:"margin:0;font-size:13px;color:var(--ink-dim)", text:"Create a table, then tell your trade buddy the code to join."}));
-  createCard.appendChild(el("button",{class:"btn block", text:"Create Trading Table", onclick:createTable}));
-  wrap.appendChild(createCard);
-
-  const joinCard = el("div",{class:"card", style:"display:flex;flex-direction:column;gap:10px"});
-  joinCard.appendChild(el("h3",{text:"Join a table"}));
-  const input = el("input",{type:"tel", id:"joinCodeInput", placeholder:"4-digit code", maxlength:"4", inputmode:"numeric"});
-  joinCard.appendChild(input);
-  const joinBtn = el("button",{class:"btn secondary block", text:"Join Trading Table"});
-  joinBtn.addEventListener("click", ()=>joinTable(input.value.trim()));
-  joinCard.appendChild(joinBtn);
-  const msg = el("p",{id:"joinMsg", style:"margin:0;font-size:12.5px;color:var(--danger);min-height:16px"});
-  joinCard.appendChild(msg);
-  wrap.appendChild(joinCard);
+  wrap.appendChild(el("div",{},[
+    el("h2",{text:"Trading Lobby", style:"margin:0 0 2px"}),
+    el("p",{style:"margin:0;font-size:13px;color:var(--ink-dim)", text:"Pick a table and tap an empty seat to sit down. When two kids are seated, you can trade as many times as you like until one of you leaves."})
+  ]));
+  const grid = el("div",{class:"lobby-grid"});
+  for(let n=1;n<=LOBBY_TABLES;n++){
+    const t = lobbyData[n];
+    const seatOf = k => (t && seatLive(t[k])) ? t[k] : null;
+    const a = seatOf("sideA"), b = seatOf("sideB");
+    const mineHere = (a && a.playerId===PLAYER_ID) || (b && b.playerId===PLAYER_ID);
+    const count = (a?1:0)+(b?1:0);
+    const card = el("div",{class:"lobby-table"+(mineHere?" mine":"")});
+    card.appendChild(buildSeatButton(n, "sideA", a));
+    card.appendChild(el("div",{class:"lobby-mat"},[el("span",{text:"Table "+n}), el("small",{text: count===2 ? "Trading 🤝" : count===1 ? "1 waiting" : "Empty"})]));
+    card.appendChild(buildSeatButton(n, "sideB", b));
+    grid.appendChild(card);
+  }
+  wrap.appendChild(grid);
   return wrap;
 }
 
-function randomCode(){ return String(Math.floor(1000+Math.random()*9000)); }
-
-async function createTable(){
-  let code, attempts=0, exists=true;
-  do{
-    code = randomCode();
-    const snap = await db.doc("trades/"+code).get();
-    exists = snap.exists && snap.data().status==="open";
-    attempts++;
-  } while(exists && attempts<6);
-
-  const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null, bpColor: myBackpack().color||"pink", keychain: myBackpack().keychain||null };
-  try{
-    await db.doc("trades/"+code).set({ code, status:"open", sideA: sideData, sideB: null, addMoreTo: null, addMoreValue: null, createdAt: Date.now() });
-    openTradeSession(code);
-  }catch(e){
-    showToast("Couldn't create a table. Try again.");
+function buildSeatButton(n, key, seat){
+  const isMe = seat && seat.playerId===PLAYER_ID;
+  const b = el("button",{class:"seat "+(seat ? (isMe?"me":"taken") : "free"), type:"button"});
+  if(!seat){
+    b.appendChild(el("span",{class:"av", text:"🪑"})); b.appendChild(el("span",{class:"nm", text:"Sit here"}));
+    b.addEventListener("click", ()=>sitDown(n, key));
+  } else {
+    b.appendChild(el("span",{class:"av", text:seat.avatar||"🙂"}));
+    b.appendChild(el("span",{class:"nm", text: isMe ? "You (tap to go back)" : (seat.name||"Trader")}));
+    if(isMe) b.addEventListener("click", ()=>openTradeSession("lobby-"+n));
+    else b.disabled = true;
   }
+  return b;
 }
 
-async function joinTable(code){
-  const msg = $("#joinMsg");
-  if(!/^\d{4}$/.test(code)){ msg.textContent = "Enter the 4-digit code."; return; }
+// Take a seat. Done inside a transaction so two kids tapping the same seat
+// at the same moment can't both get it.
+async function sitDown(n, key){
+  if(seatBusy) return; seatBusy = true;
   try{
-    const snap = await db.doc("trades/"+code).get();
-    if(!snap.exists || snap.data().status!=="open"){ msg.textContent = "No open table with that code."; return; }
+    // one seat at a time: give up any other seat of mine first
+    for(const m in lobbyData){
+      const lt = lobbyData[m]; if(!lt) continue;
+      for(const k of ["sideA","sideB"]){
+        if(lt[k] && lt[k].playerId===PLAYER_ID && !(Number(m)===n && k===key)) await leaveSeat(Number(m), k);
+      }
+    }
+    const path = lobbyPath(n);
+    let taken = false;
+    await db.runTransaction(async (tx)=>{
+      taken = false;
+      const snap = await tx.get(path);
+      const t = snap.exists ? snap.data() : null;
+      const cur = t && t[key];
+      if(cur && cur.playerId!==PLAYER_ID && seatLive(cur)){ taken = true; return; }
+      if(!t){ const doc = newLobbyDoc(n); doc[key] = mySeatData(); doc.round = 1; tx.set(path, doc); return; }
+      if(cur && cur.playerId===PLAYER_ID){ tx.update(path, {[key]:{seenAt:Date.now()}}); return; }
+      tx.update(path, matResetPatch(t, {[key]: mySeatData()}));
+    });
+    if(taken){ showToast("Someone just sat there. Pick another seat!"); }
+    else{ sfx("boop"); openTradeSession("lobby-"+n); }
+  }catch(e){
+    console.warn("sit down failed", e);
+    showToast("Couldn't sit down. Try again.");
+  }
+  seatBusy = false;
+}
+
+// Give up a seat (and clear the mat, since the trade can't carry on without both).
+async function leaveSeat(n, key){
+  await db.runTransaction(async (tx)=>{
+    const snap = await tx.get(lobbyPath(n));
+    if(!snap.exists) return;
     const t = snap.data();
-    if(t.sideA && t.sideA.playerId===PLAYER_ID){ openTradeSession(code); return; }
-    if(t.sideB && t.sideB.playerId===PLAYER_ID){ openTradeSession(code); return; }
-    if(t.sideB){ msg.textContent = "That table already has two traders."; return; }
-    const sideData = { playerId: PLAYER_ID, name: player.name, avatar: player.avatar, items: [], accepted:null, bpColor: myBackpack().color||"pink", keychain: myBackpack().keychain||null };
-    await db.doc("trades/"+code).update({ sideB: sideData });
-    openTradeSession(code);
-  }catch(e){
-    msg.textContent = "Couldn't join. Try again.";
-  }
+    if(!t[key] || t[key].playerId!==PLAYER_ID) return;
+    tx.update(lobbyPath(n), matResetPatch(t, {[key]: null}));
+  });
 }
+async function leaveTable(){
+  const t = tradeData, mine = t && mySideKey(t), n = lobbyNum(tradeCode);
+  closeTradeSession();
+  if(mine){ try{ await leaveSeat(n, mine); }catch(e){ console.warn("leave failed", e); } }
+}
+
+// Heartbeat: keeps my seat alive, and gives up my buddy's seat if their tablet went quiet.
+async function heartbeat(){
+  if(!tradeCode || heartbeatBusy) return;
+  heartbeatBusy = true;
+  const path = "trades/"+tradeCode;
+  try{
+    await db.runTransaction(async (tx)=>{
+      const snap = await tx.get(path);
+      if(!snap.exists) return;
+      const t = snap.data(), mine = mySideKey(t);
+      if(!mine) return;
+      const other = mine==="sideA" ? "sideB" : "sideA";
+      const stale = !!t[other] && !seatLive(t[other]);
+      const patch = stale ? matResetPatch(t, {[other]: null}) : {};
+      patch[mine] = Object.assign({seenAt: Date.now()}, stale ? {items:[], accepted:null} : {});
+      tx.update(path, patch);
+    });
+  }catch(e){ console.warn("heartbeat failed", e); }
+  heartbeatBusy = false;
+}
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) heartbeat(); });
 
 function openTradeSession(code){
   tradeCode = code;
   boardSeen = {sideA:0, sideB:0};
+  resultPrimed = false; lastResultSeen = null;
   safeLocalSet(tradeStorageKey(), code);
   subscribeTrade(code);
+  clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(heartbeat, HEARTBEAT_MS);
+  heartbeat();
+  if(currentTab==="trade") renderTrade();
 }
 function closeTradeSession(){
   if(tradeUnsub) tradeUnsub();
   tradeUnsub = null;
+  clearInterval(heartbeatTimer); heartbeatTimer = null;
   tradeCode = null; tradeData = null; myOffer = [];
   closeTradeDrawer();
+  const r = $("#tradeResult"); if(r) r.remove();
   safeLocalRemove(tradeStorageKey());
   renderTrade();
+}
+// A snapshot without my seat might just be an old cached copy, so check the server before leaving.
+async function verifySeat(code){
+  if(verifyingSeat) return; verifyingSeat = true;
+  try{
+    const snap = await db.doc("trades/"+code).get();
+    const t = snap.exists ? snap.data() : null;
+    if(code===tradeCode && !(t && mySideKey(t))){ closeTradeSession(); showToast("You're no longer seated at that table."); }
+  }catch(e){}
+  verifyingSeat = false;
 }
 
 function subscribeTrade(code){
   if(tradeUnsub) tradeUnsub();
   tradeData = null;
   tradeUnsub = db.doc("trades/"+code).onSnapshot((snap)=>{
-    if(!snap.exists){ tradeData = null; closeTradeSession(); return; }
-    const t = snap.data();
+    const t = snap.exists ? snap.data() : null;
+    if(!t || !mySideKey(t)){ verifySeat(code); return; }
     const prev = tradeData;
     tradeData = t;
     reactToTradeChange(prev, t);
-    if(t.status!=="open"){
-      closeTradeDrawer(); updateFidgetStrip();
-      renderTradeEndScreen(t);
-      return;
-    }
+    // The result of a finished trade (or a decline) pops up once for each kid.
+    const lr = t.lastResult;
+    if(!resultPrimed){ resultPrimed = true; lastResultSeen = lr ? lr.id : 0; }
+    else if(lr && lr.id!==lastResultSeen){ lastResultSeen = lr.id; showTradeResult(lr, t); }
     const mySide = mySideKey(t);
-    if(mySide) myOffer = (t[mySide].items||[]).slice();
-    if(currentTab==="trade") renderTrade();
+    myOffer = (t[mySide].items||[]).slice();
     maybeExecuteTrade(t, code);
+    // heartbeats rewrite the doc every few seconds; don't redraw the mat for those
+    if(prev && presenceless(prev)===presenceless(t)) return;
+    if(currentTab==="trade") renderTrade();
   }, (err)=>{
     console.warn("trade snapshot error", err);
   });
@@ -6177,9 +6300,10 @@ function hasAccepted(t, sideKey){ return !!(t[sideKey] && t[sideKey].accepted &&
 
 // Which step of the trade the table is on.
 function tradePhase(t){
-  if(!t.sideB) return "waiting";
-  if(!(t.sideA.items||[]).length) return "ante";
-  if(!(t.sideB.items||[]).length) return "counter";
+  if(!bothSeated(t)) return "waiting";
+  const first = starterKey(t), second = first==="sideA" ? "sideB" : "sideA";
+  if(!(t[first].items||[]).length) return "ante";
+  if(!(t[second].items||[]).length) return "counter";
   return "negotiate";
 }
 
@@ -6188,11 +6312,8 @@ function tradePhase(t){
 function tradeMessage(t){
   const mine = mySideKey(t), theirs = otherSideKey(t);
   const theirName = (t[theirs] && t[theirs].name) || "Your buddy";
-  if(t.status==="completed") return {step:4, msg:"Trade complete! 🎉"};
-  if(t.status==="declined") return {step:4, msg:(t.declinedBy||"Someone")+" declined the trade."};
-  if(t.status!=="open") return {step:4, msg:"The table closed."};
-  if(!t.sideB) return {step:1, msg:"Waiting for your buddy to join…"};
-  const phase = tradePhase(t), iStarted = mine==="sideA";
+  if(!bothSeated(t)) return {step:1, msg:"Waiting for a buddy to sit down…"};
+  const phase = tradePhase(t), iStarted = mine===starterKey(t);
   const myAccepted = hasAccepted(t, mine), theirAccepted = hasAccepted(t, theirs);
   const askedMe = t.addMoreTo===mine, iAsked = t.addMoreTo===theirs;
   if(phase==="ante") return {step:1, msg: iStarted ? "Your ante! Put an item on your side of the board." : "Waiting for "+theirName+" to put down their ante…"};
@@ -6209,12 +6330,12 @@ function buildTradeTable(){
   const t = tradeData;
   const wrap = el("div",{style:"display:flex;flex-direction:column;gap:14px"});
 
-  if(!t.sideB){
-    wrap.appendChild(el("div",{class:"card", style:"text-align:center"},[
-      el("p",{style:"margin:0 0 6px;color:var(--ink-dim);font-size:13px", text:"Share this code with your trade buddy:"}),
-      el("div",{class:"code-display", text:t.code}),
-      el("p",{style:"margin:6px 0;color:var(--ink-dim);font-size:12.5px", text:"You'll put down the first item (the ante) once they join."}),
-      el("button",{class:"btn ghost small", text:"Cancel table", onclick:cancelTable})
+  if(!bothSeated(t)){
+    wrap.appendChild(el("div",{class:"card", style:"text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center"},[
+      el("div",{style:"font-size:42px", text:"🪑"}),
+      el("h3",{text:"Table "+t.code}),
+      el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"You're seated. Waiting for a trade buddy to sit down at the other seat…"}),
+      el("button",{class:"btn secondary small", type:"button", text:"🚪 Leave table", onclick:leaveTable})
     ]));
     return wrap;
   }
@@ -6222,7 +6343,7 @@ function buildTradeTable(){
   const mine = mySideKey(t), theirs = otherSideKey(t);
   const me = t[mine], them = t[theirs];
   const phase = tradePhase(t);
-  const iStarted = mine==="sideA";
+  const iStarted = mine===starterKey(t);
   const theirName = them.name||"Your buddy";
   const myAccepted = hasAccepted(t, mine), theirAccepted = hasAccepted(t, theirs);
   const addMore = t.addMoreTo ? { to: t.addMoreTo, value: t.addMoreValue||0 } : null;
@@ -6239,7 +6360,10 @@ function buildTradeTable(){
     ]));
   });
   const banner = el("div",{class:"card trade-banner"+(askedMe?" alert":"")},[
-    el("div",{class:"trade-code", text:"Table "+t.code}), steps, el("p",{class:"trade-msg", text:msg})
+    el("div",{class:"trade-banner-top"},[
+      el("div",{class:"trade-code", text:"Table "+t.code}),
+      el("button",{class:"btn ghost small", type:"button", text:"🚪 Leave table", onclick:leaveTable})
+    ]), steps, el("p",{class:"trade-msg", text:msg})
   ]);
   wrap.appendChild(banner);
 
@@ -6343,7 +6467,7 @@ function buildMatButtons(isMe, phase, accepted, askedMore, interactive){
   const row = el("div",{class:"mat-row "+(isMe?"mine":"theirs")});
   const ready = phase==="negotiate";
   const defs = [
-    {kind:"decline", label:"Decline", enabled:true, onclick:declineTrade, lit:false},
+    {kind:"decline", label:"Decline", enabled: (((tradeData.sideA||{}).items||[]).length + ((tradeData.sideB||{}).items||[]).length)>0, onclick:declineTrade, lit:false},
     {kind:"more", label: askedMore && isMe ? "Asked" : "Add More", enabled: ready && !askedMore, onclick:requestAddMore, lit:askedMore},
     {kind:"accept", label: accepted ? "Accepted" : "Accept", enabled: ready, onclick:toggleAccept, lit:accepted},
   ];
@@ -6384,7 +6508,7 @@ function closeTradeDrawer(){ tradeDrawerOpen = false; drawerPick = null; const d
 function renderTradeDrawer(){
   let d = $("#tradeDrawer");
   const t = tradeData;
-  if(!tradeDrawerOpen || !t || t.status!=="open" || !t.sideB){ if(d) d.remove(); if(!t || t.status!=="open") tradeDrawerOpen = false; return; }
+  if(!tradeDrawerOpen || !bothSeated(t)){ if(d) d.remove(); if(!bothSeated(t)) tradeDrawerOpen = false; return; }
   const fresh = !d;
   if(!d){ d = el("div",{id:"tradeDrawer", class:"trade-drawer"}); document.body.appendChild(d); }
   const oldBody = d.querySelector(".drawer-body");
@@ -6393,7 +6517,7 @@ function renderTradeDrawer(){
   if(!fresh) d.classList.add("settled");
   const mine = mySideKey(t), theirs = otherSideKey(t);
   const theirName = t[theirs].name||"your buddy";
-  const canPlace = !(tradePhase(t)==="ante" && mine!=="sideA");
+  const canPlace = !(tradePhase(t)==="ante" && mine!==starterKey(t));
   const counts = {}; myOffer.forEach(id=>counts[id]=(counts[id]||0)+1);
   const remaining = (item)=> getInventoryCount(item.id) - (counts[item.id]||0);
   const bp = myBackpack();
@@ -6439,15 +6563,13 @@ function renderTradeDrawer(){
 /* ---- trading flourishes: reaction bubbles, sounds, bounce-in toys ---- */
 let boardSeen = {sideA:0, sideB:0}; // items already shown, so only new ones bounce in
 function reactToTradeChange(prev, t){
-  if(!prev || !t || !t.sideB || !prev.sideB) return;
+  if(!prev || !t) return;
   const mine = mySideKey(t), theirs = otherSideKey(t);
   if(!mine) return;
+  if(prev[theirs] && !t[theirs]){ showToast((prev[theirs].name||"Your buddy")+" left the table."); sfx("sad"); }
+  else if(!prev[theirs] && t[theirs]){ showToast((t[theirs].name||"Someone")+" sat down. Let's trade!"); sfx("ding"); buzz(30); }
+  if(!bothSeated(prev) || !bothSeated(t)) return;
   const them = t[theirs], theirName = them.name||"Your buddy";
-  if(t.status!=="open" && prev.status==="open"){
-    if(t.status==="completed") sfx("fanfare");
-    else if(t.status==="declined") sfx("sad");
-    return;
-  }
   const before = (prev[theirs].items||[]).length, after = (them.items||[]).length;
   if(after > before) sfx("slap");
   if(t.addMoreTo===mine && prev.addMoreTo!==mine){ showReaction("😆", "ADD MORE!", theirName); sfx("boop"); buzz(30); }
@@ -6492,19 +6614,15 @@ async function toggleAccept(){
 }
 async function declineTrade(){
   const t = tradeData, mine = mySideKey(t);
-  try{ if(t && t.status==="open") await db.doc("trades/"+tradeCode).update({ status:"declined", declinedBy: t[mine].name||"A trader" }); }
-  catch(e){ showToast("Couldn't decline. Try again."); }
-}
-async function cancelTable(){
-  try{ if(tradeData && tradeData.status==="open") await db.doc("trades/"+tradeCode).update({ status:"cancelled" }); }
-  catch(e){}
-  closeTradeSession();
+  if(!t || !bothSeated(t)) return;
+  try{
+    await db.doc("trades/"+tradeCode).update(matResetPatch(t, {lastResult:{id:(t.round||0)+1, type:"declined", by:t[mine].name||"A trader", swap:null}}));
+  }catch(e){ showToast("Couldn't decline. Try again."); }
 }
 
 let executingTrade = false;
 async function maybeExecuteTrade(t, code){
-  if(!t.sideA || !t.sideB) return;
-  if(t.status!=="open") return;
+  if(!bothSeated(t)) return;
   if(!(hasAccepted(t,"sideA") && hasAccepted(t,"sideB"))) return;
   if(executingTrade) return;
   executingTrade = true;
@@ -6518,15 +6636,13 @@ async function maybeExecuteTrade(t, code){
       const fresh = await tx.get("trades/"+code);
       if(!fresh.exists) return;
       const ft = fresh.data();
-      if(ft.status!=="open" || !(hasAccepted(ft,"sideA") && hasAccepted(ft,"sideB"))) return;
+      if(!bothSeated(ft) || !(hasAccepted(ft,"sideA") && hasAccepted(ft,"sideB"))) return;
       if(!(ft.sideA.items||[]).length || !(ft.sideB.items||[]).length) return;
 
       const sA = await tx.get("players/"+ft.sideA.playerId);
       const sB = await tx.get("players/"+ft.sideB.playerId);
-      if(!sA.exists || !sB.exists){
-        tx.update("trades/"+code, { status:"failed" });
-        return;
-      }
+      const fell = ()=>tx.update("trades/"+code, matResetPatch(ft, {lastResult:{id:(ft.round||0)+1, type:"failed", by:null, swap:null}}));
+      if(!sA.exists || !sB.exists){ fell(); return; }
       const invA = Object.assign({}, sA.data().inventory||{});
       const invB = Object.assign({}, sB.data().inventory||{});
       const countOf = (arr)=>{ const m={}; (arr||[]).forEach(id=>m[id]=(m[id]||0)+1); return m; };
@@ -6535,16 +6651,18 @@ async function maybeExecuteTrade(t, code){
       let ok = true;
       for(const id in offerA){ if((invA[id]||0) < offerA[id]) ok=false; }
       for(const id in offerB){ if((invB[id]||0) < offerB[id]) ok=false; }
-      if(!ok){
-        tx.update("trades/"+code, { status:"failed" });
-        return;
-      }
+      if(!ok){ fell(); return; }
       for(const id in offerA){ invA[id]=(invA[id]||0)-offerA[id]; invB[id]=(invB[id]||0)+offerA[id]; }
       for(const id in offerB){ invB[id]=(invB[id]||0)-offerB[id]; invA[id]=(invA[id]||0)+offerB[id]; }
 
       tx.update("players/"+ft.sideA.playerId, { inventory: invA });
       tx.update("players/"+ft.sideB.playerId, { inventory: invB });
-      tx.update("trades/"+code, { status:"completed", completedAt: Date.now() });
+      const swap = {
+        sideA:{playerId:ft.sideA.playerId, name:ft.sideA.name||"", items:(ft.sideA.items||[]).slice()},
+        sideB:{playerId:ft.sideB.playerId, name:ft.sideB.name||"", items:(ft.sideB.items||[]).slice()},
+      };
+      // the swap also clears the mat so the same two kids can trade again
+      tx.update("trades/"+code, matResetPatch(ft, {lastResult:{id:(ft.round||0)+1, type:"completed", by:null, swap}, completedAt: Date.now()}));
     });
   }catch(e){
     console.warn("trade execution error", e);
@@ -6552,40 +6670,43 @@ async function maybeExecuteTrade(t, code){
   executingTrade = false;
 }
 
-function renderTradeEndScreen(t){
-  const area = $("#tradeArea");
-  area.innerHTML = "";
-  const mine = mySideKey(t);
+// A popup after every trade at the table. The table stays open behind it.
+function showTradeResult(lr, t){
+  const old = $("#tradeResult"); if(old) old.remove();
+  const mine = mySideKey(t), theirs = otherSideKey(t);
   const emojis = (items)=>{ const row = el("span",{class:"swap-toys"}); (items||[]).forEach(id=>{ if(ITEM_MAP[id]) row.appendChild(toyEl(ITEM_MAP[id])); }); return row; };
   const card = el("div",{class:"card results-card"});
-  if(t.status==="completed"){
-    const mySide = t[mine], theirSide = t[mine==="sideA"?"sideB":"sideA"];
+  if(lr.type==="completed" && lr.swap){
     card.appendChild(el("div",{class:"big swap-anim", text:"🤝"}));
     setTimeout(()=>spawnConfetti(card, 22), 50);
     card.appendChild(el("h2",{text:"Trade complete!"}));
-    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You got"}), emojis(theirSide.items)]));
-    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You gave"}), emojis(mySide.items)]));
-  } else if(t.status==="failed"){
+    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You got"}), emojis(lr.swap[theirs].items)]));
+    card.appendChild(el("div",{class:"swap-row"},[el("span",{class:"k", text:"You gave"}), emojis(lr.swap[mine].items)]));
+    sfx("fanfare");
+  } else if(lr.type==="failed"){
     card.appendChild(el("div",{class:"big", text:"😕"}));
     card.appendChild(el("h2",{text:"Trade fell through"}));
     card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"One of you didn't have enough of an item anymore."}));
-  } else if(t.status==="declined"){
+    sfx("sad");
+  } else {
     card.appendChild(el("div",{class:"big", text:"❌"}));
     card.appendChild(el("h2",{text:"Trade declined"}));
-    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:(t.declinedBy||"Someone")+" declined. Everyone keeps their own items."}));
-  } else {
-    card.appendChild(el("div",{class:"big", text:"🚪"}));
-    card.appendChild(el("h2",{text:"Table closed"}));
-    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:"The trade was cancelled."}));
+    card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:13px", text:(lr.by||"Someone")+" declined. Everyone keeps their own items."}));
+    sfx("sad");
   }
-  card.appendChild(el("button",{class:"btn block", text:"Back to Trading Table", onclick: closeTradeSession}));
-  area.appendChild(card);
+  card.appendChild(el("p",{style:"margin:0;color:var(--ink-dim);font-size:12.5px", text:"The table is still open. Trade again, or leave when you're done."}));
+  const ov = el("div",{id:"tradeResult", class:"reveal-overlay"},[card]);
+  card.appendChild(el("button",{class:"btn block", type:"button", text:"Keep trading", onclick:()=>ov.remove()}));
+  document.body.appendChild(ov);
 }
 
 /* resume a stored trade code on boot */
 function resumeStoredTrade(){
   const code = safeLocalGet(tradeStorageKey());
-  if(code && authReady){ tradeCode = code; subscribeTrade(code); }
+  if(!(code && authReady)) return;
+  // only a table I'm still seated at can be resumed (old 4-digit codes can't)
+  if(!/^lobby-[1-6]$/.test(code)){ safeLocalRemove(tradeStorageKey()); return; }
+  openTradeSession(code);
 }
 
 /* ============================= RENDER ALL ============================= */
@@ -6606,6 +6727,7 @@ function startApp(){
   buildGamePicker();
   buildShop();
   initIdentity().then(()=>{
+    startLobby();
     resumeStoredTrade();
   });
 }

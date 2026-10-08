@@ -126,19 +126,23 @@ Every pack rattles and wobbles, then its wrapper crinkles open and the toy appea
 
 ### 🤝 Trade
 
-Two kids trade on separate tablets. One taps **Create Trading Table** and reads out the 4-digit code; the other joins with it.
+Two kids trade on separate tablets at a **lobby of 6 tables**, each with 2 seats.
+
+- **Sit down.** The Trade tab shows the six tables. Tapping an empty seat (🪑 Sit here) sits you down and opens the trading mat. Taken seats show who is sitting there. A kid can only sit in one seat at a time, and if two kids tap the same seat at once only one gets it.
+- **Trade as long as you like.** Once both seats at a table are taken, the trade starts by itself. A finished trade (or a decline) pops up its result with **Keep trading**, then clears the mat for the next trade at the same table. The kids take turns putting down the ante. The session only ends when one kid taps **🚪 Leave table**. The kid who stays remains seated, sees "Ben left the table", and waits for a new buddy.
+- **Sleepy tablets.** Each seated tablet checks in every 20 seconds. If a tablet is closed or loses power, its seat opens up about a minute later (and the buddy's tablet clears it), so a table can't get stuck.
 
 **The mat** is modeled on a real fidget-trading mat: dark navy with a pixel-mosaic print and a white center line. Each kid's items sit on their own half, and each kid's three button tiles run along their own edge: ✕ Decline, ＋ Add More, ✓ Accept. The buddy's tiles are upside down (facing them) and light up when they press them. The buddy's backpack and keychain show next to their name.
 
 **The steps** follow the playground format, with a banner and step tracker guiding each kid:
 
-1. **Ante:** the kid who created the table puts down the first item. The buddy's items stay locked until then.
+1. **Ante:** one kid puts down the first item (the kids take turns going first). The buddy's items stay locked until then.
 2. **Counter-offer:** the buddy puts down what they think matches.
 3. **Evaluate:** a balance scale on the center line adds up each side (Common ⭐1, Uncommon ⭐2, Rare ⭐4, Epic ⭐7, Legendary ⭐10, Scam ⭐0) and says whether it looks fair.
 4. **Decide:**
    - **＋ Add More** tells the other kid their offer is too low. Their side glows until they add value.
    - **✓ Accept** swaps only after both kids have pressed it.
-   - **✕ Decline** ends the trade; everyone keeps their items.
+   - **✕ Decline** clears the mat for a fresh start; everyone keeps their items and stays seated.
 
 **Your backpack during a trade** sits under the mat. Open it, tap a toy, then choose **Put on mat** or **Play**. Playing opens fidget mode with a live strip showing what's happening in the trade. Tapping the buddy's toys on the mat lets you try them out ("just looking 👀").
 
@@ -162,14 +166,15 @@ Each tablet signs in to [Firebase](https://firebase.google.com) anonymously (no 
 | `stickers` | `{ stickerId: count }`, won by finishing puzzles |
 | `packsOpened`, `lastPackScam` | Used for the scam-pack rules |
 
-**`trades/{code}`**, one per trading table:
+**`trades/lobby-{1..6}`**, one per trading table (the six docs are created the first time someone sits down, and then reused forever). Puzzle and race tables live in the same collection under `puzzle-<code>` / `race-<code>`:
 
 | Field | What it holds |
 |---|---|
-| `code`, `status` | 4-digit code; `open`, `completed`, `declined`, `cancelled` or `failed` |
-| `sideA`, `sideB` | Each side's `playerId`, `name`, `avatar`, `items`, `accepted`, `bpColor`, `keychain` |
+| `kind`, `code`, `table` | `"lobby"`, and the table number 1–6 (the doc ids are `lobby-1` … `lobby-6`) |
+| `sideA`, `sideB` | The two seats: `null` when empty, otherwise the sitter's `playerId`, `name`, `avatar`, `items`, `accepted`, `bpColor`, `keychain`, and `seenAt` (last check-in; seats older than 75 s count as empty) |
 | `addMoreTo`, `addMoreValue` | Pending "Add More" request |
-| `declinedBy`, `createdAt`, `completedAt` | Bookkeeping |
+| `round` | Goes up every time the mat is cleared (a trade, a decline, someone sitting or leaving). It decides who antes. |
+| `lastResult` | The last finished trade: `id`, `type` (`completed`, `declined` or `failed`), `by`, and for a completed trade each side's `items`. Each tablet shows it once as a popup. |
 
 `firestore.rules` holds the security rules (paste them into Firebase Console → Firestore → Rules). Any signed-in device can read and write both collections, because a trade must update both kids' inventories in one transaction. That's fine for a private family app; the file explains the next step if it ever gets a wider audience.
 
@@ -233,7 +238,7 @@ A private copy of the game for the parent to test with, at https://claude.ai/art
 - It saves everything in that browser only and **never touches the kids' real Firebase data**.
 - It starts with 99,999 coins and every toy unlocked.
 - A **🧪 Test tools** panel can add coins, refill or empty the backpack, make the next pack a scam, replay first-time screens (learning levels, backpack color), and reset everything.
-- **Robo 🤖**, a computer trade buddy, makes it possible to practice a full trade alone. Robo antes or counters with something close in value (sometimes cheekily low), answers ＋ Add More by adding an item, presses ＋ when your offer is too low, accepts deals worth at least 80% of his side, and declines repeated lowballs. To go first: Trade → Create Trading Table → 🧪 → Invite Robo. To let Robo go first: 🧪 → Robo hosts a table, then join with the code (it's filled in for you).
+- **Robo 🤖**, a computer trade buddy, makes it possible to practice a full trade alone. Robo antes or counters with something close in value (sometimes cheekily low), answers ＋ Add More by adding an item, presses ＋ when your offer is too low, accepts deals worth at least 80% of his side, and declines repeated lowballs. Sit at a table on the Trade tab, then 🧪 → **Robo sits at my table**. Or 🧪 → **Robo sits at an empty table** and take the seat across from him. Robo and you take turns anteing, and the table stays open for more trades. 🧪 → **Robo leaves his table** and **Robo's tablet falls asleep** (his seat goes stale and opens up) test those cases.
 
 The sandbox is generated from `index.html`, so it always matches the live game:
 
