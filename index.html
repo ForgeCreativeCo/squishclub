@@ -421,45 +421,48 @@ img{max-width:100%}
 .trade-step.done .n{background:var(--mint); color:#fff}
 .trade-msg{margin:0; font-weight:800; font-size:14.5px; line-height:1.35}
 
-/* the trading board: a printed mat with a dashed divider, like a real one */
-.trade-board{border-radius:22px; padding:10px; display:flex; flex-direction:column; gap:8px;
-  background:linear-gradient(var(--line) 1px, transparent 1px) 0 0/22px 22px, linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/22px 22px, var(--surface-2);
-  border:3px solid var(--ink); box-shadow:0 8px 0 rgba(0,0,0,.12), var(--shadow)}
-.board-half{background:var(--surface); border-radius:16px; padding:10px; display:flex; flex-direction:column; gap:8px; border:2px solid var(--line); transition:box-shadow .2s}
-.board-half.theirs{border-color:var(--rarity-rare)}
-.board-half.mine{border-color:var(--accent)}
-.board-half.asked{box-shadow:0 0 0 4px var(--coin); animation:popPulse .6s ease}
+/* the trading board, modeled on a real fidget-trading mat: dark navy with a
+   pixel-mosaic print, a blue glow, a white center line, a stitched edge, and
+   each player's three button tiles along their own edge (the buddy's row is
+   upside down because it faces them). */
+.trade-board{position:relative; border-radius:28px; padding:16px 14px; display:flex; flex-direction:column; gap:12px; color:#fff;
+  background:radial-gradient(ellipse 70% 45% at 50% 50%, rgba(37,99,235,.85), rgba(29,78,216,.35) 45%, transparent 75%), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96'><rect x='17' y='1' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.52'/><rect x='33' y='1' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.27'/><rect x='49' y='1' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.22'/><rect x='57' y='1' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.23'/><rect x='73' y='1' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.42'/><rect x='81' y='1' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.2'/><rect x='89' y='1' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.36'/><rect x='1' y='9' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.31'/><rect x='9' y='9' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.22'/><rect x='17' y='9' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.34'/><rect x='25' y='9' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.42'/><rect x='33' y='9' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.47'/><rect x='41' y='9' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.38'/><rect x='49' y='9' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.31'/><rect x='57' y='9' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.21'/><rect x='73' y='9' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.49'/><rect x='89' y='9' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.4'/><rect x='17' y='17' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.2'/><rect x='25' y='17' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.42'/><rect x='33' y='17' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.32'/><rect x='41' y='17' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.42'/><rect x='49' y='17' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.58'/><rect x='57' y='17' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.21'/><rect x='65' y='17' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.6'/><rect x='73' y='17' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.48'/><rect x='81' y='17' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.19'/><rect x='89' y='17' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.44'/><rect x='1' y='25' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.5'/><rect x='25' y='25' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.21'/><rect x='33' y='25' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.3'/><rect x='49' y='25' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.3'/><rect x='57' y='25' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.47'/><rect x='65' y='25' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.24'/><rect x='1' y='33' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.26'/><rect x='25' y='33' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.42'/><rect x='33' y='33' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.58'/><rect x='41' y='33' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.37'/><rect x='49' y='33' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.34'/><rect x='57' y='33' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.38'/><rect x='65' y='33' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.21'/><rect x='33' y='41' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.21'/><rect x='49' y='41' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.58'/><rect x='57' y='41' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.23'/><rect x='65' y='41' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.38'/><rect x='89' y='41' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.38'/><rect x='1' y='49' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.19'/><rect x='9' y='49' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.33'/><rect x='17' y='49' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.5'/><rect x='33' y='49' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.47'/><rect x='49' y='49' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.33'/><rect x='65' y='49' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.32'/><rect x='81' y='49' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.52'/><rect x='89' y='49' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.26'/><rect x='1' y='57' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.6'/><rect x='9' y='57' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.29'/><rect x='17' y='57' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.37'/><rect x='25' y='57' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.58'/><rect x='33' y='57' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.22'/><rect x='41' y='57' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.27'/><rect x='49' y='57' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.53'/><rect x='57' y='57' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.52'/><rect x='73' y='57' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.51'/><rect x='81' y='57' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.55'/><rect x='89' y='57' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.22'/><rect x='1' y='65' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.37'/><rect x='9' y='65' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.48'/><rect x='41' y='65' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.44'/><rect x='49' y='65' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.46'/><rect x='57' y='65' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.41'/><rect x='73' y='65' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.4'/><rect x='81' y='65' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.59'/><rect x='1' y='73' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.29'/><rect x='25' y='73' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.41'/><rect x='33' y='73' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.56'/><rect x='41' y='73' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.46'/><rect x='49' y='73' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.36'/><rect x='57' y='73' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.23'/><rect x='73' y='73' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.51'/><rect x='81' y='73' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.25'/><rect x='89' y='73' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.41'/><rect x='9' y='81' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.38'/><rect x='17' y='81' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.2'/><rect x='49' y='81' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.5'/><rect x='57' y='81' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.32'/><rect x='65' y='81' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.4'/><rect x='73' y='81' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.39'/><rect x='81' y='81' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.58'/><rect x='89' y='81' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.57'/><rect x='1' y='89' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.53'/><rect x='25' y='89' width='6.5' height='6.5' fill='#1d4fd8' fill-opacity='0.46'/><rect x='33' y='89' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.46'/><rect x='41' y='89' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.57'/><rect x='49' y='89' width='6.5' height='6.5' fill='#1e3a8a' fill-opacity='0.24'/><rect x='57' y='89' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.27'/><rect x='65' y='89' width='6.5' height='6.5' fill='#3b82f6' fill-opacity='0.55'/><rect x='81' y='89' width='6.5' height='6.5' fill='#2563eb' fill-opacity='0.25'/><rect x='89' y='89' width='6.5' height='6.5' fill='#172f6e' fill-opacity='0.35'/></svg>") 0 0/96px 96px, #0b1633;
+  border:5px solid #0a1230; box-shadow:inset 0 0 0 2px rgba(120,150,255,.18), inset 0 0 0 5px #0a1230, inset 0 0 0 6px rgba(255,255,255,.08), 0 14px 30px -10px rgba(10,18,48,.6)}
+.mat-brand{font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive; font-style:italic; font-size:17px; opacity:.85; line-height:1}
+.mat-brand.theirs{align-self:flex-start; transform:rotate(180deg)}
+.mat-brand.mine{align-self:flex-end}
+.mat-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; width:100%; max-width:430px; align-self:center}
+.mat-btn{aspect-ratio:1; min-width:0; overflow:hidden; border-radius:22%; border:3px solid #2f7bff; cursor:pointer; padding:14%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  background:linear-gradient(160deg,#1a2c5c,#0f1d45); box-shadow:0 0 0 3px #10204d, 0 6px 0 #071030, inset 0 2px 0 rgba(255,255,255,.12); transition:transform .08s, box-shadow .15s, filter .2s; color:#fff}
+.mat-btn svg{flex:1 1 0; min-height:0; width:100%; filter:drop-shadow(0 3px 2px rgba(0,0,0,.35))}
+.mat-btn .l{flex:none; font-size:11px; font-weight:800; letter-spacing:.02em; opacity:.85; white-space:nowrap}
+.mat-btn:active:not(:disabled), .mat-btn.pressed{transform:translateY(5px); box-shadow:0 0 0 3px #10204d, 0 1px 0 #071030, inset 0 2px 6px rgba(0,0,0,.4)}
+.mat-btn:disabled{filter:saturate(.25) brightness(.7); cursor:default}
+.mat-btn.lit.accept{box-shadow:0 0 0 3px #10204d, 0 0 22px 6px rgba(74,222,128,.75); border-color:#4ade80}
+.mat-btn.lit.more{box-shadow:0 0 0 3px #10204d, 0 0 22px 6px rgba(56,189,248,.8); border-color:#38bdf8}
+.mat-row.theirs .mat-btn{cursor:default; pointer-events:none}
+.mat-row.theirs .mat-btn:not(.lit){filter:brightness(.8)}
+.mat-row.theirs svg{transform:rotate(180deg)}
+.mat-field{display:flex; flex-direction:column; gap:8px; padding:4px 2px}
+.mat-field.asked .board-slots{box-shadow:0 0 0 3px #fbbf24, 0 0 20px rgba(251,191,36,.6); border-radius:14px; animation:popPulse .6s ease}
 .board-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-.board-head .who{font-weight:800; font-size:14px; flex:1; min-width:0}
+.board-head .who{font-weight:800; font-size:14px; flex:1; min-width:0; text-shadow:0 1px 2px rgba(0,0,0,.4)}
 .board-val{font-family:var(--font-display); font-size:16px}
 .board-badge{font-size:11px; font-weight:800; padding:3px 8px; border-radius:999px}
-.board-badge.ok{background:var(--mint-soft); color:var(--ink)}
-.board-badge.more{background:var(--coin); color:#fff}
+.board-badge.ok{background:#4ade80; color:#052e16}
+.board-badge.more{background:#fbbf24; color:#422006}
 .board-slots{display:grid; grid-template-columns:repeat(6,1fr); gap:6px}
 @media (max-width:420px){ .board-slots{grid-template-columns:repeat(3,1fr)} }
-.board-slot{aspect-ratio:1; border:2px dashed var(--line); border-radius:12px; background:var(--surface-2); display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative}
-.board-slot.filled{border-style:solid; border-color:var(--rc); background:var(--rc-soft); animation:popPulse .25s ease}
+.board-slot{aspect-ratio:1; border:2px dashed rgba(147,180,255,.35); border-radius:12px; background:rgba(255,255,255,.04); display:flex; flex-direction:column; align-items:center; justify-content:center}
+.board-slot.filled{border-style:solid; border-color:var(--rc); background:radial-gradient(circle at 50% 40%, var(--rc-soft), rgba(255,255,255,.1) 75%); animation:popPulse .25s ease}
 .board-slot .e{font-size:26px; line-height:1}
-.board-slot .v{font-size:10px; font-weight:800; margin-top:2px}
+.board-slot .v{font-size:10px; font-weight:800; margin-top:2px; color:#fff}
 .board-slot.removable{cursor:pointer}
-.board-tip{font-size:11px; color:var(--ink-dim); text-align:center}
-.board-middle{display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px 0; border-top:3px dashed var(--ink); border-bottom:3px dashed var(--ink)}
-.trade-scale{display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; padding-top:6px}
-.trade-scale .beam{display:flex; align-items:center; gap:8px; transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
-.trade-scale .pan{font-family:var(--font-display); font-size:14px; background:var(--surface); border:2px solid var(--line); border-radius:999px; padding:3px 12px}
-.trade-scale .pivot{font-size:14px; color:var(--ink-dim)}
-.trade-scale .verdict{font-weight:800; font-size:13px}
-.board-buttons{display:flex; gap:14px; justify-content:center}
-.board-btn{width:84px; height:84px; border-radius:50%; border:none; cursor:pointer; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  box-shadow:0 6px 0 rgba(0,0,0,.25); transition:transform .08s, box-shadow .08s, filter .2s; font-weight:800}
-.board-btn .i{font-size:28px; line-height:1}
-.board-btn .l{font-size:11.5px}
-.board-btn:active:not(:disabled), .board-btn.pressed{transform:translateY(5px); box-shadow:0 1px 0 rgba(0,0,0,.25)}
-.board-btn:disabled{filter:grayscale(.85) opacity(.5); cursor:default}
-.board-btn.more{background:radial-gradient(circle at 34% 26%, #ffe08a, #f2a516 70%)}
-.board-btn.accept{background:radial-gradient(circle at 34% 26%, #9df0c2, #1fae63 70%)}
-.board-btn.decline{background:radial-gradient(circle at 34% 26%, #ffb0b0, #e5484d 70%)}
-.board-btn.accept.pressed{box-shadow:0 0 0 5px var(--mint-soft), 0 1px 0 rgba(0,0,0,.25)}
+.board-tip{font-size:11px; opacity:.7; text-align:center}
+.mat-divider{position:relative; min-height:34px; display:flex; align-items:center; justify-content:center}
+.mat-divider::before{content:""; position:absolute; left:-14px; right:-14px; top:50%; height:4px; margin-top:-2px; background:#f3efe2; box-shadow:0 0 10px rgba(255,255,255,.35)}
+.mat-scale{position:relative; display:flex; flex-wrap:wrap; align-items:center; justify-content:center; column-gap:8px; row-gap:2px; background:#0b1633; border:2px solid #f3efe2; border-radius:18px; padding:4px 14px; font-size:12.5px; font-weight:800; text-align:center; max-width:100%}
+.mat-scale .tip{display:inline-block; transition:transform .5s cubic-bezier(.3,1.6,.5,1)}
 .item-grid.waiting{opacity:.45}
 .item-card .val{position:absolute; top:4px; left:5px; font-size:9.5px; font-weight:800}
 .trade-legend{margin:0; font-size:11px; color:var(--ink-dim); text-align:center}
@@ -2214,11 +2217,17 @@ function buildTradeTable(){
   ]);
   wrap.appendChild(banner);
 
-  // The board: buddy's side on top, yours on the bottom, buttons down the middle.
+  // The mat: buddy's buttons and items on top (their button row is upside
+  // down and lights up when they press it), the white center line with the
+  // scale, then your items and your own three buttons along your edge.
   const board = el("div",{class:"trade-board"});
+  board.appendChild(el("div",{class:"mat-brand theirs", text:"Squish Trade Club"}));
+  board.appendChild(buildMatButtons(false, phase, theirAccepted, askedMe, false));
   board.appendChild(buildBoardSide(false, them, theirAccepted, addMore && addMore.to===theirs));
-  board.appendChild(buildBoardMiddle(t, mine, theirs, phase, myAccepted, iAsked));
+  board.appendChild(buildMatDivider(t, mine, theirs));
   board.appendChild(buildBoardSide(true, me, myAccepted, askedMe));
+  board.appendChild(buildMatButtons(true, phase, myAccepted, iAsked, true));
+  board.appendChild(el("div",{class:"mat-brand mine", text:"Squish Trade Club"}));
   wrap.appendChild(board);
 
   // Your items to place on the board
@@ -2251,14 +2260,13 @@ function buildTradeTable(){
 
 function buildBoardSide(isMe, side, accepted, beingAsked){
   const items = side.items||[];
-  const half = el("div",{class:"board-half "+(isMe?"mine":"theirs")+(beingAsked?" asked":"")});
+  const field = el("div",{class:"mat-field "+(isMe?"mine":"theirs")+(beingAsked?" asked":"")});
   const head = el("div",{class:"board-head"},[
     el("span",{class:"who", text:(side.avatar||"🙂")+" "+(isMe?"You":(side.name||"Trader"))}),
     el("span",{class:"board-val", text:"⭐ "+offerValue(items)}),
   ]);
-  if(accepted) head.appendChild(el("span",{class:"board-badge ok", text:"✔️ Accepted"}));
-  if(beingAsked) head.appendChild(el("span",{class:"board-badge more", text:"➕ Add more!"}));
-  half.appendChild(head);
+  if(accepted) head.appendChild(el("span",{class:"board-badge ok", text:"✔ Accepted"}));
+  if(beingAsked) head.appendChild(el("span",{class:"board-badge more", text:"＋ Add more!"}));
   const slots = el("div",{class:"board-slots"});
   for(let i=0;i<MAX_OFFER;i++){
     const id = items[i];
@@ -2277,44 +2285,69 @@ function buildBoardSide(isMe, side, accepted, beingAsked){
       slots.appendChild(el("div",{class:"board-slot"}));
     }
   }
-  half.appendChild(slots);
-  if(isMe && items.length) half.appendChild(el("div",{class:"board-tip", text:"Tap an item on the board to take it back."}));
-  return half;
+  // Names sit on the outer edge of each half, items toward the center line.
+  if(isMe){ field.appendChild(slots); field.appendChild(head); if(items.length) field.appendChild(el("div",{class:"board-tip", text:"Tap an item on the mat to take it back."})); }
+  else { field.appendChild(head); field.appendChild(slots); }
+  return field;
 }
 
-function buildBoardMiddle(t, mine, theirs, phase, myAccepted, iAsked){
-  const mid = el("div",{class:"board-middle"});
+// Chunky outlined icons like the mat's: a white stroke under a colored one.
+const MAT_ICONS = {
+  decline: {color:"#ef4444", d:"M18 18 L46 46 M46 18 L18 46"},
+  more:    {color:"#38a3f5", d:"M32 13 V51 M13 32 H51"},
+  accept:  {color:"#5fd068", d:"M14 34 L27 47 L51 19"},
+};
+function matIcon(kind){
+  const ic = MAT_ICONS[kind], NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox","0 0 64 64");
+  [["#fff8ec",17],[ic.color,11]].forEach(([stroke,w])=>{
+    const p = document.createElementNS(NS,"path");
+    p.setAttribute("d", ic.d); p.setAttribute("fill","none"); p.setAttribute("stroke", stroke);
+    p.setAttribute("stroke-width", w); p.setAttribute("stroke-linecap","round"); p.setAttribute("stroke-linejoin","round");
+    svg.appendChild(p);
+  });
+  return svg;
+}
+
+// One player's row of three tiles. Yours are the real buttons, in the mat's
+// order (✕ ＋ ✓); the buddy's row is shown upside down, mirrored, and only
+// lights up to show what they've pressed.
+function buildMatButtons(isMe, phase, accepted, askedMore, interactive){
+  const row = el("div",{class:"mat-row "+(isMe?"mine":"theirs")});
+  const ready = phase==="negotiate";
+  const defs = [
+    {kind:"decline", label:"Decline", enabled:true, onclick:declineTrade, lit:false},
+    {kind:"more", label: askedMore && isMe ? "Asked" : "Add More", enabled: ready && !askedMore, onclick:requestAddMore, lit:askedMore},
+    {kind:"accept", label: accepted ? "Accepted" : "Accept", enabled: ready, onclick:toggleAccept, lit:accepted},
+  ];
+  (isMe ? defs : defs.slice().reverse()).forEach(d=>{
+    const b = el("button",{class:"mat-btn "+d.kind+(d.lit?" lit":"")+(d.lit&&isMe?" pressed":""), type:"button", "aria-label": (isMe?"":"Buddy's ")+d.label});
+    b.appendChild(matIcon(d.kind));
+    if(isMe) b.appendChild(el("span",{class:"l", text:d.label}));
+    if(interactive){ if(d.enabled) b.addEventListener("click", d.onclick); else b.disabled = true; }
+    else b.tabIndex = -1;
+    row.appendChild(b);
+  });
+  return row;
+}
+
+// The white center line, with the fairness check sitting on it.
+function buildMatDivider(t, mine, theirs){
   const myVal = offerValue(t[mine].items), theirVal = offerValue(t[theirs].items);
   const theirName = t[theirs].name||"Buddy";
-
-  // Fairness scale: the beam tips toward the side that's worth more.
-  const total = myVal + theirVal;
   const diff = Math.abs(myVal - theirVal);
-  let verdict;
-  if(!myVal || !theirVal) verdict = "⚖️ Both sides need an item";
-  else if(diff <= Math.max(1, Math.round(Math.max(myVal,theirVal)*0.2))) verdict = "⚖️ Looks fair! 👍";
-  else verdict = myVal>theirVal ? "⚖️ Your side is worth more" : "⚖️ "+theirName+"'s side is worth more";
-  const tilt = total ? Math.max(-7, Math.min(7, (theirVal - myVal) / total * 14)) : 0;
-  const scale = el("div",{class:"trade-scale"},[
-    el("div",{class:"beam", style:"transform:rotate("+(-tilt).toFixed(1)+"deg)"},[
-      el("span",{class:"pan", text:"You ⭐"+myVal}), el("span",{class:"pivot", text:"▲"}), el("span",{class:"pan", text:theirName+" ⭐"+theirVal})
-    ]),
-    el("div",{class:"verdict", text:verdict})
+  let verdict, tip = 0;
+  if(!myVal || !theirVal) verdict = "Both sides need an item";
+  else if(diff <= Math.max(1, Math.round(Math.max(myVal,theirVal)*0.2))) verdict = "Looks fair! 👍";
+  else { verdict = myVal>theirVal ? "Your side is worth more" : theirName+"'s side is worth more"; tip = myVal>theirVal ? 1 : -1; }
+  const scale = el("div",{class:"mat-scale"},[
+    el("span",{text:"You ⭐"+myVal}),
+    el("span",{class:"tip", text:"⚖️", style:"transform:rotate("+(tip*-18)+"deg)"}),
+    el("span",{text:theirName+" ⭐"+theirVal}),
+    el("span",{class:"verdict", style:"opacity:.85", text:verdict}),
   ]);
-  mid.appendChild(scale);
-
-  const ready = phase==="negotiate";
-  const btns = el("div",{class:"board-buttons"});
-  const mk = (cls, icon, label, enabled, onclick, pressed)=>{
-    const b = el("button",{class:"board-btn "+cls+(pressed?" pressed":""), type:"button"},[el("span",{class:"i", text:icon}), el("span",{class:"l", text:label})]);
-    if(enabled) b.addEventListener("click", onclick); else b.disabled = true;
-    return b;
-  };
-  btns.appendChild(mk("more", "➕", iAsked ? "Asked" : "Add More", ready && !iAsked, requestAddMore, iAsked));
-  btns.appendChild(mk("accept", "✔️", myAccepted ? "Accepted" : "Accept", ready, toggleAccept, myAccepted));
-  btns.appendChild(mk("decline", "❌", "Decline", true, declineTrade, false));
-  mid.appendChild(btns);
-  return mid;
+  return el("div",{class:"mat-divider"},[scale]);
 }
 
 let offerWritePending = false, offerWriteQueued = false;
