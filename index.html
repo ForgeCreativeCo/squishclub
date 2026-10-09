@@ -2482,7 +2482,9 @@ function startGame(id){
   else if(id==="words") initWordGame(stage);
 }
 
-function gameResultsScreen(stage, coinsEarned, lines, extra, custom){
+function gameResultsScreen(stage, coinsEarned, lines, extra, custom, wonItems){
+  // wonItems (optional): {itemId: qty} of toys to add to the collection along with the coins.
+  wonItems = wonItems || {};
   stage.innerHTML = "";
   if(custom && custom.marker) stage.appendChild(custom.marker);   // keeps a table game "alive" (seat heartbeat, live updates) while results are showing
   const card = el("div",{class:"card results-card"});
@@ -2490,17 +2492,28 @@ function gameResultsScreen(stage, coinsEarned, lines, extra, custom){
   card.appendChild(el("h2",{text:"Nice round!"}));
   lines.forEach(l=> card.appendChild(el("p",{text:l, style:"margin:0;color:var(--ink-dim);font-size:13px"})) );
   if(extra) card.appendChild(extra);
+  const wonIds = Object.keys(wonItems).filter(k=>ITEM_MAP[k]);
+  if(wonIds.length){
+    const row = el("div",{style:"display:flex;flex-wrap:wrap;justify-content:center;gap:8px"});
+    wonIds.forEach(k=>{
+      const cell = el("div",{style:"position:relative;width:56px;height:56px"});
+      cell.appendChild(toyEl(ITEM_MAP[k]));
+      if(wonItems[k]>1) cell.appendChild(el("span",{style:"position:absolute;right:-6px;bottom:-4px;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;background:var(--surface);border:2px solid var(--line);color:var(--ink)", text:"x"+wonItems[k]}));
+      row.appendChild(cell);
+    });
+    card.appendChild(row);
+  }
   card.appendChild(el("div",{class:"coins-earned", text:"+"+coinsEarned+" 🪙"}));
   const row = el("div",{style:"display:flex;gap:10px;margin-top:6px"});
   // Table games (puzzles, racers with a buddy) pass their own buttons: back to the table, or leave it.
   row.appendChild(el("button",{class:"btn", text: custom ? custom.again.text : "Claim & Play Again", onclick: async ()=>{
-    await addItemsAndCoins({}, coinsEarned);
+    await addItemsAndCoins(wonItems, coinsEarned);
     if(custom){ custom.again.fn(); return; }
     exitGame();
     startGame(id_cache);
   }}));
   row.appendChild(el("button",{class:"btn secondary", text: custom ? custom.done.text : "Done", onclick: async ()=>{
-    await addItemsAndCoins({}, coinsEarned);
+    await addItemsAndCoins(wonItems, coinsEarned);
     if(custom){ custom.done.fn(); return; }
     exitGame();
   }}));
@@ -4018,6 +4031,7 @@ function initCraneGame(stage){
 
   let W = 340, H = 440, floorY = 388;
   let toys = [], cx = 190, cy = C.restY, phase = "intro", dir = 0, lastTs = 0;
+  const won = {};   // toys that reached the chute, kept along with the coins
   let tries = C.tries, prizes = 0, coins = 0, grabbed = null, slipAt = -1, openAmt = 1;
 
   function setMsg(t){ msg.textContent = t; }
@@ -4127,6 +4141,7 @@ function initCraneGame(stage){
   function scorePrize(t){
     const c = C.pay[t.item.rarity] || 4;
     prizes++; coins += c; t.gone = true;
+    won[t.item.id] = (won[t.item.id]||0) + 1;
     hPrizes.querySelector(".v").textContent = prizes; hCoins.querySelector(".v").textContent = coins;
     popText("+"+c+" 🪙 "+t.item.name, Math.max(70,Math.min(W-70,t.x)), floorY-70);
     sfx("fanfare"); buzz(40);
@@ -4203,7 +4218,8 @@ function initCraneGame(stage){
     const lines = ["You grabbed "+prizes+" of "+C.tries+" tries."];
     const best = toys.filter(t=>t.gone).sort((a,b)=>RARITY_ORDER.indexOf(b.item.rarity)-RARITY_ORDER.indexOf(a.item.rarity))[0];
     if(best) lines.push("Best prize: "+best.item.name+" ("+RARITY_LABEL[best.item.rarity]+").");
-    gameResultsScreen(stage, pay, lines);
+    if(prizes) lines.push("You keep every squishy you grabbed, plus the coins!");
+    gameResultsScreen(stage, pay, lines, null, null, won);
   }
 
   // Controls: hold ◀ / ▶, or drag a finger across the machine; GRAB! drops the claw.
